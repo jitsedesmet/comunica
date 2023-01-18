@@ -87,16 +87,16 @@
 					<pre><code class="language-text">{
   &quot;@context&quot;: [
     ...
-    &quot;https://linkedsoftwaredependencies.org/bundles/npm/@comunica/actor-abstract-mediatyped/^1.0.0/components/context.jsonld&quot;,
-    &quot;https://linkedsoftwaredependencies.org/bundles/npm/@comunica/actor-rdf-serialize-jsonld/^1.0.0/components/context.jsonld&quot;  
+    &quot;https://linkedsoftwaredependencies.org/bundles/npm/@comunica/actor-abstract-mediatyped/^2.0.0/components/context.jsonld&quot;,
+    &quot;https://linkedsoftwaredependencies.org/bundles/npm/@comunica/actor-rdf-serialize-jsonld/^2.0.0/components/context.jsonld&quot;  
   ],
   &quot;actors&quot;: [
     ...
     {
-      &quot;@id&quot;: &quot;config-sets:rdf-serializers.json#myRdfSerializeJsonLd&quot;,
+      &quot;@id&quot;: &quot;urn:comunica:default:rdf-serialize/actors#jsonld&quot;,
       &quot;@type&quot;: &quot;ActorRdfSerializeJsonLd&quot;,
-      &quot;carsjl:Actor/RdfSerialize/JsonLd/jsonStringifyIndentSpaces&quot;: 2,
-      &quot;caam:Actor/AbstractMediaTypedFixed/priorityScale&quot;: 0.9
+      &quot;jsonStringifyIndentSpaces&quot;: 2,
+      &quot;priorityScale&quot;: 0.9
     }
   ]
 }
@@ -105,8 +105,8 @@
 						<h3>Config Parameters</h3>
 					</a>
 					<ul>
-						<li><code>cbqo:carsjl:Actor/RdfSerialize/JsonLd/jsonStringifyIndentSpaces</code>: An optional parameter to indicate with how many spaces JSON should be indented, defaults to <code>2</code>.</li>
-						<li><code>caam:Actor/AbstractMediaTypedFixed/priorityScale</code>: An optional priority for this serializer, used for content negotiation, defaults to <code>1</code>.</li>
+						<li><code>jsonStringifyIndentSpaces</code>: An optional parameter to indicate with how many spaces JSON should be indented, defaults to <code>2</code>.</li>
+						<li><code>priorityScale</code>: An optional priority for this serializer, used for content negotiation, defaults to <code>1</code>.</li>
 					</ul>
 				</div>
 			</section>
@@ -117,13 +117,13 @@
 						<section class="tsd-index-section ">
 							<h3>Classes</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/actor_rdf_serialize_jsonld.actorrdfserializejsonld.html" class="tsd-kind-icon">Actor<wbr>Rdf<wbr>Serialize<wbr>Json<wbr>Ld</a></li>
+								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/actor_rdf_serialize_jsonld.ActorRdfSerializeJsonLd.html" class="tsd-kind-icon">Actor<wbr>Rdf<wbr>Serialize<wbr>Json<wbr>Ld</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
 							<h3>Interfaces</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/actor_rdf_serialize_jsonld.iactorrdfserializejsonldargs.html" class="tsd-kind-icon">IActor<wbr>Rdf<wbr>Serialize<wbr>Json<wbr>LdArgs</a></li>
+								<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/actor_rdf_serialize_jsonld.IActorRdfSerializeJsonLdArgs.html" class="tsd-kind-icon">IActor<wbr>Rdf<wbr>Serialize<wbr>Json<wbr>LdArgs</a></li>
 							</ul>
 						</section>
 					</div>
@@ -149,10 +149,10 @@
 						<a href="actor_rdf_serialize_jsonld.html" class="tsd-kind-icon">actor-<wbr>rdf-<wbr>serialize-<wbr>jsonld</a>
 						<ul>
 							<li class=" tsd-kind-class tsd-parent-kind-module">
-								<a href="../classes/actor_rdf_serialize_jsonld.actorrdfserializejsonld.html" class="tsd-kind-icon">Actor<wbr>Rdf<wbr>Serialize<wbr>Json<wbr>Ld</a>
+								<a href="../classes/actor_rdf_serialize_jsonld.ActorRdfSerializeJsonLd.html" class="tsd-kind-icon">Actor<wbr>Rdf<wbr>Serialize<wbr>Json<wbr>Ld</a>
 							</li>
 							<li class=" tsd-kind-interface tsd-parent-kind-module">
-								<a href="../interfaces/actor_rdf_serialize_jsonld.iactorrdfserializejsonldargs.html" class="tsd-kind-icon">IActor<wbr>Rdf<wbr>Serialize<wbr>Json<wbr>LdArgs</a>
+								<a href="../interfaces/actor_rdf_serialize_jsonld.IActorRdfSerializeJsonLdArgs.html" class="tsd-kind-icon">IActor<wbr>Rdf<wbr>Serialize<wbr>Json<wbr>LdArgs</a>
 							</li>
 						</ul>
 					</li>
@@ -170,6 +170,7 @@
 			<ul class="tsd-legend">
 				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
 				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
+				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
 				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
 				<li class="tsd-kind-type-alias tsd-has-type-parameter"><span class="tsd-kind-icon">Type alias with type parameter</span></li>
 			</ul>

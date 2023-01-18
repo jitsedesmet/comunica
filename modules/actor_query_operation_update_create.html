@@ -88,15 +88,15 @@
 					<pre><code class="language-text">{
   &quot;@context&quot;: [
     ...
-    &quot;https://linkedsoftwaredependencies.org/bundles/npm/@comunica/actor-query-operation-update-create/^1.0.0/components/context.jsonld&quot;  
+    &quot;https://linkedsoftwaredependencies.org/bundles/npm/@comunica/actor-query-operation-update-create/^2.0.0/components/context.jsonld&quot;  
   ],
   &quot;actors&quot;: [
     ...
     {
-      &quot;@id&quot;: &quot;config-sets:sparql-queryoperators.json#myCreateQueryOperator&quot;,
+      &quot;@id&quot;: &quot;urn:comunica:default:query-operation/actors#update-create&quot;,
       &quot;@type&quot;: &quot;ActorQueryOperationCreate&quot;,
-      &quot;cbqo:mediatorQueryOperation&quot;: { &quot;@id&quot;: &quot;config-sets:sparql-queryoperators.json#mediatorQueryOperation&quot; }
-      &quot;caqoucr:mediatorUpdateQuads&quot;: { &quot;@id&quot;: &quot;config-sets:sparql-queryoperator-update.json#mediatorUpdateQuads&quot; }
+      &quot;mediatorQueryOperation&quot;: { &quot;@id&quot;: &quot;urn:comunica:default:query-operation/mediators#main&quot; },
+      &quot;mediatorUpdateQuads&quot;: { &quot;@id&quot;: &quot;urn:comunica:default:rdf-update-quads/mediators#main&quot; }
     }
   ]
 }
@@ -105,8 +105,8 @@
 						<h3>Config Parameters</h3>
 					</a>
 					<ul>
-						<li><code>cbqo:mediatorQueryOperation</code>: A mediator over the <a href="https://github.com/comunica/comunica/tree/master/packages/bus-query-operation">Query Operation bus</a>.</li>
-						<li><code>caqoucr:mediatorUpdateQuads</code>: A mediator over the <a href="https://github.com/comunica/comunica/tree/master/packages/bus-rdf-update-quads">RDF Update Quads bus</a>.</li>
+						<li><code>mediatorQueryOperation</code>: A mediator over the <a href="https://github.com/comunica/comunica/tree/master/packages/bus-query-operation">Query Operation bus</a>.</li>
+						<li><code>mediatorUpdateQuads</code>: A mediator over the <a href="https://github.com/comunica/comunica/tree/master/packages/bus-rdf-update-quads">RDF Update Quads bus</a>.</li>
 					</ul>
 				</div>
 			</section>
@@ -117,13 +117,13 @@
 						<section class="tsd-index-section ">
 							<h3>Classes</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/actor_query_operation_update_create.actorqueryoperationcreate.html" class="tsd-kind-icon">Actor<wbr>Query<wbr>Operation<wbr>Create</a></li>
+								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/actor_query_operation_update_create.ActorQueryOperationCreate.html" class="tsd-kind-icon">Actor<wbr>Query<wbr>Operation<wbr>Create</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
 							<h3>Interfaces</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/actor_query_operation_update_create.iactorqueryoperationcreateargs.html" class="tsd-kind-icon">IActor<wbr>Query<wbr>Operation<wbr>Create<wbr>Args</a></li>
+								<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/actor_query_operation_update_create.IActorQueryOperationCreateArgs.html" class="tsd-kind-icon">IActor<wbr>Query<wbr>Operation<wbr>Create<wbr>Args</a></li>
 							</ul>
 						</section>
 					</div>
@@ -149,10 +149,10 @@
 						<a href="actor_query_operation_update_create.html" class="tsd-kind-icon">actor-<wbr>query-<wbr>operation-<wbr>update-<wbr>create</a>
 						<ul>
 							<li class=" tsd-kind-class tsd-parent-kind-module">
-								<a href="../classes/actor_query_operation_update_create.actorqueryoperationcreate.html" class="tsd-kind-icon">Actor<wbr>Query<wbr>Operation<wbr>Create</a>
+								<a href="../classes/actor_query_operation_update_create.ActorQueryOperationCreate.html" class="tsd-kind-icon">Actor<wbr>Query<wbr>Operation<wbr>Create</a>
 							</li>
 							<li class=" tsd-kind-interface tsd-parent-kind-module">
-								<a href="../interfaces/actor_query_operation_update_create.iactorqueryoperationcreateargs.html" class="tsd-kind-icon">IActor<wbr>Query<wbr>Operation<wbr>Create<wbr>Args</a>
+								<a href="../interfaces/actor_query_operation_update_create.IActorQueryOperationCreateArgs.html" class="tsd-kind-icon">IActor<wbr>Query<wbr>Operation<wbr>Create<wbr>Args</a>
 							</li>
 						</ul>
 					</li>
@@ -170,6 +170,7 @@
 			<ul class="tsd-legend">
 				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
 				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
+				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
 				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
 				<li class="tsd-kind-type-alias tsd-has-type-parameter"><span class="tsd-kind-icon">Type alias with type parameter</span></li>
 			</ul>

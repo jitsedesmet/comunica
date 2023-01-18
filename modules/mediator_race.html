@@ -87,16 +87,16 @@
 					<pre><code class="language-text">{
   &quot;@context&quot;: [
     ...
-    &quot;https://linkedsoftwaredependencies.org/bundles/npm/@comunica/mediator-race/^1.0.0/components/context.jsonld&quot;  
+    &quot;https://linkedsoftwaredependencies.org/bundles/npm/@comunica/mediator-race/^2.0.0/components/context.jsonld&quot;  
   ],
   &quot;actors&quot;: [
     ...
     {
       &quot;@type&quot;: &quot;SomeActor&quot;,
       &quot;someMediator&quot;: {
-        &quot;@id&quot;: &quot;config-sets:rdf-dereference.json#mediatorRdfParseHandle&quot;,
+        &quot;@id&quot;: &quot;#mediatorRdfParseHandle&quot;,
         &quot;@type&quot;: &quot;MediatorRace&quot;,
-        &quot;cc:Mediator/bus&quot;: { &quot;@id&quot;: &quot;cbrp:Bus/RdfParse&quot; }
+        &quot;bus&quot;: { &quot;@id&quot;: &quot;ActorRdfParse:_default_bus&quot; }
       }
     }
   ]
@@ -106,7 +106,7 @@
 						<h3>Config Parameters</h3>
 					</a>
 					<ul>
-						<li><code>cc:Mediator/bus</code>: Identifier of the bus to mediate over.</li>
+						<li><code>bus</code>: Identifier of the bus to mediate over.</li>
 					</ul>
 				</div>
 			</section>
@@ -117,7 +117,7 @@
 						<section class="tsd-index-section ">
 							<h3>Classes</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter"><a href="../classes/mediator_race.mediatorrace.html" class="tsd-kind-icon">Mediator<wbr>Race</a></li>
+								<li class="tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter"><a href="../classes/mediator_race.MediatorRace.html" class="tsd-kind-icon">Mediator<wbr>Race</a></li>
 							</ul>
 						</section>
 					</div>
@@ -143,7 +143,7 @@
 						<a href="mediator_race.html" class="tsd-kind-icon">mediator-<wbr>race</a>
 						<ul>
 							<li class=" tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter">
-								<a href="../classes/mediator_race.mediatorrace.html" class="tsd-kind-icon">Mediator<wbr>Race</a>
+								<a href="../classes/mediator_race.MediatorRace.html" class="tsd-kind-icon">Mediator<wbr>Race</a>
 							</li>
 						</ul>
 					</li>
@@ -161,6 +161,7 @@
 			<ul class="tsd-legend">
 				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
 				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
+				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
 				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
 				<li class="tsd-kind-type-alias tsd-has-type-parameter"><span class="tsd-kind-icon">Type alias with type parameter</span></li>
 			</ul>
