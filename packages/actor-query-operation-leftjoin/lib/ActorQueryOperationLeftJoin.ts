@@ -1,4 +1,6 @@
 import type { MediatorExpressionEvaluatorFactory } from '@comunica/bus-expression-evaluator-factory';
+import { BindingsFactory } from '@comunica/bindings-factory';
+import type { MediatorMergeBindingsContext } from '@comunica/bus-merge-bindings-context';
 import type { IActorQueryOperationTypedMediatedArgs } from '@comunica/bus-query-operation';
 import { ActorQueryOperation, ActorQueryOperationTypedMediated } from '@comunica/bus-query-operation';
 import type { MediatorRdfJoin } from '@comunica/bus-rdf-join';
@@ -12,6 +14,7 @@ import type { Algebra } from 'sparqlalgebrajs';
  */
 export class ActorQueryOperationLeftJoin extends ActorQueryOperationTypedMediated<Algebra.LeftJoin> {
   public readonly mediatorJoin: MediatorRdfJoin;
+  public readonly mediatorMergeBindingsContext: MediatorMergeBindingsContext;
   private readonly mediatorExpressionEvaluatorFactory: MediatorExpressionEvaluatorFactory;
 
   public constructor(args: IActorQueryOperationLeftJoinArgs) {
@@ -19,7 +22,7 @@ export class ActorQueryOperationLeftJoin extends ActorQueryOperationTypedMediate
     this.mediatorExpressionEvaluatorFactory = args.mediatorExpressionEvaluatorFactory;
   }
 
-  public async testOperation(operation: Algebra.LeftJoin, context: IActionContext): Promise<IActorTest> {
+  public async testOperation(_operation: Algebra.LeftJoin, _context: IActionContext): Promise<IActorTest> {
     return true;
   }
 
@@ -46,6 +49,7 @@ export class ActorQueryOperationLeftJoin extends ActorQueryOperationTypedMediate
       const bindingsStream = joined.bindingsStream
         .transform({
           autoStart: false,
+          // eslint-disable-next-line ts/no-misused-promises
           transform: async(bindings: Bindings, done: () => void, push: (item: Bindings) => void) => {
             // If variables of the right-hand entry are missing, we skip expression evaluation
             if (!expressionVariables.every(variable => bindings.has(variable.value))) {
@@ -86,5 +90,9 @@ export interface IActorQueryOperationLeftJoinArgs extends IActorQueryOperationTy
    * A mediator for joining Bindings streams
    */
   mediatorJoin: MediatorRdfJoin;
+  /**
+   * A mediator for creating binding context merge handlers
+   */
+  mediatorMergeBindingsContext: MediatorMergeBindingsContext;
   mediatorExpressionEvaluatorFactory: MediatorExpressionEvaluatorFactory;
 }

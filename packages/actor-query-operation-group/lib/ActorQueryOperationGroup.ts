@@ -1,5 +1,7 @@
 import type { MediatorBindingsAggregatorFactory } from '@comunica/bus-bindings-aggeregator-factory';
+import { BindingsFactory } from '@comunica/bindings-factory';
 import type { MediatorHashBindings } from '@comunica/bus-hash-bindings';
+import type { MediatorMergeBindingsContext } from '@comunica/bus-merge-bindings-context';
 import type { IActorQueryOperationTypedMediatedArgs } from '@comunica/bus-query-operation';
 import { ActorQueryOperation, ActorQueryOperationTypedMediated } from '@comunica/bus-query-operation';
 import type { IActorTest } from '@comunica/core';
@@ -13,6 +15,8 @@ import { GroupsState } from './GroupsState';
  */
 export class ActorQueryOperationGroup extends ActorQueryOperationTypedMediated<Algebra.Group> {
   public readonly mediatorHashBindings: MediatorHashBindings;
+  // TODO: what to do with this?
+  public readonly mediatorMergeBindingsContext: MediatorMergeBindingsContext;
   private readonly mediatorBindingsAggregatorFactory: MediatorBindingsAggregatorFactory;
 
   public constructor(args: IActorQueryOperationGroupArgs) {
@@ -54,6 +58,7 @@ export class ActorQueryOperationGroup extends ActorQueryOperationTypedMediated<A
       // We can only return when the binding stream ends, when that happens
       // we return the identified groups. Which are nothing more than Bindings
       // of the grouping variables merged with the aggregate variables
+      // eslint-disable-next-line ts/no-misused-promises
       output.bindingsStream.on('end', async() => {
         try {
           const bindingsStreamInner = new ArrayIterator(await groups.collectResults(), { autoStart: false });
@@ -69,7 +74,7 @@ export class ActorQueryOperationGroup extends ActorQueryOperationTypedMediated<A
       // Phase 1: Consume the stream, identify the groups and populate the aggregators.
       // We need to bind this after the 'error' and 'end' listeners to avoid the
       // stream having ended before those listeners are bound.
-      output.bindingsStream.on('data', bindings => {
+      output.bindingsStream.on('data', (bindings) => {
         groups.consumeBindings(bindings).catch(reject);
       });
     }), { autoStart: false });
@@ -84,5 +89,9 @@ export class ActorQueryOperationGroup extends ActorQueryOperationTypedMediated<A
 
 export interface IActorQueryOperationGroupArgs extends IActorQueryOperationTypedMediatedArgs {
   mediatorHashBindings: MediatorHashBindings;
+  /**
+   * A mediator for creating binding context merge handlers
+   */
+  mediatorMergeBindingsContext: MediatorMergeBindingsContext;
   mediatorBindingsAggregatorFactory: MediatorBindingsAggregatorFactory;
 }

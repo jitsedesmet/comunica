@@ -1,5 +1,7 @@
 import { bindingsToString } from '@comunica/bindings-factory';
 import type { MediatorExpressionEvaluatorFactory } from '@comunica/bus-expression-evaluator-factory';
+import { BindingsFactory, bindingsToString } from '@comunica/bindings-factory';
+import type { MediatorMergeBindingsContext } from '@comunica/bus-merge-bindings-context';
 import type { IActorQueryOperationTypedMediatedArgs } from '@comunica/bus-query-operation';
 import { ActorQueryOperation, ActorQueryOperationTypedMediated } from '@comunica/bus-query-operation';
 import type { IActorTest } from '@comunica/core';
@@ -13,6 +15,7 @@ import type { Algebra } from 'sparqlalgebrajs';
  * See https://www.w3.org/TR/sparql11-query/#sparqlAlgebra;
  */
 export class ActorQueryOperationExtend extends ActorQueryOperationTypedMediated<Algebra.Extend> {
+  public readonly mediatorMergeBindingsContext: MediatorMergeBindingsContext;
   private readonly mediatorExpressionEvaluatorFactory: MediatorExpressionEvaluatorFactory;
 
   public constructor(args: IActorQueryOperationExtendArgs) {
@@ -57,7 +60,8 @@ export class ActorQueryOperationExtend extends ActorQueryOperationTypedMediated<
           // Errors silently don't actually extend according to the spec
           push(bindings);
           // But let's warn anyway
-          this.logWarn(context, `Expression error for extend operation with bindings '${bindingsToString(bindings)}'`);
+          this.logWarn(context, `Expression error for extend operation (${(<ExpressionError> error).message})` +
+            `with bindings '${bindingsToString(bindings)}'`);
         } else {
           bindingsStream.emit('error', error);
         }
@@ -65,6 +69,7 @@ export class ActorQueryOperationExtend extends ActorQueryOperationTypedMediated<
       next();
     };
 
+    // eslint-disable-next-line ts/no-misused-promises
     const bindingsStream = output.bindingsStream.transform<Bindings>({ autoStart: false, transform });
     return {
       type: 'bindings',
@@ -77,6 +82,10 @@ export class ActorQueryOperationExtend extends ActorQueryOperationTypedMediated<
   }
 }
 
-interface IActorQueryOperationExtendArgs extends IActorQueryOperationTypedMediatedArgs {
+export interface IActorQueryOperationExtendArgs extends IActorQueryOperationTypedMediatedArgs {
+  /**
+   * A mediator for creating binding context merge handlers
+   */
+  mediatorMergeBindingsContext: MediatorMergeBindingsContext;
   mediatorExpressionEvaluatorFactory: MediatorExpressionEvaluatorFactory;
 }

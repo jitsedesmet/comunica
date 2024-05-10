@@ -174,8 +174,10 @@ class Subtraction extends RegularFunction {
     .set([ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DAY_TIME_DURATION ], () =>
       ([ date, dur ]: [ E.DateTimeLiteral, E.DayTimeDurationLiteral ]) =>
         // https://www.w3.org/TR/xpath-functions/#func-subtract-dayTimeDuration-from-dateTime
-        new E.DateTimeLiteral(addDurationToDateTime(date.typedValue,
-          defaultedDurationRepresentation(negateDuration(dur.typedValue)))))
+        new E.DateTimeLiteral(addDurationToDateTime(
+          date.typedValue,
+          defaultedDurationRepresentation(negateDuration(dur.typedValue)),
+        )))
     .copy({
       from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DAY_TIME_DURATION ],
       to: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_YEAR_MONTH_DURATION ],
@@ -183,8 +185,10 @@ class Subtraction extends RegularFunction {
     .set([ TypeURL.XSD_DATE, TypeURL.XSD_DAY_TIME_DURATION ], () =>
       ([ date, dur ]: [ E.DateLiteral, E.DayTimeDurationLiteral ]) =>
         // https://www.w3.org/TR/xpath-functions/#func-subtract-dayTimeDuration-from-date
-        new E.DateLiteral(addDurationToDateTime(defaultedDateTimeRepresentation(date.typedValue),
-          defaultedDurationRepresentation(negateDuration(dur.typedValue)))))
+        new E.DateLiteral(addDurationToDateTime(
+          defaultedDateTimeRepresentation(date.typedValue),
+          defaultedDurationRepresentation(negateDuration(dur.typedValue)),
+        )))
     .copy({
       from: [ TypeURL.XSD_DATE, TypeURL.XSD_DAY_TIME_DURATION ],
       to: [ TypeURL.XSD_DATE, TypeURL.XSD_YEAR_MONTH_DURATION ],
@@ -192,8 +196,10 @@ class Subtraction extends RegularFunction {
     .set([ TypeURL.XSD_TIME, TypeURL.XSD_DAY_TIME_DURATION ], () =>
       ([ time, dur ]: [ E.TimeLiteral, E.DayTimeDurationLiteral ]) =>
         // https://www.w3.org/TR/xpath-functions/#func-subtract-dayTimeDuration-from-date
-        new E.TimeLiteral(addDurationToDateTime(defaultedDateTimeRepresentation(time.typedValue),
-          defaultedDurationRepresentation(negateDuration(dur.typedValue)))))
+        new E.TimeLiteral(addDurationToDateTime(
+          defaultedDateTimeRepresentation(time.typedValue),
+          defaultedDurationRepresentation(negateDuration(dur.typedValue)),
+        )))
     .collect();
 }
 
@@ -473,7 +479,7 @@ class Lang extends RegularFunction {
   public operator = C.RegularOperator.LANG;
 
   protected overloads = declare(C.RegularOperator.LANG)
-    .onLiteral1(() => lit => string(lit.language || ''))
+    .onLiteral1(() => lit => string(lit.language ?? ''))
     .collect();
 }
 
@@ -813,10 +819,12 @@ class Langmatches extends RegularFunction {
     ).collect();
 }
 
-const regex2: (exprEval: InternalEvaluator) => (text: string, pattern: string) => E.BooleanLiteral =
-  () => (text: string, pattern: string) => bool(X.matches(text, pattern));
-const regex3: (exprEval: InternalEvaluator) => (text: string, pattern: string, flags: string) =>
-E.BooleanLiteral = () => (text: string, pattern: string, flags: string) => bool(X.matches(text, pattern, flags));
+function regex2(): (exprEval: InternalEvaluator) => (text: string, pattern: string) => E.BooleanLiteral {
+  return () => (text: string, pattern: string) => bool(X.matches(text, pattern));
+}
+function regex3(): (exprEval: InternalEvaluator) => (text: string, pattern: string, flags: string) =>  E.BooleanLiteral {
+  return () => (text: string, pattern: string, flags: string) => bool(X.matches(text, pattern, flags));
+}
 /**
  * https://www.w3.org/TR/sparql11-query/#func-regex
  */
@@ -1045,7 +1053,7 @@ class Timezone extends RegularFunction {
 
   protected overloads = declare(C.RegularOperator.TIMEZONE)
     .onDateTime1(
-      () => date => {
+      () => (date) => {
         const duration: Partial<IDayTimeDurationRepresentation> = {
           hours: date.typedValue.zoneHours,
           minutes: date.typedValue.zoneMinutes,
