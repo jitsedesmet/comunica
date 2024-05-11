@@ -290,7 +290,7 @@ class BNode extends BaseFunctionDefinition {
    * A counter that keeps track blank node generated through BNODE() SPARQL
    * expressions.
    */
-  private bnodeCounter = 0;
+  private static bnodeCounter = 0;
 
   protected arity = Number.POSITIVE_INFINITY;
   public override checkArity(args: E.Expression[]): boolean {
@@ -316,7 +316,7 @@ class BNode extends BaseFunctionDefinition {
       strInput = operation(exprEval)([ input ]).str();
     }
 
-    const bnode = new BlankNodeBindingsScoped(strInput ?? `BNODE_${this.bnodeCounter++}`);
+    const bnode = new BlankNodeBindingsScoped(strInput ?? `BNODE_${BNode.bnodeCounter++}`);
     return new E.BlankNode(bnode);
   };
 }
