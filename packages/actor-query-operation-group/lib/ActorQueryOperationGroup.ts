@@ -15,7 +15,6 @@ import { GroupsState } from './GroupsState';
  */
 export class ActorQueryOperationGroup extends ActorQueryOperationTypedMediated<Algebra.Group> {
   public readonly mediatorHashBindings: MediatorHashBindings;
-  // TODO: what to do with this?
   public readonly mediatorMergeBindingsContext: MediatorMergeBindingsContext;
   private readonly mediatorBindingsAggregatorFactory: MediatorBindingsAggregatorFactory;
 
@@ -34,6 +33,7 @@ export class ActorQueryOperationGroup extends ActorQueryOperationTypedMediated<A
 
   public async runOperation(operation: Algebra.Group, context: IActionContext):
   Promise<IQueryOperationResult> {
+    const bindingsFactory = await BindingsFactory.create(this.mediatorMergeBindingsContext, context);
     // Create a hash function
     const { hashFunction } = await this.mediatorHashBindings.mediate({ allowHashCollisions: true, context });
 
@@ -52,7 +52,8 @@ export class ActorQueryOperationGroup extends ActorQueryOperationTypedMediated<A
 
     // Wrap a new promise inside an iterator that completes when the stream has ended or when an error occurs
     const bindingsStream = new TransformIterator(() => new Promise<BindingsStream>((resolve, reject) => {
-      const groups = new GroupsState(hashFunction, operation, this.mediatorBindingsAggregatorFactory, context);
+      const groups = new GroupsState(
+        hashFunction, operation, this.mediatorBindingsAggregatorFactory, context, bindingsFactory);
 
       // Phase 2: Collect aggregator results
       // We can only return when the binding stream ends, when that happens

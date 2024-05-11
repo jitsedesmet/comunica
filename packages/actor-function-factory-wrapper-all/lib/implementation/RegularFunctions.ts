@@ -819,11 +819,11 @@ class Langmatches extends RegularFunction {
     ).collect();
 }
 
-function regex2(): (exprEval: InternalEvaluator) => (text: string, pattern: string) => E.BooleanLiteral {
-  return () => (text: string, pattern: string) => bool(X.matches(text, pattern));
+function regex2(): (text: string, pattern: string) => E.BooleanLiteral {
+  return (text: string, pattern: string) => bool(X.matches(text, pattern));
 }
-function regex3(): (exprEval: InternalEvaluator) => (text: string, pattern: string, flags: string) =>  E.BooleanLiteral {
-  return () => (text: string, pattern: string, flags: string) => bool(X.matches(text, pattern, flags));
+function regex3(): (text: string, pattern: string, flags: string) => E.BooleanLiteral {
+  return (text: string, pattern: string, flags: string) => bool(X.matches(text, pattern, flags));
 }
 /**
  * https://www.w3.org/TR/sparql11-query/#func-regex

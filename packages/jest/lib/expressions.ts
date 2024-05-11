@@ -20,6 +20,7 @@ import type { Quad } from 'rdf-data-factory';
 import { DataFactory } from 'rdf-data-factory';
 import { Algebra } from 'sparqlalgebrajs';
 import { Wildcard } from 'sparqljs';
+import {MediatorMergeBindingsContext} from "@comunica/bus-merge-bindings-context";
 
 export const DF = new DataFactory<Quad>();
 
@@ -95,18 +96,21 @@ export function getMockInternalEvaluator(factory?: ActorExpressionEvaluatorFacto
         throw new Error('mediatorQueryOperation mock of mockEEFactory not implemented');
       },
     },
+    <any> { },
   );
 }
 
 export function getMockEEFactory({
   mediatorQueryOperation,
   mediatorFunctionFactory,
+  mediatorMergeBindingsContext,
 }: Partial<IActorExpressionEvaluatorFactoryArgs> = {}): ActorExpressionEvaluatorFactory {
   return new ActorExpressionEvaluatorFactoryDefault({
     bus: new Bus({ name: 'testBusMock' }),
     name: 'mockEEFactory',
     mediatorQueryOperation: mediatorQueryOperation || getMockMediatorQueryOperation(),
     mediatorFunctionFactory: mediatorFunctionFactory || getMockMediatorFunctionFactory(),
+    mediatorMergeBindingsContext: mediatorMergeBindingsContext ?? getMockMediatorMergeBindingsContext(),
   });
 }
 
@@ -114,6 +118,14 @@ export function getMockMediatorQueryOperation(): MediatorQueryOperation {
   return <any>{
     async mediate(arg: any) {
       throw new Error('mediatorQueryOperation mock not implemented');
+    },
+  };
+}
+
+export function getMockMediatorMergeBindingsContext(): MediatorMergeBindingsContext {
+  return <any>{
+    async mediate(arg: any) {
+      throw new Error('mediatorMergeBindingsContext mock not implemented');
     },
   };
 }

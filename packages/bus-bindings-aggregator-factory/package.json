@@ -32,10 +32,10 @@
   ],
   "dependencies": {
     "@comunica/bus-expression-evaluator-factory": "^1.0.0",
-    "@comunica/context-entries": "^2.8.2",
-    "@comunica/core": "^2.8.2",
-    "@comunica/expression-evaluator": "^2.9.0",
-    "@comunica/types": "^2.8.2",
+    "@comunica/context-entries": "^3.0.3",
+    "@comunica/core": "^3.0.3",
+    "@comunica/expression-evaluator": "3.0.1",
+    "@comunica/types": "^3.0.3",
     "@rdfjs/types": "*",
     "rdf-string": "^1.6.3",
     "sparqlalgebrajs": "^4.2.0"

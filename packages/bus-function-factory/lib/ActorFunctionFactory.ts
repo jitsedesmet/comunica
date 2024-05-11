@@ -25,7 +25,7 @@ export abstract class ActorFunctionFactory extends
     super(args);
   }
 
-  public abstract run<T extends IActionFunctionFactory>(action: T):
+  public abstract override run<T extends IActionFunctionFactory>(action: T):
   Promise<T extends { requireTermExpression: true } ? IActorFunctionFactoryOutputTerm : IActorFunctionFactoryOutput>;
 }
 
@@ -69,6 +69,6 @@ export type MediatorFunctionFactoryUnsafe = Mediate<IActionFunctionFactory, IAct
 export abstract class MediatorFunctionFactory extends Mediator<
 Actor<IActionFunctionFactory, IActorTest, IActorFunctionFactoryOutput>,
 IActionFunctionFactory, IActorTest, IActorFunctionFactoryOutput> {
-  public abstract mediate: <T extends IActionFunctionFactory>(action: T) =>
+  public abstract override mediate: <T extends IActionFunctionFactory>(action: T) =>
   Promise<T extends { requireTermExpression: true } ? IActorFunctionFactoryOutputTerm : IActorFunctionFactoryOutput>;
 }

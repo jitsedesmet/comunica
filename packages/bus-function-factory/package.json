@@ -31,9 +31,9 @@
     "lib/**/*.js.map"
   ],
   "dependencies": {
-    "@comunica/context-entries": "^2.8.2",
-    "@comunica/core": "^2.8.2",
-    "@comunica/expression-evaluator": "^2.9.0",
+    "@comunica/context-entries": "^3.0.3",
+    "@comunica/core": "^3.0.3",
+    "@comunica/expression-evaluator": "3.0.1",
     "sparqlalgebrajs": "^4.2.0"
   },
   "scripts": {

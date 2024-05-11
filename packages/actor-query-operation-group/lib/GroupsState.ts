@@ -97,7 +97,7 @@ export class GroupsState {
           }
 
           const variable = aggregate.variable.value;
-          await group.aggregators[variable].put(bindings);
+          await group.aggregators[variable].putBindings(bindings);
         }));
       })().then(async() => {
         await this.subtractWaitCounterAndCollect();
@@ -159,7 +159,7 @@ export class GroupsState {
     // Result is a single Bindings
     if (rows.length === 0 && this.groupVariables.size === 0) {
       const single: [RDF.Variable, RDF.Term][] = [];
-      await Promise.all(this.pattern.aggregates.map(async aggregate => {
+      await Promise.all(this.pattern.aggregates.map(async(aggregate) => {
         const key = aggregate.variable;
         const aggregator = await this.mediatorBindingsAggregatorFactory
           .mediate({ expr: aggregate, context: this.context });

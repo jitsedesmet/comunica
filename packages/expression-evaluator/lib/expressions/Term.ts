@@ -80,7 +80,7 @@ export class Quad extends Term {
     return DF.quad(this.subject.toRDF(), this.predicate.toRDF(), this.object.toRDF(), this.graph.toRDF());
   }
 
-  public str(): string {
+  public override str(): string {
     return `Quad: [${this.subject.str()}, ${this.predicate.str()}, ${this.object.str()}, ${this.graph.str()}]`;
   }
 }
@@ -96,7 +96,7 @@ export class DefaultGraph extends Term {
     return DF.defaultGraph();
   }
 
-  public str(): string {
+  public override str(): string {
     return 'DefaultGraph';
   }
 }
