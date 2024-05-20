@@ -116,31 +116,22 @@ describe('ActorQueryOperationExtend', () => {
 
   describe('An ActorQueryOperationExtend instance', () => {
     let actor: ActorQueryOperationExtend;
-    let mediatorMergeBindingsContext: any;
     beforeEach(() => {
-      mediatorMergeBindingsContext = {
-        mediate(arg: any) {
-          return {};
-        },
-      };
-
       actor = new ActorQueryOperationExtend({
-          name: 'actor',
-          bus,
-          mediatorQueryOperation,
-          mediatorMergeBindingsContext,
+        name: 'actor',
+        bus,
+        mediatorQueryOperation,
         mediatorExpressionEvaluatorFactory,
-        },
-      );
+      });
     });
 
     it('should test on extend', async() => {
-      const op: any = { operation: example(defaultExpression), context: new ActionContext() };
+      const op: any = { operation: example(defaultExpression), context };
       await expect(actor.test(op)).resolves.toBeTruthy();
     });
 
     it('should not test on non-extend', async() => {
-      const op: any = { operation: { type: 'some-other-type' }, context: new ActionContext() };
+      const op: any = { operation: { type: 'some-other-type' }, context };
       await expect(actor.test(op)).rejects.toBeTruthy();
     });
 

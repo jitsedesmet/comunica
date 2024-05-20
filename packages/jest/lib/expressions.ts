@@ -125,7 +125,7 @@ export function getMockMediatorQueryOperation(): MediatorQueryOperation {
 export function getMockMediatorMergeBindingsContext(): MediatorMergeBindingsContext {
   return <any>{
     async mediate(arg: any) {
-      throw new Error('mediatorMergeBindingsContext mock not implemented');
+      return BF;
     },
   };
 }
