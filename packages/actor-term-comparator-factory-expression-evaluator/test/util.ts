@@ -1,7 +1,7 @@
 import { createFuncMediator } from '@comunica/actor-function-factory-wrapper-all/test/util';
 import type { MediatorTermComparatorFactory } from '@comunica/bus-term-comparator-factory';
 import { Bus } from '@comunica/core';
-import {getMockMediatorMergeBindingsContext, getMockMediatorQueryOperation} from '@comunica/jest';
+import { getMockMediatorMergeBindingsContext, getMockMediatorQueryOperation } from '@comunica/jest';
 import { ActorTermComparatorFactoryExpressionEvaluator } from '../lib';
 
 export function createTermCompMediator() {

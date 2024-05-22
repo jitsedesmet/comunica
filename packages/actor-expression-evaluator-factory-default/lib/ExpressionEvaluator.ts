@@ -1,3 +1,4 @@
+import type { BindingsFactory } from '@comunica/bindings-factory';
 import type { MediatorFunctionFactory } from '@comunica/bus-function-factory';
 import type { MediatorQueryOperation } from '@comunica/bus-query-operation';
 import type { IExpressionEvaluator } from '@comunica/expression-evaluator';
@@ -5,7 +6,6 @@ import type * as E from '@comunica/expression-evaluator/lib/expressions';
 import type { IActionContext } from '@comunica/types';
 import type * as RDF from '@rdfjs/types';
 import { InternalEvaluator } from './InternalEvaluator';
-import type {BindingsFactory} from "@comunica/bindings-factory";
 
 export class ExpressionEvaluator implements IExpressionEvaluator {
   private readonly internalEvaluator: InternalEvaluator;

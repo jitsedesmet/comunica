@@ -4,7 +4,9 @@ import type {
   IDateRepresentation,
   IDateTimeRepresentation,
   IDayTimeDurationRepresentation,
-  IDurationRepresentation, ITimeRepresentation, ITimeZoneRepresentation,
+  IDurationRepresentation,
+  ITimeRepresentation,
+  ITimeZoneRepresentation,
   IYearMonthDurationRepresentation,
 } from '@comunica/types';
 import { simplifyDurationRepresentation } from './DateTimeHelpers';

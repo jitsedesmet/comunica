@@ -37,10 +37,10 @@
     "bench": "node \"../../node_modules/typescript/bin/tsc\" && node benchmarks/*.js"
   },
   "dependencies": {
-    "@comunica/types": "^3.0.3",
     "@comunica/context-entries": "^3.0.3",
-    "lru-cache": "^10.0.0",
+    "@comunica/types": "^3.0.3",
     "@rdfjs/types": "*",
+    "lru-cache": "^10.0.0",
     "rdf-data-factory": "^1.1.2",
     "rdf-string": "^1.6.3",
     "sparqlalgebrajs": "^4.2.0"

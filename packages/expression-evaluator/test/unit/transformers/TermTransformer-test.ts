@@ -13,7 +13,7 @@ jest.mock('../../../lib/util/Parsing', () => ({
   },
 }));
 
-// eslint-disable-next-line mocha/no-skipped-tests
+// eslint-disable-next-line jest/no-disabled-tests
 describe.skip('term Tranformer', () => {
   let termTransformer: TermTransformer;
   beforeEach(() => {

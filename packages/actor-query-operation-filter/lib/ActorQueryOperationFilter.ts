@@ -1,11 +1,11 @@
-import {bindingsToString} from '@comunica/bindings-factory';
-import type {MediatorExpressionEvaluatorFactory,} from '@comunica/bus-expression-evaluator-factory';
-import type {IActorQueryOperationTypedMediatedArgs} from '@comunica/bus-query-operation';
-import {ActorQueryOperation, ActorQueryOperationTypedMediated,} from '@comunica/bus-query-operation';
-import type {IActorTest} from '@comunica/core';
-import {isExpressionError} from '@comunica/expression-evaluator';
-import type {Bindings, IActionContext, IQueryOperationResult} from '@comunica/types';
-import type {Algebra} from 'sparqlalgebrajs';
+import { bindingsToString } from '@comunica/bindings-factory';
+import type { MediatorExpressionEvaluatorFactory } from '@comunica/bus-expression-evaluator-factory';
+import type { IActorQueryOperationTypedMediatedArgs } from '@comunica/bus-query-operation';
+import { ActorQueryOperation, ActorQueryOperationTypedMediated } from '@comunica/bus-query-operation';
+import type { IActorTest } from '@comunica/core';
+import { isExpressionError } from '@comunica/expression-evaluator';
+import type { Bindings, IActionContext, IQueryOperationResult } from '@comunica/types';
+import type { Algebra } from 'sparqlalgebrajs';
 
 /**
  * A comunica Filter Sparqlee Query Operation Actor.
@@ -20,8 +20,7 @@ export class ActorQueryOperationFilter extends ActorQueryOperationTypedMediated<
 
   public async testOperation(operation: Algebra.Filter, context: IActionContext): Promise<IActorTest> {
     // Will throw error for unsupported operators
-    const _ = await this.mediatorExpressionEvaluatorFactory.mediate({ algExpr: operation.expression,
-      context });
+    const _ = await this.mediatorExpressionEvaluatorFactory.mediate({ algExpr: operation.expression, context });
     return true;
   }
 

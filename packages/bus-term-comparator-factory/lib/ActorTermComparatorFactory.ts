@@ -1,9 +1,9 @@
-import type {MediatorFunctionFactory, MediatorFunctionFactoryUnsafe} from '@comunica/bus-function-factory';
+import type { MediatorFunctionFactory, MediatorFunctionFactoryUnsafe } from '@comunica/bus-function-factory';
+import type { MediatorMergeBindingsContext } from '@comunica/bus-merge-bindings-context';
 import type { MediatorQueryOperation } from '@comunica/bus-query-operation';
 import type { IAction, IActorArgs, IActorOutput, IActorTest, Mediate } from '@comunica/core';
 import { Actor } from '@comunica/core';
 import type * as RDF from '@rdfjs/types';
-import {MediatorMergeBindingsContext} from "@comunica/bus-merge-bindings-context";
 
 /**
  * A comunica actor for term-comparator-factory events.
@@ -23,8 +23,8 @@ export abstract class ActorTermComparatorFactory extends
   protected readonly mediatorMergeBindingsContext: MediatorMergeBindingsContext;
 
   /**
-  * @param args - @defaultNested {<default_bus> a <cc:components/Bus.jsonld#Bus>} bus
-  */
+   * @param args - @defaultNested {<default_bus> a <cc:components/Bus.jsonld#Bus>} bus
+   */
   public constructor(args: IActorTermComparatorFactoryArgs) {
     super(args);
     this.mediatorQueryOperation = args.mediatorQueryOperation;
@@ -49,7 +49,10 @@ export interface ITermComparator {
 export interface IActorTermComparatorFactoryOutput extends IActorOutput, ITermComparator {}
 
 export interface IActorTermComparatorFactoryArgs extends IActorArgs<
-IActionTermComparatorFactory, IActorTest, IActorTermComparatorFactoryOutput> {
+IActionTermComparatorFactory,
+IActorTest,
+IActorTermComparatorFactoryOutput
+> {
   mediatorQueryOperation: MediatorQueryOperation;
   mediatorFunctionFactory: MediatorFunctionFactoryUnsafe;
   /**
@@ -59,4 +62,6 @@ IActionTermComparatorFactory, IActorTest, IActorTermComparatorFactoryOutput> {
 }
 
 export type MediatorTermComparatorFactory = Mediate<
-IActionTermComparatorFactory, IActorTermComparatorFactoryOutput>;
+IActionTermComparatorFactory,
+IActorTermComparatorFactoryOutput
+>;

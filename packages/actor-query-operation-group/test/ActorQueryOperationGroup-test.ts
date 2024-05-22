@@ -133,7 +133,8 @@ IActionBindingsAggregatorFactory):
       return new WildcardCountAggregator(evaluator, expr.distinct);
     }
     return new CountAggregator(evaluator, expr.distinct);
-  } if (expr.aggregator === 'sum') {
+  }
+  if (expr.aggregator === 'sum') {
     return new SumAggregator(
       evaluator,
       expr.distinct,
@@ -143,7 +144,8 @@ IActionBindingsAggregatorFactory):
         requireTermExpression: true,
       }),
     );
-  } if (expr.aggregator === 'avg') {
+  }
+  if (expr.aggregator === 'avg') {
     return new AverageAggregator(
       evaluator,
       expr.distinct,
@@ -158,28 +160,32 @@ IActionBindingsAggregatorFactory):
         requireTermExpression: true,
       }),
     );
-  } if (expr.aggregator === 'min') {
+  }
+  if (expr.aggregator === 'min') {
     return new MinAggregator(
       evaluator,
       expr.distinct,
       await mediatorTermComparatorFactory.mediate({ context }),
     );
-  } if (expr.aggregator === 'max') {
+  }
+  if (expr.aggregator === 'max') {
     return new MaxAggregator(
       evaluator,
       expr.distinct,
       await mediatorTermComparatorFactory.mediate({ context }),
     );
-  } if (expr.aggregator === 'sample') {
+  }
+  if (expr.aggregator === 'sample') {
     return new SampleAggregator(evaluator, expr.distinct);
-  } if (expr.aggregator === 'group_concat') {
+  }
+  if (expr.aggregator === 'group_concat') {
     return new GroupConcatAggregator(
       evaluator,
       expr.distinct,
       expr.separator,
     );
   }
-  throw new Error(`Unsupported aggregator ${expr.aggregator}`);
+  throw new Error(`Unsupported aggregator ${(<any> expr).aggregator}`);
 }
 
 function constructCase(
@@ -230,7 +236,7 @@ function constructCase(
     mediatorQueryOperation,
     mediatorHashBindings,
     mediatorMergeBindingsContext,
-    mediatorBindingsAggregatorFactory
+    mediatorBindingsAggregatorFactory,
   });
   return { actor, bus, mediatorQueryOperation, op };
 }
@@ -298,7 +304,7 @@ describe('ActorQueryOperationGroup', () => {
           <Algebra.Group> op.operation,
           mediatorBindingsAggregatorFactory,
           new ActionContext(),
-          BF
+          BF,
       );
       await expect(temp.collectResults()).resolves.toBeTruthy();
       await expect(temp.collectResults()).rejects.toThrow('collectResult');
@@ -311,7 +317,7 @@ describe('ActorQueryOperationGroup', () => {
           <Algebra.Group> op.operation,
           mediatorBindingsAggregatorFactory,
           new ActionContext(),
-        BF
+          BF,
       );
       await expect(temp.collectResults()).resolves.toBeTruthy();
       await expect(temp.consumeBindings(BF.bindings([[ DF.variable('x'), DF.literal('aaa') ]])))

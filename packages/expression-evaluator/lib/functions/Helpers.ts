@@ -11,7 +11,12 @@ import { NonLexicalLiteral } from '../expressions';
 import * as C from '../util/Consts';
 import { TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
-import type { ArgumentType, IInternalEvaluator, ImplementationFunction, ImplementationFunctionTuple } from './OverloadTree';
+import type {
+  ArgumentType,
+  IInternalEvaluator,
+  ImplementationFunction,
+  ImplementationFunctionTuple,
+} from './OverloadTree';
 import { OverloadTree } from './OverloadTree';
 
 type Term = E.TermExpression;
@@ -174,7 +179,7 @@ addInvalidHandling = true,
 
   public onTerm1<T extends Term>(
     op: (expressionEvaluator: IInternalEvaluator) =>
-  (term: T) => Term,
+    (term: T) => Term,
 addInvalidHandling = false,
   ): Builder {
     return this.set(
@@ -198,7 +203,8 @@ addInvalidHandling = false,
 
   public onLiteral1<T extends ISerializable>(
     op: (expressionEvaluator: IInternalEvaluator) =>
-  (lit: E.Literal<T>) => Term, addInvalidHandling = true,
+    (lit: E.Literal<T>) => Term,
+addInvalidHandling = true,
   ): Builder {
     return this.set(
       [ 'literal' ],

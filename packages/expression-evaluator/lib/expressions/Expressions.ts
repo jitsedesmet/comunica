@@ -78,4 +78,3 @@ export type VariableExpression = IExpressionProps & {
 
 export type SimpleApplication = (args: TermExpression[]) => TermExpression;
 export type SimpleApplicationTuple<T> = (args: T) => TermExpression;
-

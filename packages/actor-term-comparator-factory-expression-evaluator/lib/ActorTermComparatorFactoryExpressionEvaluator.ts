@@ -20,7 +20,8 @@ export class ActorTermComparatorFactoryExpressionEvaluator extends ActorTermComp
 
   /**
    * Context item superTypeProvider can be expected here
-   * @param context
+   * @param context IActionTermComparatorFactory
+   * @param context.context IActionContext
    */
   public async run({ context }: IActionTermComparatorFactory): Promise<IActorTermComparatorFactoryOutput> {
     context = prepareEvaluatorActionContext(context);

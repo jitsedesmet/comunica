@@ -1,8 +1,6 @@
 import type {
   MediatorExpressionEvaluatorFactory,
 } from '@comunica/bus-expression-evaluator-factory';
-import { BindingsFactory } from '@comunica/bindings-factory';
-import type { MediatorMergeBindingsContext } from '@comunica/bus-merge-bindings-context';
 import type { IActorQueryOperationTypedMediatedArgs } from '@comunica/bus-query-operation';
 import {
   ActorQueryOperation,
@@ -84,14 +82,13 @@ export class ActorQueryOperationOrderBy extends ActorQueryOperationTypedMediated
       const transformedStream = bindingsStream.transform<IAnnotatedBinding>({ transform });
 
       // Sort the annoted stream
-      const sortedStream = new SortIterator(transformedStream,
-        (left, right) => {
-          let compare = orderByEvaluator.orderTypes(left.result, right.result);
-          if (!isAscending) {
-            compare *= -1;
-          }
-          return compare;
-        }, options);
+      const sortedStream = new SortIterator(transformedStream, (left, right) => {
+        let compare = orderByEvaluator.orderTypes(left.result, right.result);
+        if (!isAscending) {
+          compare *= -1;
+        }
+        return compare;
+      }, options);
 
       // Remove the annotation
       bindingsStream = sortedStream.map(({ bindings }) => bindings);

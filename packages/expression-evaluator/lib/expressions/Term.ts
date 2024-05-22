@@ -1,7 +1,8 @@
 import type {
   IDateRepresentation,
   IDateTimeRepresentation,
-  IDurationRepresentation, ISuperTypeProvider,
+  IDurationRepresentation,
+  ISuperTypeProvider,
   ITimeRepresentation,
   IYearMonthDurationRepresentation,
 } from '@comunica/types';
@@ -69,13 +70,17 @@ export class BlankNode extends Term {
 export class Quad extends Term {
   public termType: TermType = 'quad';
 
-  public constructor(public readonly subject: Term, public readonly predicate: Term, public readonly object: Term,
-    public readonly graph: Term) {
+  public constructor(
+    public readonly subject: Term,
+    public readonly predicate: Term,
+    public readonly object: Term,
+    public readonly graph: Term,
+  ) {
     super();
   }
 
   public toRDF(): RDF.BaseQuad {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // eslint-disable-next-line ts/ban-ts-comment
     // @ts-expect-error
     return DF.quad(this.subject.toRDF(), this.predicate.toRDF(), this.object.toRDF(), this.graph.toRDF());
   }

@@ -1,11 +1,11 @@
-import type {MediatorExpressionEvaluatorFactory} from '@comunica/bus-expression-evaluator-factory';
-import type {IActorQueryOperationTypedMediatedArgs} from '@comunica/bus-query-operation';
-import {ActorQueryOperation, ActorQueryOperationTypedMediated} from '@comunica/bus-query-operation';
-import type {MediatorRdfJoin} from '@comunica/bus-rdf-join';
-import type {IActorTest} from '@comunica/core';
-import {isExpressionError} from '@comunica/expression-evaluator';
-import type {Bindings, IActionContext, IJoinEntry, IQueryOperationResult} from '@comunica/types';
-import type {Algebra} from 'sparqlalgebrajs';
+import type { MediatorExpressionEvaluatorFactory } from '@comunica/bus-expression-evaluator-factory';
+import type { IActorQueryOperationTypedMediatedArgs } from '@comunica/bus-query-operation';
+import { ActorQueryOperation, ActorQueryOperationTypedMediated } from '@comunica/bus-query-operation';
+import type { MediatorRdfJoin } from '@comunica/bus-rdf-join';
+import type { IActorTest } from '@comunica/core';
+import { isExpressionError } from '@comunica/expression-evaluator';
+import type { Bindings, IActionContext, IJoinEntry, IQueryOperationResult } from '@comunica/types';
+import type { Algebra } from 'sparqlalgebrajs';
 
 /**
  * A comunica LeftJoin Query Operation Actor.

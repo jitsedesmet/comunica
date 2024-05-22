@@ -101,7 +101,7 @@ describe('TermTransformer', () => {
           new E.DefaultGraph(),
         ));
       expect(termTransformer.transformRDFTermUnsafe(quad).str())
-        .toEqual('Quad: [foo, foo, foo, DefaultGraph]');
+        .toBe('Quad: [foo, foo, foo, DefaultGraph]');
     });
 
     it('null', () => {

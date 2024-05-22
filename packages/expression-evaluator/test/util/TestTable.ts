@@ -37,7 +37,7 @@ abstract class Table<RowType extends Row> {
 
   protected async testExpression(expr: string, result: string) {
     const { config, additionalPrefixes, exprEvalFactory } = this.def;
-    const aliases = this.def.aliases || {};
+    const aliases = this.def.aliases ?? {};
     result = aliases[result] || result;
     const evaluated = await generalEvaluate({
       expression: template(expr, additionalPrefixes),

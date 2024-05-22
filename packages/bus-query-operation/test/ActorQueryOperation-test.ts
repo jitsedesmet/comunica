@@ -1,8 +1,8 @@
-import {BindingsFactory} from '@comunica/bindings-factory';
-import {Bus} from '@comunica/core';
-import {cachifyMetadata, MetadataValidationState} from '@comunica/metadata';
-import {Algebra, Factory} from 'sparqlalgebrajs';
-import {ActorQueryOperation} from '..';
+import { BindingsFactory } from '@comunica/bindings-factory';
+import { Bus } from '@comunica/core';
+import { cachifyMetadata, MetadataValidationState } from '@comunica/metadata';
+import { Algebra, Factory } from 'sparqlalgebrajs';
+import { ActorQueryOperation } from '..';
 
 const BF = new BindingsFactory();
 const AF = new Factory();
@@ -98,13 +98,17 @@ describe('ActorQueryOperation', () => {
   });
 
   // TODO: was removed from here in busify branch. Might need relocation when trying 100% coverage.
+  // eslint-disable-next-line jest/no-commented-out-tests
   // describe('#getExpressionContext', () => {
+  // eslint-disable-next-line jest/no-commented-out-tests
   //   describe('without mediatorQueryOperation', () => {
+  // eslint-disable-next-line jest/no-commented-out-tests
   //     it('should create an object for an empty contexts save for the bnode function', () => {
   //       expect(ActorQueryOperation.getExpressionContext(new ActionContext()).bnode)
   //         .toEqual(expect.any(Function));
   //     });
   //
+  // eslint-disable-next-line jest/no-commented-out-tests
   //     it('the bnode function should synchronously return a blank node', () => {
   //       const context = ActorQueryOperation.getExpressionContext(new ActionContext());
   //       const blankNode = context.bnode();
@@ -115,6 +119,7 @@ describe('ActorQueryOperation', () => {
   //   });
   // });
   //
+  // eslint-disable-next-line jest/no-commented-out-tests
   // describe('#getAsyncExpressionContext', () => {
   //   let mediatorQueryOperation: any;
   //
@@ -130,11 +135,13 @@ describe('ActorQueryOperation', () => {
   //     };
   //   });
   //
+  // eslint-disable-next-line jest/no-commented-out-tests
   //   it('should create an object for an empty contexts save for the bnode function', () => {
   //     expect(ActorQueryOperation.getAsyncExpressionContext(new ActionContext(), mediatorQueryOperation, BF).bnode)
   //       .toEqual(expect.any(Function));
   //   });
   //
+  // eslint-disable-next-line jest/no-commented-out-tests
   //   it('the bnode function should asynchronously return a blank node', async() => {
   //     const context = ActorQueryOperation.getAsyncExpressionContext(new ActionContext(), mediatorQueryOperation, BF);
   //     const blankNodePromise = context.bnode();
@@ -145,6 +152,7 @@ describe('ActorQueryOperation', () => {
   //     expect(blankNode.termType).toBe('BlankNode');
   //   });
   //
+  // eslint-disable-next-line jest/no-commented-out-tests
   //   it('should create an non-empty object for a filled context', () => {
   //     const date = new Date();
   //     const functionArgumentsCache: FunctionArgumentsCache = { apple: {}};
@@ -161,12 +169,14 @@ describe('ActorQueryOperation', () => {
   //     });
   //   });
   //
+  // eslint-disable-next-line jest/no-commented-out-tests
   //   it('should create an object with a resolver', () => {
   //     const resolver = (<any>ActorQueryOperation
   //       .getAsyncExpressionContext(new ActionContext(), mediatorQueryOperation, BF)).exists;
   //     expect(resolver).toBeTruthy();
   //   });
   //
+  // eslint-disable-next-line jest/no-commented-out-tests
   //   it('should allow a resolver to be invoked', async() => {
   //     const resolver = (<any>ActorQueryOperation
   //       .getAsyncExpressionContext(new ActionContext(), mediatorQueryOperation, BF)).exists;

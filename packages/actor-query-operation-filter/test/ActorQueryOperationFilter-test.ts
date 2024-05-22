@@ -209,10 +209,10 @@ describe('ActorQueryOperationFilter', () => {
 
     it('should use and respect the baseIRI from the expression context', async() => {
       const expression = parse('str(IRI(?a)) = concat("http://example.com/", ?a)');
-      const op: any = { operation: { type: 'filter', input: {}, expression },
-        context: getMockEEActionContext(new ActionContext({
-          [KeysInitQuery.baseIRI.name]: 'http://example.com',
-        })) };
+      const op: any = {
+        operation: { type: 'filter', input: {}, expression },
+        context: getMockEEActionContext(new ActionContext({ [KeysInitQuery.baseIRI.name]: 'http://example.com' })),
+      };
       const output: IQueryOperationResultBindings = <any> await actor.run(op);
       await expect(output.bindingsStream).toEqualBindingsStream([
         BF.bindings([[ DF.variable('a'), DF.literal('1') ]]),
@@ -225,7 +225,9 @@ describe('ActorQueryOperationFilter', () => {
     });
 
     // TODO: was rempoved in busify branch? probably want to relocate when getting 100% coverage
+    // eslint-disable-next-line jest/no-commented-out-tests
     // describe('should be able to handle EXIST filters', () => {
+    // eslint-disable-next-line jest/no-commented-out-tests
     //   it('like a simple EXIST that is true', async() => {
     //     const resolver = ActorQueryOperation
     //       .createExistenceResolver(new ActionContext(), actor.mediatorQueryOperation, BF);
@@ -237,6 +239,7 @@ describe('ActorQueryOperationFilter', () => {
     //     await expect(result).resolves.toBe(true);
     //   });
     //
+    // eslint-disable-next-line jest/no-commented-out-tests
     //   it('like a simple EXIST that is false', async() => {
     //     const resolver = ActorQueryOperation
     //       .createExistenceResolver(new ActionContext(), actor.mediatorQueryOperation, BF);
@@ -255,6 +258,7 @@ describe('ActorQueryOperationFilter', () => {
     //     await expect(result).resolves.toBe(false);
     //   });
     //
+    // eslint-disable-next-line jest/no-commented-out-tests
     //   it('like a NOT EXISTS', async() => {
     //     const resolver = ActorQueryOperation
     //       .createExistenceResolver(new ActionContext(), actor.mediatorQueryOperation, BF);
@@ -273,6 +277,7 @@ describe('ActorQueryOperationFilter', () => {
     //     await expect(result).resolves.toBe(true);
     //   });
     //
+    // eslint-disable-next-line jest/no-commented-out-tests
     //   it('like an EXIST that errors', async() => {
     //     const resolver = ActorQueryOperation
     //       .createExistenceResolver(new ActionContext(), actor.mediatorQueryOperation, BF);
