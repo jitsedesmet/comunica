@@ -1250,10 +1250,10 @@
     "@comunica/types" "^2.10.0"
     immutable "^4.1.0"
 
-"@comunica/data-factory@^2.7.0":
-  version "2.7.0"
-  resolved "https://registry.yarnpkg.com/@comunica/data-factory/-/data-factory-2.7.0.tgz#616f9abe7804f3627aadc0baec2632a9c68ec62b"
-  integrity sha512-dSTzrR1w9SzAWx70ZXKXHUC8f0leUolLZ9TOhGjFhhsBMJ9Pbo0g6vHV8txX5FViShngrg9QNKhsHeQnMk5z6Q==
+"@comunica/data-factory@^3.0.3":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@comunica/data-factory/-/data-factory-3.1.0.tgz#64adef8ebabb28699b969d268c82e8f81ea3575c"
+  integrity sha512-kNEgK+3HPzej8m53//RkZTq9WPYrja9CjrkJqvdgawpMTbg+zEeCoQZ3BGD0LiWiphADpyvYfRFCVpgcHjKvLQ==
   dependencies:
     "@rdfjs/types" "*"
 

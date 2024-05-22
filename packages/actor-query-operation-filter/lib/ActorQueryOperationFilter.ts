@@ -1,6 +1,5 @@
 import {bindingsToString} from '@comunica/bindings-factory';
 import type {MediatorExpressionEvaluatorFactory,} from '@comunica/bus-expression-evaluator-factory';
-import type {MediatorMergeBindingsContext} from '@comunica/bus-merge-bindings-context';
 import type {IActorQueryOperationTypedMediatedArgs} from '@comunica/bus-query-operation';
 import {ActorQueryOperation, ActorQueryOperationTypedMediated,} from '@comunica/bus-query-operation';
 import type {IActorTest} from '@comunica/core';
