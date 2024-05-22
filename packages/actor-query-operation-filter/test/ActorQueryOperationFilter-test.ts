@@ -93,15 +93,9 @@ describe('ActorQueryOperationFilter', () => {
   describe('An ActorQueryOperationFilter instance', () => {
     let actor: ActorQueryOperationFilter;
     let factory: Factory;
-    let mediatorMergeBindingsContext: any;
     let mediatorExpressionEvaluatorFactory: MediatorExpressionEvaluatorFactory;
 
     beforeEach(() => {
-      mediatorMergeBindingsContext = {
-        mediate(arg: any) {
-          return {};
-        },
-      };
       mediatorExpressionEvaluatorFactory = getMockMediatorExpressionEvaluatorFactory({
         mediatorQueryOperation,
         mediatorFunctionFactory: createFuncMediator(),
@@ -111,7 +105,6 @@ describe('ActorQueryOperationFilter', () => {
         name: 'actor',
         bus,
         mediatorQueryOperation,
-        mediatorMergeBindingsContext,
         mediatorExpressionEvaluatorFactory,
       });
       factory = new Factory();

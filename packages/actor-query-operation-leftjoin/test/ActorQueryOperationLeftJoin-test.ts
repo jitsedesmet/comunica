@@ -18,15 +18,9 @@ describe('ActorQueryOperationLeftJoin', () => {
   let bus: any;
   let mediatorQueryOperation: any;
   let mediatorJoin: any;
-  let mediatorMergeBindingsContext: any;
   let mediatorExpressionEvaluatorFactory: MediatorExpressionEvaluatorFactory;
 
   beforeEach(() => {
-    mediatorMergeBindingsContext = {
-      mediate(arg: any) {
-        return {};
-      },
-    };
     bus = new Bus({ name: 'bus' });
     mediatorQueryOperation = {
       mediate: (arg: any) => Promise.resolve({
@@ -87,8 +81,7 @@ describe('ActorQueryOperationLeftJoin', () => {
         bus,
         mediatorQueryOperation,
         mediatorJoin,
-        mediatorMergeBindingsContext,
-        mediatorExpressionEvaluatorFactory
+        mediatorExpressionEvaluatorFactory,
       });
 
       context = getMockEEActionContext();

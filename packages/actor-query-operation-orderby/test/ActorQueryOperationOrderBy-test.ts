@@ -76,7 +76,6 @@ describe('ActorQueryOperationOrderBy with mixed term types', () => {
         name: 'actor',
         bus,
         mediatorQueryOperation,
-        mediatorMergeBindingsContext,
         mediatorExpressionEvaluatorFactory,
         mediatorTermComparatorFactory,
       });
@@ -148,19 +147,12 @@ describe('ActorQueryOperationOrderBy with mixed term types', () => {
 describe('ActorQueryOperationOrderBySparqlee', () => {
   let bus: any;
   let mediatorQueryOperation: any;
-  let mediatorMergeBindingsContext: any;
   let mediatorExpressionEvaluatorFactory: MediatorExpressionEvaluatorFactory;
   let mediatorTermComparatorFactory: MediatorTermComparatorFactory;
-  let context: IActionContext
+  let context: IActionContext;
 
   beforeEach(() => {
     bus = new Bus({name: 'bus'});
-    mediatorMergeBindingsContext = {
-      mediate(arg: any) {
-        return {};
-      },
-    };
-
     mediatorQueryOperation = {
       mediate: (arg: any) => Promise.resolve({
         bindingsStream: new ArrayIterator([
@@ -194,7 +186,6 @@ describe('ActorQueryOperationOrderBySparqlee', () => {
         name: 'actor',
         bus,
         mediatorQueryOperation,
-        mediatorMergeBindingsContext,
         mediatorExpressionEvaluatorFactory,
         mediatorTermComparatorFactory,
       }))
@@ -216,17 +207,10 @@ describe('ActorQueryOperationOrderBySparqlee', () => {
     let orderA1: Algebra.OperatorExpression;
 
     beforeEach(() => {
-      mediatorMergeBindingsContext = {
-        mediate(arg: any) {
-          return {};
-        },
-      };
-
       actor = new ActorQueryOperationOrderBy({
         name: 'actor',
         bus,
         mediatorQueryOperation,
-        mediatorMergeBindingsContext,
         mediatorExpressionEvaluatorFactory,
         mediatorTermComparatorFactory,
       });
@@ -291,7 +275,6 @@ describe('ActorQueryOperationOrderBySparqlee', () => {
         bus,
         mediatorQueryOperation,
         window: 1,
-        mediatorMergeBindingsContext,
         mediatorTermComparatorFactory,
         mediatorExpressionEvaluatorFactory,
       });
@@ -421,20 +404,12 @@ describe('ActorQueryOperationOrderBy with multiple comparators', () => {
     let descOrderB: Algebra.OperatorExpression;
     let orderA1: Algebra.OperatorExpression;
     let orderB1: Algebra.OperatorExpression;
-    let mediatorMergeBindingsContext: any;
 
     beforeEach(() => {
-      mediatorMergeBindingsContext = {
-        mediate(arg: any) {
-          return {};
-        },
-      };
-
       actor = new ActorQueryOperationOrderBy({
         name: 'actor',
         bus,
         mediatorQueryOperation,
-        mediatorMergeBindingsContext,
         mediatorTermComparatorFactory,
         mediatorExpressionEvaluatorFactory,
       });
@@ -647,20 +622,12 @@ describe('ActorQueryOperationOrderBy with integer type', () => {
     let actor: ActorQueryOperationOrderBy;
     let orderA: Algebra.TermExpression;
     let descOrderA: Algebra.OperatorExpression;
-    let mediatorMergeBindingsContext: any;
 
     beforeEach(() => {
-      mediatorMergeBindingsContext = {
-        mediate(arg: any) {
-          return {};
-        },
-      };
-
       actor = new ActorQueryOperationOrderBy({
         name: 'actor',
         bus,
         mediatorQueryOperation,
-        mediatorMergeBindingsContext,
         mediatorTermComparatorFactory,
         mediatorExpressionEvaluatorFactory,
       });
@@ -755,20 +722,12 @@ describe('ActorQueryOperationOrderBy with double type', () => {
     let actor: ActorQueryOperationOrderBy;
     let orderA: Algebra.TermExpression;
     let descOrderA: Algebra.OperatorExpression;
-    let mediatorMergeBindingsContext: any;
 
     beforeEach(() => {
-      mediatorMergeBindingsContext = {
-        mediate(arg: any) {
-          return {};
-        },
-      };
-
       actor = new ActorQueryOperationOrderBy({
         name: 'actor',
         bus,
         mediatorQueryOperation,
-        mediatorMergeBindingsContext,
         mediatorTermComparatorFactory,
         mediatorExpressionEvaluatorFactory,
       });
@@ -863,20 +822,12 @@ describe('ActorQueryOperationOrderBy with decimal type', () => {
     let actor: ActorQueryOperationOrderBy;
     let orderA: Algebra.TermExpression;
     let descOrderA: Algebra.OperatorExpression;
-    let mediatorMergeBindingsContext: any;
 
     beforeEach(() => {
-      mediatorMergeBindingsContext = {
-        mediate(arg: any) {
-          return {};
-        },
-      };
-
       actor = new ActorQueryOperationOrderBy({
         name: 'actor',
         bus,
         mediatorQueryOperation,
-        mediatorMergeBindingsContext,
         mediatorTermComparatorFactory,
         mediatorExpressionEvaluatorFactory,
       });
@@ -970,20 +921,12 @@ describe('ActorQueryOperationOrderBy with float type', () => {
     let actor: ActorQueryOperationOrderBy;
     let orderA: Algebra.TermExpression;
     let descOrderA: Algebra.OperatorExpression;
-    let mediatorMergeBindingsContext: any;
 
     beforeEach(() => {
-      mediatorMergeBindingsContext = {
-        mediate(arg: any) {
-          return {};
-        },
-      };
-
       actor = new ActorQueryOperationOrderBy({
         name: 'actor',
         bus,
         mediatorQueryOperation,
-        mediatorMergeBindingsContext,
         mediatorTermComparatorFactory,
         mediatorExpressionEvaluatorFactory,
       });
@@ -1077,20 +1020,12 @@ describe('ActorQueryOperationOrderBy with mixed literal types', () => {
     let actor: ActorQueryOperationOrderBy;
     let orderA: Algebra.TermExpression;
     let descOrderA: Algebra.OperatorExpression;
-    let mediatorMergeBindingsContext: any;
 
     beforeEach(() => {
-      mediatorMergeBindingsContext = {
-        mediate(arg: any) {
-          return {};
-        },
-      };
-
       actor = new ActorQueryOperationOrderBy({
         name: 'actor',
         bus,
         mediatorQueryOperation,
-        mediatorMergeBindingsContext,
         mediatorTermComparatorFactory,
         mediatorExpressionEvaluatorFactory,
       });
@@ -1185,20 +1120,12 @@ describe('Another ActorQueryOperationOrderBy with mixed types', () => {
     let actor: ActorQueryOperationOrderBy;
     let orderA: Algebra.TermExpression;
     let descOrderA: Algebra.OperatorExpression;
-    let mediatorMergeBindingsContext: any;
 
     beforeEach(() => {
-      mediatorMergeBindingsContext = {
-        mediate(arg: any) {
-          return {};
-        },
-      };
-
       actor = new ActorQueryOperationOrderBy({
         name: 'actor',
         bus,
         mediatorQueryOperation,
-        mediatorMergeBindingsContext,
         mediatorTermComparatorFactory,
         mediatorExpressionEvaluatorFactory,
       });
