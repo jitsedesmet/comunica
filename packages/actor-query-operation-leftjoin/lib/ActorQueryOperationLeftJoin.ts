@@ -1,20 +1,17 @@
-import type { MediatorExpressionEvaluatorFactory } from '@comunica/bus-expression-evaluator-factory';
-import { BindingsFactory } from '@comunica/bindings-factory';
-import type { MediatorMergeBindingsContext } from '@comunica/bus-merge-bindings-context';
-import type { IActorQueryOperationTypedMediatedArgs } from '@comunica/bus-query-operation';
-import { ActorQueryOperation, ActorQueryOperationTypedMediated } from '@comunica/bus-query-operation';
-import type { MediatorRdfJoin } from '@comunica/bus-rdf-join';
-import type { IActorTest } from '@comunica/core';
-import { isExpressionError } from '@comunica/expression-evaluator';
-import type { Bindings, IActionContext, IJoinEntry, IQueryOperationResult } from '@comunica/types';
-import type { Algebra } from 'sparqlalgebrajs';
+import type {MediatorExpressionEvaluatorFactory} from '@comunica/bus-expression-evaluator-factory';
+import type {IActorQueryOperationTypedMediatedArgs} from '@comunica/bus-query-operation';
+import {ActorQueryOperation, ActorQueryOperationTypedMediated} from '@comunica/bus-query-operation';
+import type {MediatorRdfJoin} from '@comunica/bus-rdf-join';
+import type {IActorTest} from '@comunica/core';
+import {isExpressionError} from '@comunica/expression-evaluator';
+import type {Bindings, IActionContext, IJoinEntry, IQueryOperationResult} from '@comunica/types';
+import type {Algebra} from 'sparqlalgebrajs';
 
 /**
  * A comunica LeftJoin Query Operation Actor.
  */
 export class ActorQueryOperationLeftJoin extends ActorQueryOperationTypedMediated<Algebra.LeftJoin> {
   public readonly mediatorJoin: MediatorRdfJoin;
-  public readonly mediatorMergeBindingsContext: MediatorMergeBindingsContext;
   private readonly mediatorExpressionEvaluatorFactory: MediatorExpressionEvaluatorFactory;
 
   public constructor(args: IActorQueryOperationLeftJoinArgs) {
@@ -90,9 +87,5 @@ export interface IActorQueryOperationLeftJoinArgs extends IActorQueryOperationTy
    * A mediator for joining Bindings streams
    */
   mediatorJoin: MediatorRdfJoin;
-  /**
-   * A mediator for creating binding context merge handlers
-   */
-  mediatorMergeBindingsContext: MediatorMergeBindingsContext;
   mediatorExpressionEvaluatorFactory: MediatorExpressionEvaluatorFactory;
 }

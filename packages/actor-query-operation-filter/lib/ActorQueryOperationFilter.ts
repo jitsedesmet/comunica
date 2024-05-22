@@ -12,8 +12,6 @@ import type {Algebra} from 'sparqlalgebrajs';
  * A comunica Filter Sparqlee Query Operation Actor.
  */
 export class ActorQueryOperationFilter extends ActorQueryOperationTypedMediated<Algebra.Filter> {
-  // TODO: what to o with this?
-  public readonly mediatorMergeBindingsContext: MediatorMergeBindingsContext;
   private readonly mediatorExpressionEvaluatorFactory: MediatorExpressionEvaluatorFactory;
 
   public constructor(args: IActorQueryOperationFilterSparqleeArgs) {
@@ -71,9 +69,5 @@ export class ActorQueryOperationFilter extends ActorQueryOperationTypedMediated<
 }
 
 export interface IActorQueryOperationFilterSparqleeArgs extends IActorQueryOperationTypedMediatedArgs {
-  /**
-   * A mediator for creating binding context merge handlers
-   */
-  mediatorMergeBindingsContext: MediatorMergeBindingsContext;
   mediatorExpressionEvaluatorFactory: MediatorExpressionEvaluatorFactory;
 }

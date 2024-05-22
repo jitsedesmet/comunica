@@ -21,7 +21,6 @@ import { SortIterator } from './SortIterator';
  */
 export class ActorQueryOperationOrderBy extends ActorQueryOperationTypedMediated<Algebra.OrderBy> {
   private readonly window: number;
-  public readonly mediatorMergeBindingsContext: MediatorMergeBindingsContext;
   private readonly mediatorExpressionEvaluatorFactory: MediatorExpressionEvaluatorFactory;
   private readonly mediatorTermComparatorFactory: MediatorTermComparatorFactory;
 
@@ -34,8 +33,6 @@ export class ActorQueryOperationOrderBy extends ActorQueryOperationTypedMediated
 
   public async testOperation(operation: Algebra.OrderBy, context: IActionContext): Promise<IActorTest> {
     // Will throw error for unsupported operators
-    const bindingsFactory = await BindingsFactory.create(this.mediatorMergeBindingsContext, context);
-
     for (let expr of operation.expressions) {
       expr = this.extractSortExpression(expr);
       const _ = await this.mediatorExpressionEvaluatorFactory
@@ -131,10 +128,6 @@ export class ActorQueryOperationOrderBy extends ActorQueryOperationTypedMediated
  * The window parameter determines how many of the elements to consider when sorting.
  */
 export interface IActorQueryOperationOrderBySparqleeArgs extends IActorQueryOperationTypedMediatedArgs {
-  /**
-   * A mediator for creating binding context merge handlers
-   */
-  mediatorMergeBindingsContext: MediatorMergeBindingsContext;
   /**
    * The size of the window for the sort iterator.
    * @range {integer}

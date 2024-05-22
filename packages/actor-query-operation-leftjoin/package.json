@@ -38,8 +38,6 @@
   },
   "dependencies": {
     "@comunica/bus-expression-evaluator-factory": "^1.0.0",
-    "@comunica/bindings-factory": "^3.0.3",
-    "@comunica/bus-merge-bindings-context": "^3.0.3",
     "@comunica/bus-query-operation": "^3.0.3",
     "@comunica/bus-rdf-join": "^3.0.3",
     "@comunica/core": "^3.0.3",
