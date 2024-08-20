@@ -2,7 +2,7 @@ import { createFuncMediator } from '@comunica/actor-function-factory-wrapper-all
 import type { IBindingsAggregator } from '@comunica/bus-bindings-aggeregator-factory';
 import type { ActorExpressionEvaluatorFactory } from '@comunica/bus-expression-evaluator-factory';
 import type { MediatorFunctionFactory } from '@comunica/bus-function-factory';
-import { SparqlOperator } from '@comunica/expression-evaluator';
+import { RegularOperator } from '@comunica/expression-evaluator';
 import {
   BF,
   decimal,
@@ -39,12 +39,12 @@ async function createAggregator({ expressionEvaluatorFactory, context, distinct,
     distinct,
     await mediatorFunctionFactory.mediate({
       context,
-      functionName: SparqlOperator.ADDITION,
+      functionName: RegularOperator.ADDITION,
       requireTermExpression: true,
     }),
     await mediatorFunctionFactory.mediate({
       context,
-      functionName: SparqlOperator.DIVISION,
+      functionName: RegularOperator.DIVISION,
       requireTermExpression: true,
     }),
   );

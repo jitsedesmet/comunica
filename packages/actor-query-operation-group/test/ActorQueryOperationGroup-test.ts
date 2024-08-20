@@ -20,7 +20,7 @@ import type { IActionQueryOperation } from '@comunica/bus-query-operation';
 import { ActorQueryOperation } from '@comunica/bus-query-operation';
 import type { MediatorTermComparatorFactory } from '@comunica/bus-term-comparator-factory';
 import { ActionContext, Bus } from '@comunica/core';
-import { SparqlOperator } from '@comunica/expression-evaluator';
+import { RegularOperator } from '@comunica/expression-evaluator';
 import { getMockEEActionContext, getMockEEFactory } from '@comunica/jest';
 import type { Bindings } from '@comunica/types';
 import arrayifyStream from 'arrayify-stream';
@@ -139,7 +139,7 @@ IActionBindingsAggregatorFactory):
       evaluator,
       expr.distinct,
       await mediatorFunctionFactory.mediate({
-        functionName: SparqlOperator.ADDITION,
+        functionName: RegularOperator.ADDITION,
         context,
         requireTermExpression: true,
       }),
@@ -150,12 +150,12 @@ IActionBindingsAggregatorFactory):
       evaluator,
       expr.distinct,
       await mediatorFunctionFactory.mediate({
-        functionName: SparqlOperator.ADDITION,
+        functionName: RegularOperator.ADDITION,
         context,
         requireTermExpression: true,
       }),
       await mediatorFunctionFactory.mediate({
-        functionName: SparqlOperator.DIVISION,
+        functionName: RegularOperator.DIVISION,
         context,
         requireTermExpression: true,
       }),

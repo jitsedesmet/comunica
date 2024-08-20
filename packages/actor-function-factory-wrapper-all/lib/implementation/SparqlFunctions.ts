@@ -1818,7 +1818,7 @@ export const sparqlFunctions: Record<SparqlOperator, BaseFunctionDefinition> = {
   subject: new Subject(),
   predicate: new Predicate(),
   object: new ObjectSparqlFunction(),
-  istriple: new IsTriple(),
+  isTriple: new IsTriple(),
 
   // Special
   bound: new Bound(),

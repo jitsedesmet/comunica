@@ -1,15 +1,15 @@
 import { AlgebraTransformer } from '@comunica/actor-expression-evaluator-factory-default/lib/AlgebraTransformer';
 import { NamedExtension } from '@comunica/actor-function-factory-wrapper-all/lib/implementation/NamedExtension';
-import {
-  namedFunctions,
-  sparqlFunctions,
-} from '@comunica/actor-function-factory-wrapper-all/lib/implementation/SparqlFunctions';
+import { namedFunctions } from '@comunica/actor-function-factory-wrapper-all/lib/implementation/SparqlFunctions';
+import { specialFunctions } from '@comunica/actor-function-factory-wrapper-all/lib/implementation/SpecialFunctions';
 import { createFuncMediator } from '@comunica/actor-function-factory-wrapper-all/test/util';
 import type { IExpressionFunction, MediatorFunctionFactory } from '@comunica/bus-function-factory';
 import * as E from '@comunica/expression-evaluator/lib/expressions';
+import type * as C from '@comunica/expression-evaluator/lib/util/Consts';
 import { prepareEvaluatorActionContext } from '@comunica/expression-evaluator/lib/util/Context';
 import * as Err from '@comunica/expression-evaluator/lib/util/Errors';
 import { getMockEEActionContext, getMockEEFactory } from '@comunica/jest';
+import { sparqlFunctions } from 'packages/actor-function-factory-wrapper-all/lib/implementation/SparqlFunctions';
 import { DataFactory } from 'rdf-data-factory';
 import { expressionTypes, types } from 'sparqlalgebrajs/lib/algebra';
 import { Wildcard } from 'sparqljs';
@@ -23,8 +23,9 @@ describe('AlgebraTransformer', () => {
       async mediate({ functionName }) {
         const res: IExpressionFunction | undefined = {
           ...sparqlFunctions,
+          ...specialFunctions,
           ...namedFunctions,
-        }[functionName];
+        }[<C.NamedOperator | C.Operator> functionName];
         if (res) {
           return res;
         }
@@ -70,7 +71,7 @@ describe('AlgebraTransformer', () => {
       expressionType: expressionTypes.OPERATOR,
       operator: 'BNODE',
       args: [],
-    })).resolves.toBeInstanceOf(E.Operator);
+    })).resolves.toBeInstanceOf(E.SpecialOperator);
   });
 
   it('transform special operator lower case', async() => {
@@ -79,7 +80,7 @@ describe('AlgebraTransformer', () => {
       expressionType: expressionTypes.OPERATOR,
       operator: 'bnode',
       args: [],
-    })).resolves.toBeInstanceOf(E.Operator);
+    })).resolves.toBeInstanceOf(E.SpecialOperator);
   });
 
   it('transform special operator bad arity', async() => {
@@ -97,7 +98,7 @@ describe('AlgebraTransformer', () => {
       expressionType: expressionTypes.OPERATOR,
       operator: 'coalesce',
       args: [],
-    })).resolves.toBeInstanceOf(E.Operator);
+    })).resolves.toBeInstanceOf(E.SpecialOperator);
   });
 
   it('transform regular operator lower case', async() => {

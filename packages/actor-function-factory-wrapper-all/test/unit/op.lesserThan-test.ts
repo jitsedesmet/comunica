@@ -1,5 +1,4 @@
-import type { TermSparqlFunction } from '@comunica/bus-function-factory';
-import { SparqlOperator } from '@comunica/expression-evaluator';
+import { RegularOperator } from '@comunica/expression-evaluator';
 import * as E from '@comunica/expression-evaluator/lib/expressions';
 import { getMockExpression } from '@comunica/expression-evaluator/test/util/utils';
 import { getMockEEActionContext, getMockEEFactory } from '@comunica/jest';
@@ -9,7 +8,7 @@ import { createFuncMediator } from '../util';
 describe('lesser than', () => {
   describe('on sparql star tripples', () => {
     it('allows Generalized RDF Triples', async() => {
-      const op = <TermSparqlFunction> sparqlFunctions[SparqlOperator.LT];
+      const op = sparqlFunctions[RegularOperator.LT];
       const dg = new E.DefaultGraph();
       expect(op.applyOnTerms(
         [
