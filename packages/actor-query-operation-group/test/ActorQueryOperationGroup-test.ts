@@ -19,6 +19,7 @@ import type { MediatorFunctionFactory } from '@comunica/bus-function-factory';
 import type { IActionQueryOperation } from '@comunica/bus-query-operation';
 import { ActorQueryOperation } from '@comunica/bus-query-operation';
 import type { MediatorTermComparatorFactory } from '@comunica/bus-term-comparator-factory';
+import { KeysInitQuery } from '@comunica/context-entries';
 import { Bus } from '@comunica/core';
 import { SparqlOperator } from '@comunica/expression-evaluator';
 import { getMockEEActionContext, getMockEEFactory } from '@comunica/jest';
@@ -138,6 +139,7 @@ IActionBindingsAggregatorFactory):
     return new SumAggregator(
       evaluator,
       expr.distinct,
+      context.getSafe(KeysInitQuery.dataFactory),
       await mediatorFunctionFactory.mediate({
         functionName: SparqlOperator.ADDITION,
         context,
@@ -149,6 +151,7 @@ IActionBindingsAggregatorFactory):
     return new AverageAggregator(
       evaluator,
       expr.distinct,
+      context.getSafe(KeysInitQuery.dataFactory),
       await mediatorFunctionFactory.mediate({
         functionName: SparqlOperator.ADDITION,
         context,
