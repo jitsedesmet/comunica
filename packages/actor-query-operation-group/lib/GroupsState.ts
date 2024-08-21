@@ -4,7 +4,8 @@ import type {
   MediatorBindingsAggregatorFactory,
 } from '@comunica/bus-bindings-aggeregator-factory';
 import type { HashFunction } from '@comunica/bus-hash-bindings';
-import type { Bindings, IActionContext } from '@comunica/types';
+import { KeysInitQuery } from '@comunica/context-entries';
+import type { Bindings, ComunicaDataFactory, IActionContext } from '@comunica/types';
 import type * as RDF from '@rdfjs/types';
 import { DataFactory } from 'rdf-data-factory';
 import type { Algebra } from 'sparqlalgebrajs';
@@ -120,6 +121,7 @@ export class GroupsState {
   }
 
   private async handleResultCollection(): Promise<void> {
+    const dataFactory: ComunicaDataFactory = this.context.getSafe(KeysInitQuery.dataFactory);
     // Collect groups
     let rows: Bindings[] = await Promise.all([ ...this.groups ].map(async([ _, group ]) => {
       const { bindings: groupBindings, aggregators } = group;
@@ -131,7 +133,7 @@ export class GroupsState {
         const value = await aggregators[variable].result();
         if (value) {
           // Filter undefined
-          returnBindings = returnBindings.set(this.sparqleeConfig.dataFactory.variable(variable), value);
+          returnBindings = returnBindings.set(dataFactory.variable(variable), value);
         }
       }
 

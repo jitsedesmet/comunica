@@ -1255,13 +1255,6 @@
     "@comunica/types" "^2.10.0"
     immutable "^4.1.0"
 
-"@comunica/data-factory@^3.0.3":
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/@comunica/data-factory/-/data-factory-3.1.0.tgz#64adef8ebabb28699b969d268c82e8f81ea3575c"
-  integrity sha512-kNEgK+3HPzej8m53//RkZTq9WPYrja9CjrkJqvdgawpMTbg+zEeCoQZ3BGD0LiWiphADpyvYfRFCVpgcHjKvLQ==
-  dependencies:
-    "@rdfjs/types" "*"
-
 "@comunica/mediator-combine-pipeline@^2.0.1":
   version "2.10.0"
   resolved "https://registry.npmjs.org/@comunica/mediator-combine-pipeline/-/mediator-combine-pipeline-2.10.0.tgz"
@@ -12554,10 +12547,10 @@ sparqlalgebrajs@^4.0.0, sparqlalgebrajs@^4.2.0:
     rdf-terms "^1.10.0"
     sparqljs "^3.7.1"
 
-sparqlalgebrajs@^4.3.7:
-  version "4.3.7"
-  resolved "https://registry.yarnpkg.com/sparqlalgebrajs/-/sparqlalgebrajs-4.3.7.tgz#c4805138fa212f2e304188ad93e820490765879b"
-  integrity sha512-vwi2vOTJcnPpGfRaeBG2AtaddceWKmttbI6QA3V9EpQPlhy9tVHKofNs1fiYoI/crHAOT4cZ6oR8vVOkKBhekw==
+sparqlalgebrajs@^4.3.3, sparqlalgebrajs@^4.3.8:
+  version "4.3.8"
+  resolved "https://registry.yarnpkg.com/sparqlalgebrajs/-/sparqlalgebrajs-4.3.8.tgz#2b339120fc3e4d7cc952c113ee6f1ab8e0d3b7a5"
+  integrity sha512-Xo1/5icRtVk2N38BrY9NXN8N/ZPjULlns7sDHv0nlcGOsOediBLWVy8LmV+Q90RHvb3atZZbrFy3VqrM4iXciA==
   dependencies:
     "@rdfjs/types" "*"
     "@types/sparqljs" "^3.1.3"
@@ -12569,10 +12562,10 @@ sparqlalgebrajs@^4.3.7:
     rdf-terms "^1.10.0"
     sparqljs "^3.7.1"
 
-sparqlalgebrajs@^4.3.8:
-  version "4.3.8"
-  resolved "https://registry.yarnpkg.com/sparqlalgebrajs/-/sparqlalgebrajs-4.3.8.tgz#2b339120fc3e4d7cc952c113ee6f1ab8e0d3b7a5"
-  integrity sha512-Xo1/5icRtVk2N38BrY9NXN8N/ZPjULlns7sDHv0nlcGOsOediBLWVy8LmV+Q90RHvb3atZZbrFy3VqrM4iXciA==
+sparqlalgebrajs@^4.3.7:
+  version "4.3.7"
+  resolved "https://registry.yarnpkg.com/sparqlalgebrajs/-/sparqlalgebrajs-4.3.7.tgz#c4805138fa212f2e304188ad93e820490765879b"
+  integrity sha512-vwi2vOTJcnPpGfRaeBG2AtaddceWKmttbI6QA3V9EpQPlhy9tVHKofNs1fiYoI/crHAOT4cZ6oR8vVOkKBhekw==
   dependencies:
     "@rdfjs/types" "*"
     "@types/sparqljs" "^3.1.3"

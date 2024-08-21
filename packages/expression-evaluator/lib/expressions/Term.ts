@@ -1,10 +1,5 @@
-import type { ComunicaDataFactory } from '@comunica/types';
-import type * as RDF from '@rdfjs/types';
-import { TermTransformer } from '../transformers/TermTransformer';
-import * as C from '../util/Consts';
-import { TypeAlias, TypeURL } from '../util/Consts';
-
 import type {
+  ComunicaDataFactory,
   IDateRepresentation,
   IDateTimeRepresentation,
   IDurationRepresentation,
@@ -13,7 +8,7 @@ import type {
   IYearMonthDurationRepresentation,
 } from '@comunica/types';
 import type * as RDF from '@rdfjs/types';
-import { DataFactory } from 'rdf-data-factory';
+import type { Quad_Graph, Quad_Object, Quad_Predicate, Quad_Subject } from '@rdfjs/types';
 import * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
 
@@ -83,10 +78,13 @@ export class Quad extends Term {
     super();
   }
 
-  public toRDF(): RDF.BaseQuad {
-    // eslint-disable-next-line ts/ban-ts-comment
-    // @ts-expect-error
-    return DF.quad(this.subject.toRDF(), this.predicate.toRDF(), this.object.toRDF(), this.graph.toRDF());
+  public toRDF(dataFactory: ComunicaDataFactory): RDF.BaseQuad {
+    return dataFactory.quad(
+      <Quad_Subject> this.subject.toRDF(dataFactory),
+      <Quad_Predicate> this.predicate.toRDF(dataFactory),
+      <Quad_Object> this.object.toRDF(dataFactory),
+      <Quad_Graph> this.graph.toRDF(dataFactory),
+    );
   }
 
   public override str(): string {

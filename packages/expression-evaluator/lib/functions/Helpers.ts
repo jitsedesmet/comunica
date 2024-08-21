@@ -2,12 +2,10 @@
  * These helpers provide a (albeit inflexible) DSL for writing function
  * definitions for the SPARQL functions.
  */
-import type { ComunicaDataFactory } from '@comunica/types';
-import type { IDateTimeRepresentation } from '@comunica/types';
+import { KeysInitQuery } from '@comunica/context-entries';
+import type { ComunicaDataFactory, IDateTimeRepresentation } from '@comunica/types';
 import type * as RDF from '@rdfjs/types';
-import type { ICompleteSharedContext } from '../evaluators/evaluatorHelpers/BaseExpressionEvaluator';
-import { DataFactory } from 'rdf-data-factory';
-import type { Literal, TermExpression, Quad, ISerializable } from '../expressions';
+import type { ISerializable, Literal, Quad, TermExpression } from '../expressions';
 import * as E from '../expressions';
 import { NonLexicalLiteral } from '../expressions';
 import * as C from '../util/Consts';
@@ -20,7 +18,6 @@ import type {
   ImplementationFunctionTuple,
 } from './OverloadTree';
 import { OverloadTree } from './OverloadTree';
-import { KeysInitQuery } from '@comunica/context-entries';
 
 type Term = E.TermExpression;
 
@@ -50,7 +47,9 @@ export class Builder {
     return (expressionEvaluator: IInternalEvaluator) => (args: TermExpression[]) => {
       for (const [ index, arg ] of args.entries()) {
         if (arg instanceof NonLexicalLiteral) {
-          throw new Err.InvalidLexicalForm(args[index].toRDF(expressionEvaluator.context.getSafe(KeysInitQuery.dataFactory)));
+          throw new Err.InvalidLexicalForm(
+            args[index].toRDF(expressionEvaluator.context.getSafe(KeysInitQuery.dataFactory)),
+          );
         }
       }
       return func(expressionEvaluator)(args);
