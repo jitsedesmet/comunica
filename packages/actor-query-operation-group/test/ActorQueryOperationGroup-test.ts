@@ -185,6 +185,7 @@ IActionBindingsAggregatorFactory):
     return new GroupConcatAggregator(
       evaluator,
       expr.distinct,
+      context.getSafe(KeysInitQuery.dataFactory),
       expr.separator,
     );
   }
