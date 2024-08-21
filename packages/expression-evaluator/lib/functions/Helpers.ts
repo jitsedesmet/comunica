@@ -2,8 +2,10 @@
  * These helpers provide a (albeit inflexible) DSL for writing function
  * definitions for the SPARQL functions.
  */
+import type { ComunicaDataFactory } from '@comunica/types';
 import type { IDateTimeRepresentation } from '@comunica/types';
 import type * as RDF from '@rdfjs/types';
+import type { ICompleteSharedContext } from '../evaluators/evaluatorHelpers/BaseExpressionEvaluator';
 import { DataFactory } from 'rdf-data-factory';
 import type { Literal, TermExpression, Quad, ISerializable } from '../expressions';
 import * as E from '../expressions';
@@ -18,10 +20,9 @@ import type {
   ImplementationFunctionTuple,
 } from './OverloadTree';
 import { OverloadTree } from './OverloadTree';
+import { KeysInitQuery } from '@comunica/context-entries';
 
 type Term = E.TermExpression;
-
-const DF = new DataFactory();
 
 export function declare(identifier: string): Builder {
   return new Builder(identifier);
@@ -49,7 +50,7 @@ export class Builder {
     return (expressionEvaluator: IInternalEvaluator) => (args: TermExpression[]) => {
       for (const [ index, arg ] of args.entries()) {
         if (arg instanceof NonLexicalLiteral) {
-          throw new Err.InvalidLexicalForm(args[index].toRDF());
+          throw new Err.InvalidLexicalForm(args[index].toRDF(expressionEvaluator.context.getSafe(KeysInitQuery.dataFactory)));
         }
       }
       return func(expressionEvaluator)(args);
@@ -457,6 +458,9 @@ export function dateTime(date: IDateTimeRepresentation, str: string): E.DateTime
   return new E.DateTimeLiteral(date, str);
 }
 
-export function expressionToVar(variableExpression: E.VariableExpression): RDF.Variable {
-  return DF.variable(variableExpression.name.slice(1));
+export function expressionToVar(
+  dataFactory: ComunicaDataFactory,
+  variableExpression: E.VariableExpression,
+): RDF.Variable {
+  return dataFactory.variable(variableExpression.name.slice(1));
 }

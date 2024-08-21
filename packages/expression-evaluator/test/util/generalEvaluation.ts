@@ -4,9 +4,13 @@ import type { ActorExpressionEvaluatorFactory } from '@comunica/bus-expression-e
 import { getMockEEActionContext, getMockEEFactory } from '@comunica/jest';
 import type { IActionContext } from '@comunica/types';
 import type * as RDF from '@rdfjs/types';
+import { DataFactory } from 'rdf-data-factory';
+import { termToString } from 'rdf-string';
+import type { Algebra as Alg } from 'sparqlalgebrajs';
 import { translate } from 'sparqlalgebrajs';
 
-const BF = new BindingsFactory();
+const DF = new DataFactory();
+const BF = new BindingsFactory(DF);
 
 export interface IGeneralEvaluationArg {
   bindings?: RDF.Bindings;

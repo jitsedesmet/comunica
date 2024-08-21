@@ -78,11 +78,13 @@ export function nonLiteral(): RDF.Term {
   return DF.namedNode('http://example.org/');
 }
 
+// Sets default values for some context entries
 export function getMockEEActionContext(actionContext?: IActionContext): IActionContext {
   return new ActionContext({
     [KeysInitQuery.queryTimestamp.name]: new Date(Date.now()),
     [KeysInitQuery.functionArgumentsCache.name]: {},
     [KeysExpressionEvaluator.superTypeProvider.name]: getMockSuperTypeProvider(),
+    [KeysInitQuery.dataFactory.name]: DF,
   }).merge(actionContext ?? new ActionContext());
 }
 

@@ -15,7 +15,7 @@ import { Algebra } from 'sparqlalgebrajs';
 import { ActorQueryOperationOrderBy } from '../lib/ActorQueryOperationOrderBy';
 
 const DF = new DataFactory();
-const BF = new BindingsFactory();
+const BF = new BindingsFactory(DF);
 
 describe('ActorQueryOperationOrderBy with mixed term types', () => {
   let bus: any;
@@ -1141,7 +1141,7 @@ describe('Another ActorQueryOperationOrderBy with mixed types', () => {
       try {
         const op: any = {
           operation: { type: 'orderby', input: {}, expressions: [ orderA ]},
-          context: new ActionContext(),
+          context,
         };
         const output = await actor.run(op);
         const array = await arrayifyStream(ActorQueryOperation.getSafeBindings(output).bindingsStream);

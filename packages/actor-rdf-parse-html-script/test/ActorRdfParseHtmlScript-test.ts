@@ -1,12 +1,16 @@
 import { ActorRdfParseJsonLd } from '@comunica/actor-rdf-parse-jsonld';
 import type { IActionRdfParseHtml, IHtmlParseListener } from '@comunica/bus-rdf-parse-html';
+import { KeysInitQuery } from '@comunica/context-entries';
 import { ActionContext, Bus } from '@comunica/core';
 import 'jest-rdf';
 import type { IActionContext } from '@comunica/types';
+import { DataFactory } from 'rdf-data-factory';
 import { ActorRdfParseHtmlScript } from '../lib/ActorRdfParseHtmlScript';
 import { HtmlScriptListener } from '../lib/HtmlScriptListener';
 
 const quad = require('rdf-quad');
+
+const DF = new DataFactory();
 
 describe('ActorRdfParseHtml', () => {
   let bus: any;
@@ -108,7 +112,9 @@ describe('ActorRdfParseHtml', () => {
           end = jest.fn(resolve);
           error = jest.fn(reject);
         });
-        action = { baseIRI, headers, emit, error, end, context: new ActionContext({}) };
+        action = { baseIRI, headers, emit, error, end, context: new ActionContext({
+          [KeysInitQuery.dataFactory.name]: DF,
+        }) };
       });
 
       it('should return an HtmlScriptListener', async() => {
@@ -217,27 +223,18 @@ describe('ActorRdfParseHtml', () => {
           await onEnd;
 
           expect(emit).toHaveBeenCalledTimes(4);
-          // / Use fn calls
-          expect(emit.mock.calls[0][0].subject.value).toBe('http://example.org/a');
-          expect(emit.mock.calls[0][0].predicate.value).toBe('http://example.org/b');
-          expect(emit.mock.calls[0][0].object.value).toBe('http://example.org/c');
-
-          expect(emit.mock.calls[1][0].subject.value).toBe('http://example.org/a');
-          expect(emit.mock.calls[1][0].predicate.value).toBe('http://example.org/d');
-          expect(emit.mock.calls[1][0].object.value).toBe('http://example.org/e');
-          expect(emit.mock.calls[1][0].graph).toEqual(emit.mock.calls[0][0].graph);
-
-          expect(emit.mock.calls[2][0].subject.value).toBe('http://example.org/A');
-          expect(emit.mock.calls[2][0].predicate.value).toBe('http://example.org/b');
-          expect(emit.mock.calls[2][0].object.value).toBe('http://example.org/c');
-
-          expect(emit.mock.calls[3][0].subject.value).toBe('http://example.org/A');
-          expect(emit.mock.calls[3][0].predicate.value).toBe('http://example.org/d');
-          expect(emit.mock.calls[3][0].object.value).toBe('http://example.org/e');
-          expect(emit.mock.calls[3][0].graph).toEqual(emit.mock.calls[2][0].graph);
-
-          expect(emit.mock.calls[0][0].graph).not.toEqual(emit.mock.calls[2][0].graph);
-
+          expect(emit).toHaveBeenCalledWith(
+            quad('http://example.org/a', 'http://example.org/b', '"http://example.org/c"', '_:df_4_2'),
+          );
+          expect(emit).toHaveBeenCalledWith(
+            quad('http://example.org/a', 'http://example.org/d', '"http://example.org/e"', '_:df_4_2'),
+          );
+          expect(emit).toHaveBeenCalledWith(
+            quad('http://example.org/A', 'http://example.org/b', '"http://example.org/c"', '_:df_4_3'),
+          );
+          expect(emit).toHaveBeenCalledWith(
+            quad('http://example.org/A', 'http://example.org/d', '"http://example.org/e"', '_:df_4_3'),
+          );
           expect(error).not.toHaveBeenCalled();
           expect(end).toHaveBeenCalledTimes(1);
         });
@@ -422,7 +419,9 @@ describe('ActorRdfParseHtml', () => {
           end = jest.fn(resolve);
           error = jest.fn(reject);
         });
-        action = { baseIRI, headers, emit, error, end, context: new ActionContext({}) };
+        action = { baseIRI, headers, emit, error, end, context: new ActionContext({
+          [KeysInitQuery.dataFactory.name]: DF,
+        }) };
       });
 
       it('should return an HtmlScriptListener', async() => {
@@ -574,7 +573,10 @@ describe('ActorRdfParseHtml', () => {
           end = jest.fn(resolve);
           error = jest.fn(reject);
         });
-        action = { baseIRI, headers, emit, error, end, context: new ActionContext({ extractAllScripts: false }) };
+        action = { baseIRI, headers, emit, error, end, context: new ActionContext({
+          [KeysInitQuery.dataFactory.name]: DF,
+          extractAllScripts: false,
+        }) };
       });
 
       it('should return an HtmlScriptListener', async() => {
@@ -641,7 +643,10 @@ describe('ActorRdfParseHtml', () => {
           end = jest.fn(resolve);
           error = jest.fn(reject);
         });
-        action = { baseIRI, headers, emit, error, end, context: new ActionContext({ extractAllScripts: false }) };
+        action = { baseIRI, headers, emit, error, end, context: new ActionContext({
+          [KeysInitQuery.dataFactory.name]: DF,
+          extractAllScripts: false,
+        }) };
       });
 
       it('should return an HtmlScriptListener', async() => {
