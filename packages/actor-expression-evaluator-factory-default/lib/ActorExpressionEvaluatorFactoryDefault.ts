@@ -35,7 +35,11 @@ export class ActorExpressionEvaluatorFactoryDefault extends ActorExpressionEvalu
       ).transformAlgebra(action.algExpr),
       this.mediatorFunctionFactory,
       this.mediatorQueryOperation,
-      await BindingsFactory.create(this.mediatorMergeBindingsContext, action.context, action.context.getSafe(KeysInitQuery.dataFactory)),
+      await BindingsFactory.create(
+        this.mediatorMergeBindingsContext,
+        action.context,
+        action.context.getSafe(KeysInitQuery.dataFactory),
+      ),
     );
   }
 }

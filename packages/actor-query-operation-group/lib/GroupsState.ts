@@ -7,10 +7,7 @@ import type { HashFunction } from '@comunica/bus-hash-bindings';
 import { KeysInitQuery } from '@comunica/context-entries';
 import type { Bindings, ComunicaDataFactory, IActionContext } from '@comunica/types';
 import type * as RDF from '@rdfjs/types';
-import { DataFactory } from 'rdf-data-factory';
 import type { Algebra } from 'sparqlalgebrajs';
-
-const DF = new DataFactory();
 
 /**
  * A simple type alias for strings that should be hashes of Bindings

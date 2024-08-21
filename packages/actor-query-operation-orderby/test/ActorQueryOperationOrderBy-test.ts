@@ -4,7 +4,7 @@ import { BindingsFactory } from '@comunica/bindings-factory';
 import type { MediatorExpressionEvaluatorFactory } from '@comunica/bus-expression-evaluator-factory';
 import { ActorQueryOperation } from '@comunica/bus-query-operation';
 import type { MediatorTermComparatorFactory } from '@comunica/bus-term-comparator-factory';
-import { ActionContext, Bus } from '@comunica/core';
+import { Bus } from '@comunica/core';
 import * as sparqlee from '@comunica/expression-evaluator';
 import { getMockEEActionContext, getMockMediatorExpressionEvaluatorFactory } from '@comunica/jest';
 import type { IActionContext } from '@comunica/types';

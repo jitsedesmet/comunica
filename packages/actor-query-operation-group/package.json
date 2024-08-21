@@ -44,10 +44,10 @@
     "@comunica/bus-query-operation": "^3.2.1",
     "@comunica/context-entries": "^3.2.1",
     "@comunica/core": "^3.2.1",
-    "@comunica/expression-evaluator": "^3.2.1",
     "@comunica/types": "^3.2.1",
     "@rdfjs/types": "*",
     "asynciterator": "^3.9.0",
+    "rdf-data-factory": "^1.1.2",
     "sparqlalgebrajs": "^4.3.7"
   }
 }

@@ -2,7 +2,7 @@ import { createFuncMediator } from '@comunica/actor-function-factory-wrapper-all
 import { BindingsFactory } from '@comunica/bindings-factory';
 import type { MediatorExpressionEvaluatorFactory } from '@comunica/bus-expression-evaluator-factory';
 import { ActorQueryOperation } from '@comunica/bus-query-operation';
-import { ActionContext, Bus } from '@comunica/core';
+import { Bus } from '@comunica/core';
 import * as sparqlee from '@comunica/expression-evaluator';
 import { isExpressionError } from '@comunica/expression-evaluator';
 import { getMockEEActionContext, getMockMediatorExpressionEvaluatorFactory } from '@comunica/jest';

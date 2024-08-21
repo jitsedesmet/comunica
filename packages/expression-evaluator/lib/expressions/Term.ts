@@ -8,12 +8,11 @@ import type {
   IYearMonthDurationRepresentation,
 } from '@comunica/types';
 import type * as RDF from '@rdfjs/types';
-import type { Quad_Graph, Quad_Object, Quad_Predicate, Quad_Subject } from '@rdfjs/types';
 import * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
 
 import * as Err from '../util/Errors';
-import { serializeDateTime, serializeDuration, serializeTime, serializeDate } from '../util/Serialization';
+import { serializeDate, serializeDateTime, serializeDuration, serializeTime } from '../util/Serialization';
 import { isSubTypeOf } from '../util/TypeHandling';
 import type { TermExpression, TermType } from './Expressions';
 import { ExpressionType } from './Expressions';
@@ -80,10 +79,10 @@ export class Quad extends Term {
 
   public toRDF(dataFactory: ComunicaDataFactory): RDF.BaseQuad {
     return dataFactory.quad(
-      <Quad_Subject> this.subject.toRDF(dataFactory),
-      <Quad_Predicate> this.predicate.toRDF(dataFactory),
-      <Quad_Object> this.object.toRDF(dataFactory),
-      <Quad_Graph> this.graph.toRDF(dataFactory),
+      <RDF.Quad_Subject> this.subject.toRDF(dataFactory),
+      <RDF.Quad_Predicate> this.predicate.toRDF(dataFactory),
+      <RDF.Quad_Object> this.object.toRDF(dataFactory),
+      <RDF.Quad_Graph> this.graph.toRDF(dataFactory),
     );
   }
 
