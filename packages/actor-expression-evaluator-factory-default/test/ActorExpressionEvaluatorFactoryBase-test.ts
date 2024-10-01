@@ -1,15 +1,8 @@
-import { Bus } from '@comunica/core';
 import { getMockExpression } from '@comunica/expression-evaluator/test/util/utils';
 import { getMockEEActionContext, getMockEEFactory } from '@comunica/jest';
 import type { ActorExpressionEvaluatorFactoryDefault } from '../lib';
 
 describe('ActorExpressionEvaluatorFactoryDefault', () => {
-  let bus: any;
-
-  beforeEach(() => {
-    bus = new Bus({ name: 'bus' });
-  });
-
   describe('An ActorExpressionEvaluatorFactoryDefault instance', () => {
     let actor: ActorExpressionEvaluatorFactoryDefault;
 
