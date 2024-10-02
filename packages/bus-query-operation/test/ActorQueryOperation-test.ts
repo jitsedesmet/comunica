@@ -1,18 +1,5 @@
 import { Bus } from '@comunica/core';
-import { cachifyMetadata, MetadataValidationState } from '@comunica/metadata';
-import { KeysInitQuery } from '@comunica/context-entries';
-import { ActionContext, Bus } from '@comunica/core';
-import type { FunctionArgumentsCache } from '@comunica/types';
-import { BindingsFactory } from '@comunica/utils-bindings-factory';
-import { ArrayIterator } from 'asynciterator';
-import { DataFactory } from 'rdf-data-factory';
-import type { Algebra } from 'sparqlalgebrajs';
-import { Factory } from 'sparqlalgebrajs';
 import { ActorQueryOperation } from '..';
-
-const DF = new DataFactory();
-const AF = new Factory();
-const BF = new BindingsFactory(DF);
 
 describe('ActorQueryOperation', () => {
   const bus = new Bus({ name: 'bus' });

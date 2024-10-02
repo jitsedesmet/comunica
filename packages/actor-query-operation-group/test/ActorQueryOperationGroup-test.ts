@@ -23,16 +23,15 @@ import type { MediatorTermComparatorFactory } from '@comunica/bus-term-comparato
 import { KeysInitQuery } from '@comunica/context-entries';
 import { Bus } from '@comunica/core';
 import { SparqlOperator } from '@comunica/expression-evaluator';
-import { getMockEEActionContext, getMockEEFactory } from '@comunica/jest';
 import type { Bindings, IActionContext } from '@comunica/types';
 import { BindingsFactory } from '@comunica/utils-bindings-factory';
+import { getMockEEActionContext, getMockEEFactory } from '@comunica/utils-jest';
 import arrayifyStream from 'arrayify-stream';
 import { ArrayIterator } from 'asynciterator';
 import { DataFactory } from 'rdf-data-factory';
 import { Algebra } from 'sparqlalgebrajs';
 import { ActorQueryOperationGroup } from '../lib';
 import { GroupsState } from '../lib/GroupsState';
-import '@comunica/utils-jest';
 
 const DF = new DataFactory();
 const BF = new BindingsFactory(DF, {});
@@ -131,7 +130,7 @@ IActionBindingsAggregatorFactory):
   const evaluator = await factory.run({
     algExpr: expr.expression,
     context,
-  });
+  }, undefined);
   if (expr.aggregator === 'count') {
     if (expr.expression.wildcard) {
       return new WildcardCountAggregator(evaluator, expr.distinct);
