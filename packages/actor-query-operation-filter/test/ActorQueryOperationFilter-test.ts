@@ -5,7 +5,6 @@ import { ActorFunctionFactoryTermFunctionAddition } from '@comunica/actor-functi
 import { ActorFunctionFactoryTermFunctionEquality } from '@comunica/actor-function-factory-term-function-equality';
 import { ActorFunctionFactoryTermFunctionIri } from '@comunica/actor-function-factory-term-function-iri';
 import { ActorFunctionFactoryTermFunctionStr } from '@comunica/actor-function-factory-term-function-str';
-import { BindingsFactory } from '@comunica/bindings-factory';
 import type { MediatorExpressionEvaluatorFactory } from '@comunica/bus-expression-evaluator-factory';
 import { createFuncMediator } from '@comunica/bus-function-factory/test/util';
 import { ActorQueryOperation } from '@comunica/bus-query-operation';
@@ -15,6 +14,7 @@ import * as sparqlee from '@comunica/expression-evaluator';
 import { isExpressionError } from '@comunica/expression-evaluator';
 import { getMockEEActionContext, getMockMediatorExpressionEvaluatorFactory } from '@comunica/jest';
 import type { IQueryOperationResultBindings, Bindings, IActionContext } from '@comunica/types';
+import { BindingsFactory } from '@comunica/utils-bindings-factory';
 import { ArrayIterator } from 'asynciterator';
 import { DataFactory } from 'rdf-data-factory';
 import type { Algebra } from 'sparqlalgebrajs';

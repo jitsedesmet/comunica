@@ -29,7 +29,7 @@ Example output:
 ```text
 {
   "@comunica/actor-context-preprocess-source-to-destination": "^2.0.0",
-  "@comunica/actor-hash-bindings-sha1": "^2.0.0",
+  "@comunica/actor-hash-bindings-murmur": "^2.0.0",
   "@comunica/actor-http-fetch": "^2.0.0",
   "@comunica/actor-http-proxy": "^2.0.0",
   "@comunica/actor-init-query": "^2.0.0",

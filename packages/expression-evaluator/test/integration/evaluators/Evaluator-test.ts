@@ -1,8 +1,8 @@
-import { BindingsFactory } from '@comunica/bindings-factory';
 import type { ActorExpressionEvaluatorFactory } from '@comunica/bus-expression-evaluator-factory';
 import type { ITermFunction, MediatorFunctionFactory } from '@comunica/bus-function-factory';
 import { getMockEEActionContext, getMockEEFactory } from '@comunica/jest';
 import type { IActionContext } from '@comunica/types';
+import { BindingsFactory } from '@comunica/utils-bindings-factory';
 import { DataFactory } from 'rdf-data-factory';
 import { IntegerLiteral } from '../../../lib/expressions';
 import { TypeURL as DT } from '../../../lib/util/Consts';

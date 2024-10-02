@@ -1194,19 +1194,6 @@
     "@comunica/types" "^2.10.0"
     rdfa-streaming-parser "^2.0.1"
 
-"@comunica/bindings-factory@^3.2.1":
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/@comunica/bindings-factory/-/bindings-factory-3.2.1.tgz#f41e2107b53c442cc85953062113235cb91a85af"
-  integrity sha512-IzHAXMFGOF5DevsmyW1SUWPIqqWcjMlG/J1tJkKEu4jxPqqEzNSo/rJRjBsfRxpQiFYnOCl1U6H8C48ERCPzCQ==
-  dependencies:
-    "@comunica/bus-merge-bindings-context" "^3.2.1"
-    "@comunica/core" "^3.2.1"
-    "@comunica/types" "^3.2.1"
-    "@rdfjs/types" "*"
-    immutable "^4.1.0"
-    rdf-data-factory "^1.1.1"
-    rdf-string "^1.6.1"
-
 "@comunica/bus-http@^2.0.1", "@comunica/bus-http@^2.10.2":
   version "2.10.2"
   resolved "https://registry.npmjs.org/@comunica/bus-http/-/bus-http-2.10.2.tgz"

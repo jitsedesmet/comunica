@@ -10,7 +10,6 @@
     "packages/context-entries",
     "packages/packager",
     "packages/runner-cli",
-    "packages/expression-evaluator",
     "packages/statistic-base",
     "packages/statistic-link-dereference",
     "packages/statistic-link-discovery",
@@ -87,7 +86,6 @@
 
     "TermTransformer",
     "IInternalEvaluator",
-    "IExpressionEvaluator",
     "FunctionApplication",
     "IEvalContext",
     "OverloadTree",
@@ -183,7 +181,9 @@
     "parseXSDInteger",
     "parseDate",
     "trimToYearMonthDuration",
-    "trimToDayTimeDuration"
+    "trimToDayTimeDuration",
+
+    "InternalEvaluator"
   ],
   "modulePrefix": {
     "@comunica/actor-query-operation-service": "caqoser",
