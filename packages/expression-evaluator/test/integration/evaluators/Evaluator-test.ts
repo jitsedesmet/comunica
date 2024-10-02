@@ -1,4 +1,4 @@
-import { BindingsFactory } from '@comunica/bindings-factory';
+import { BindingsFactory } from '@comunica/utils-bindings-factory';
 import type { ActorExpressionEvaluatorFactory } from '@comunica/bus-expression-evaluator-factory';
 import type { ITermFunction, MediatorFunctionFactory } from '@comunica/bus-function-factory';
 import { getMockEEActionContext, getMockEEFactory } from '@comunica/jest';
