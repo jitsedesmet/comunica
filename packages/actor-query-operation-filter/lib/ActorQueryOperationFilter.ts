@@ -67,6 +67,7 @@ export class ActorQueryOperationFilter extends ActorQueryOperationTypedMediated<
       next();
     };
 
+    // eslint-disable-next-line ts/no-misused-promises
     const bindingsStream = output.bindingsStream.transform<Bindings>({ transform, autoStart: false });
     return { type: 'bindings', bindingsStream, metadata: output.metadata };
   }

@@ -352,7 +352,7 @@ describe('ActorQueryOperationGroup', () => {
         context,
       };
       const { actor } = constructCase({});
-      await expect(actor.test(op)).resolves.toFailTest(`Unknown operator: '"DUMMY"`);
+      await expect(actor.test(op)).resolves.toFailTest(`No actors are able to reply to a message in the bus test-bus-function-factory`);
     });
 
     it('should test on distinct aggregate', async() => {

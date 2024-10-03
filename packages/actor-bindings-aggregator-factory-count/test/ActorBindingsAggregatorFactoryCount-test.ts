@@ -17,7 +17,7 @@ describe('ActorExpressionEvaluatorAggregateCount', () => {
     bus = new Bus({ name: 'bus' });
 
     const mediatorQueryOperation: any = {
-      async mediate(arg: any) {
+      async mediate(_: any) {
         return {};
       },
     };

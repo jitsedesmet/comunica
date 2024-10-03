@@ -58,6 +58,14 @@
     "integration": "rdf-test-suite-ldf spec/sparql-engine.js https://comunica.github.io/manifest-ldf-tests/sparql-file/file-manifest.ttl -d 200000 -c ../../.rdf-test-suite-ldf-cache/"
   },
   "dependencies": {
+    "@comunica/actor-bindings-aggregator-factory-count": "^3.2.1",
+    "@comunica/actor-bindings-aggregator-factory-group-concat": "^3.2.1",
+    "@comunica/actor-bindings-aggregator-factory-sample": "^3.2.1",
+    "@comunica/actor-bindings-aggregator-factory-wildcard-count": "^3.2.1",
+    "@comunica/actor-bindings-aggregator-factory-average": "^3.2.1",
+    "@comunica/actor-bindings-aggregator-factory-sum": "^3.2.1",
+    "@comunica/actor-bindings-aggregator-factory-max": "^3.2.1",
+    "@comunica/actor-bindings-aggregator-factory-min": "^3.2.1",
     "@comunica/actor-context-preprocess-convert-shortcuts": "^3.2.1",
     "@comunica/actor-context-preprocess-query-source-identify": "^3.2.2",
     "@comunica/actor-context-preprocess-query-source-skolemize": "^3.2.1",

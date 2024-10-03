@@ -18,7 +18,7 @@ import { getMockEEActionContext, getMockMediatorExpressionEvaluatorFactory } fro
 import { ArrayIterator } from 'asynciterator';
 import { DataFactory } from 'rdf-data-factory';
 import type { Algebra } from 'sparqlalgebrajs';
-import { Factory, translate } from 'sparqlalgebrajs';
+import { translate } from 'sparqlalgebrajs';
 import { ActorQueryOperationFilter } from '../lib';
 
 const DF = new DataFactory();
@@ -46,11 +46,6 @@ describe('ActorQueryOperationFilter', () => {
   let mediatorQueryOperation: any;
   let context: IActionContext;
 
-  const simpleSPOInput = new Factory().createBgp([ new Factory().createPattern(
-    DF.variable('s'),
-    DF.variable('p'),
-    DF.variable('o'),
-  ) ]);
   const truthyExpression = parse('"nonemptystring"');
   const falsyExpression = parse('""');
   const erroringExpression = parse('?a + ?a');

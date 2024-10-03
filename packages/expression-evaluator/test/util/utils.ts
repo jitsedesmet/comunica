@@ -1,6 +1,6 @@
 import type { ActorExpressionEvaluatorFactory } from '@comunica/bus-expression-evaluator-factory';
 import type { IActionContext } from '@comunica/types';
-import { getMockEEActionContext, getMockEEFactory } from '@comunica/utils-jest';
+import { getMockEEActionContext } from '@comunica/utils-jest';
 import type { Algebra as Alg } from 'sparqlalgebrajs';
 import { translate } from 'sparqlalgebrajs';
 import { prepareEvaluatorActionContext } from '../../lib';
@@ -13,8 +13,6 @@ export function getMockExpression(expr = '1+1'): Alg.Expression {
 }
 
 export function getMockEvaluatorContext(): IActionContext {
-  const factory = getMockEEFactory();
-
   return prepareEvaluatorActionContext(getMockEEActionContext());
 }
 

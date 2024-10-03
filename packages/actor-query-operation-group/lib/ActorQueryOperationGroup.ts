@@ -77,7 +77,7 @@ export class ActorQueryOperationGroup extends ActorQueryOperationTypedMediated<A
       // We can only return when the binding stream ends, when that happens
       // we return the identified groups. Which are nothing more than Bindings
       // of the grouping variables merged with the aggregate variables
-
+      // eslint-disable-next-line ts/no-misused-promises
       output.bindingsStream.on('end', async() => {
         try {
           const bindingsStreamInner = new ArrayIterator(await groups.collectResults(), { autoStart: false });

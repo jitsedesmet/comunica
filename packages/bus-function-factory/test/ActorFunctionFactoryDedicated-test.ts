@@ -40,7 +40,8 @@ describe('ActorFunctionFactoryDedicated', () => {
         functionName: 'pear',
         context,
         requireTermExpression: false,
-      })).resolves.toFailTest('Actor actor can not provide implementation for "pear", only for non-termExpression apple.');
+      })).resolves
+        .toFailTest('Actor actor can not provide implementation for "pear", only for non-termExpression apple.');
     });
 
     it('it throws on requireTermFunction on non-term-function', async() => {
@@ -48,7 +49,8 @@ describe('ActorFunctionFactoryDedicated', () => {
         functionName: 'apple',
         context,
         requireTermExpression: true,
-      })).resolves.toFailTest('Actor actor can not provide implementation for "apple", only for non-termExpression apple.');
+      })).resolves
+        .toFailTest('Actor actor can not provide implementation for "apple", only for non-termExpression apple.');
     });
 
     it('passes if all match', async() => {

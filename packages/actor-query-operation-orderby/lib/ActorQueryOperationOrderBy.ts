@@ -80,7 +80,7 @@ export class ActorQueryOperationOrderBy extends ActorQueryOperationTypedMediated
         }
         next();
       };
-
+      // eslint-disable-next-line ts/no-misused-promises
       const transformedStream = bindingsStream.transform<IAnnotatedBinding>({ transform });
 
       // Sort the annoted stream

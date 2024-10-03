@@ -48,7 +48,7 @@ export class ActorQueryOperationLeftJoin extends ActorQueryOperationTypedMediate
       const bindingsStream = joined.bindingsStream
         .transform({
           autoStart: false,
-
+          // eslint-disable-next-line ts/no-misused-promises
           transform: async(bindings: Bindings, done: () => void, push: (item: Bindings) => void) => {
             // If variables of the right-hand entry are missing, we skip expression evaluation
             if (!expressionVariables.every(variable => bindings.has(variable.variable.value))) {
