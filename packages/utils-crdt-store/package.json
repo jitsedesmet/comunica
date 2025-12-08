@@ -1,7 +1,7 @@
 {
-  "name": "@comunica/utils-algebra",
+  "name": "@comunica/utils-crdt-store",
   "version": "4.0.2",
-  "description": "Query algebra definitions and utilities",
+  "description": "Ana add-wins CRDT RDF store using RDF1.2",
   "license": "MIT",
   "funding": {
     "type": "opencollective",
@@ -11,14 +11,15 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/comunica/comunica.git",
-    "directory": "packages/utils-algebra"
+    "directory": "packages/utils-crdt-store"
   },
   "bugs": {
     "url": "https://github.com/comunica/comunica/issues"
   },
   "keywords": [
     "comunica",
-    "algebra"
+    "crdt",
+    "add-wins set CRDT"
   ],
   "sideEffects": false,
   "main": "lib/index.js",
@@ -37,6 +38,7 @@
   },
   "dependencies": {
     "@traqula/algebra-transformations-1-2": "^0.0.24",
-    "@traqula/core": "^0.0.24"
+    "@traqula/core": "^0.0.24",
+    "rdf-dereference": "^4.0.0"
   }
 }
