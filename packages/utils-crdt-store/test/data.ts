@@ -1,3 +1,4 @@
+import type { Store } from '@rdfjs/types';
 import { DataFactory } from 'rdf-data-factory';
 import { RdfStore } from 'rdf-stores';
 import { CRDT } from '../lib';
@@ -6,15 +7,22 @@ const DF = new DataFactory();
 const pre = `https://jitsedesmet.be/`;
 
 function uuid(val: string) {
-  return DF.literal(val, DF.namedNode(CRDT.DT_UUID));
+  return DF.literal(val);
 }
 
-export const testStore = new RdfStore();
+export const addTag = uuid('10591359-7b29-44f1-99df-e2e2bbf53adc');
+export const delTag = uuid('c269c6ec-b9b5-487e-aa93-f118b5af6842');
 
-const triple = DF.quad(DF.namedNode(`${pre}a`), DF.namedNode(`${pre}b`), DF.namedNode(`${pre}c`));
-testStore.addQuad(triple);
-const metaBlank = DF.blankNode();
+export function basicTestStore(DF: DataFactory): Store {
+  const testStore = RdfStore.createDefault();
 
-testStore.addQuad(DF.quad(metaBlank, DF.namedNode(CRDT.TAGGING), triple));
-testStore.addQuad(DF.quad(metaBlank, DF.namedNode(CRDT.ADD), uuid('10591359-7b29-44f1-99df-e2e2bbf53adc')));
-testStore.addQuad(DF.quad(metaBlank, DF.namedNode(CRDT.DELETE), uuid('c269c6ec-b9b5-487e-aa93-f118b5af6842')));
+  const triple = DF.quad(DF.namedNode(`${pre}a`), DF.namedNode(`${pre}b`), DF.namedNode(`${pre}c`));
+  testStore.addQuad(triple);
+  const metaBlank = DF.blankNode();
+
+  testStore.addQuad(DF.quad(metaBlank, DF.namedNode(CRDT.TAGGING), triple));
+  testStore.addQuad(DF.quad(metaBlank, DF.namedNode(CRDT.ADD), addTag));
+  testStore.addQuad(DF.quad(metaBlank, DF.namedNode(CRDT.DELETE), delTag));
+
+  return testStore;
+}
