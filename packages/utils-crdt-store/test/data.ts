@@ -7,7 +7,7 @@ const DF = new DataFactory();
 const pre = `https://jitsedesmet.be/`;
 
 function uuid(val: string) {
-  return DF.literal(val);
+  return DF.literal(val, DF.namedNode(CRDT.DT_UUID));
 }
 
 export const addTag = uuid('10591359-7b29-44f1-99df-e2e2bbf53adc');

@@ -1,3 +1,4 @@
+import { expect } from '@playwright/test';
 import type { BaseQuad, Quad, Store, Term } from '@rdfjs/types';
 import type { AsyncIterator } from 'asynciterator';
 import { wrap } from 'asynciterator';
@@ -42,9 +43,8 @@ describe('Crdt Store', () => {
   });
 
   it('is idempotent', async() => {
-    const store = basicTestStore(DF);
-    const crdt1 = new CrdtStore(store, DF);
-    const crdt2 = new CrdtStore(store, DF);
+    const crdt1 = new CrdtStore(basicTestStore(DF), DF);
+    const crdt2 = new CrdtStore(basicTestStore(DF), DF);
 
     await crdt1.crdtMerge(crdt2);
     await expect(wrap(crdt1.match()).toArray()).resolves.toHaveLength(1);
@@ -53,5 +53,20 @@ describe('Crdt Store', () => {
     await expect(getStoreIter(crdt1).toArray()
       .then(x => x.sort(compareTerm)))
       .resolves.toEqual((await getStoreIter(crdt2).toArray()).sort(compareTerm));
+  });
+
+  it('registers removal', async() => {
+    const crdt1 = new CrdtStore(basicTestStore(DF), DF);
+    const crdt2 = new CrdtStore(basicTestStore(DF), DF);
+
+    await new Promise((resolve, reject) =>
+      crdt1.removeMatches(null, null, null).on('end', resolve).on('error', reject));
+    await expect(wrap(getStore(crdt1).match()).toArray()).resolves.toHaveLength(3);
+    // Await expect(wrap(getStore(crdt1).match(null, DF.namedNode(CRDT.DELETE))).toArray()).resolves.toHaveLength(2);
+
+    // Await crdt1.crdtMerge(crdt2);
+
+    // Await expect(wrap(getStore(crdt1).match()).toArray()).resolves.toHaveLength(3);
+    // await expect(getIter(crdt1).toArray()).resolves.toHaveLength(0);
   });
 });

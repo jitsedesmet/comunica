@@ -1,5 +1,5 @@
 /* eslint-disable import/no-nodejs-modules */
-import type { EventEmitter } from 'node:events';
+import { EventEmitter } from 'node:events';
 import type { Quad, Store, Stream, Term, BaseQuad } from '@rdfjs/types';
 import type { AsyncIterator } from 'asynciterator';
 import { wrap } from 'asynciterator';
@@ -65,14 +65,28 @@ export class CrdtStore<Q extends BaseQuad = Quad> implements Store<Q> {
   }
 
   public remove(stream: Stream<Q>): EventEmitter {
-    // Remove all triples and the accompanying management triple.
-    stream.on('data', (triple) => {
-      const managementTriples = this.store.match(null, this.DF.namedNode(`${prefixCrdt}tagged`), triple);
-      managementTriples.on('data', (triple: Q) => {
-        this.store.removeMatches(triple.subject, null, null);
-      });
+    // Should remove the item itself, remove the add labels, and make remove labels with the same subj and pred
+    const toAdd: Q[] = [];
+    const toRemove = wrap(stream)
+      .transform<Q>({ transform: (item, done, push) => {
+        // Remove item itself
+        push(item);
+        // ToAdd.push(item);
+        done();
+      } });
+
+    const combined = new EventEmitter();
+    const removeEmitter = this.store.remove(toRemove);
+    removeEmitter.on('data', data => combined.emit('data', data));
+    removeEmitter.on('error', error => combined.emit('error', error));
+    removeEmitter.on('end', () => {
+      const addEmitter = this.store.import(wrap(toAdd));
+      addEmitter.on('data', data => combined.emit('data', data));
+      addEmitter.on('error', error => combined.emit('error', error));
+      addEmitter.on('end', () => combined.emit('end'));
     });
-    return this.store.remove(stream);
+
+    return combined;
   }
 
   public removeMatches(
