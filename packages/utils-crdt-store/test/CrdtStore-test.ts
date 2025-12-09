@@ -4,7 +4,7 @@ import type { AsyncIterator } from 'asynciterator';
 import { wrap } from 'asynciterator';
 import { DataFactory } from 'rdf-data-factory';
 import { CRDT, CrdtStore } from '../lib';
-import { basicTestStore } from './data';
+import { basicTestStore, prefix } from './data';
 
 function getStore<Q extends BaseQuad = Quad>(crdt: CrdtStore<Q>): Store<Q> {
   return (<any> crdt).store;
@@ -67,5 +67,19 @@ describe('Crdt Store', () => {
     await crdt1.crdtMerge(crdt2);
     await expect(wrap(getStore(crdt1).match()).toArray()).resolves.toHaveLength(3);
     await expect(getIter(crdt1).toArray()).resolves.toHaveLength(0);
+  });
+
+  it('registers addition', async() => {
+    const crdt1 = new CrdtStore(basicTestStore(DF), DF);
+    const crdt2 = new CrdtStore(basicTestStore(DF), DF);
+    await new Promise((resolve, reject) =>
+      crdt1.removeMatches(null, null, null).on('end', resolve).on('error', reject));
+    await crdt1.crdtMerge(crdt2);
+
+    await new Promise((resolve, reject) => crdt1.import(wrap([
+      DF.quad(DF.namedNode(`${prefix}a`), DF.namedNode(`${prefix}b`), DF.namedNode(`${prefix}c`)),
+    ])).on('end', resolve).on('error', reject));
+    await expect(getIter(crdt1).toArray()).resolves.toHaveLength(1);
+    await expect(getStoreIter(crdt1).toArray()).resolves.toHaveLength(5);
   });
 });

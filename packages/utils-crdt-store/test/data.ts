@@ -4,7 +4,7 @@ import { RdfStore } from 'rdf-stores';
 import { CRDT } from '../lib';
 
 const DF = new DataFactory();
-const pre = `https://jitsedesmet.be/`;
+export const prefix = `https://jitsedesmet.be/`;
 
 function uuid(val: string) {
   return DF.literal(val, DF.namedNode(CRDT.DT_UUID));
@@ -16,7 +16,7 @@ export const delTag = uuid('c269c6ec-b9b5-487e-aa93-f118b5af6842');
 export function basicTestStore(DF: DataFactory): Store {
   const testStore = RdfStore.createDefault();
 
-  const triple = DF.quad(DF.namedNode(`${pre}a`), DF.namedNode(`${pre}b`), DF.namedNode(`${pre}c`));
+  const triple = DF.quad(DF.namedNode(`${prefix}a`), DF.namedNode(`${prefix}b`), DF.namedNode(`${prefix}c`));
   testStore.addQuad(triple);
   const metaBlank = DF.blankNode();
 

@@ -29,7 +29,6 @@ export enum CRDT {
 
 function termString(term: Term): string {
   // Works since no termType is a prefix of another termType
-  // TODO: does not yet handle graphs!
   return `${term.termType}${term.value}`;
 }
 
@@ -46,10 +45,35 @@ export class CrdtStore<Q extends BaseQuad = Quad> implements Store<Q> {
     return this.removeMatches(null, null, null, typeof graph === 'string' ? this.DF.namedNode(graph) : graph);
   }
 
+  /**
+   * Here you have the choice whether adding what was already added should still create a new Tag or not.
+   * We do not perform sush a filter here.
+   * @param stream
+   */
   public import(stream: Stream<Q>): EventEmitter {
+    const DF = this.DF;
+    const store = this.store;
     // Import stream and verify tagging
-    // TODO: tag the untagged
-    return this.store.import(stream);
+    const insertStream = wrap(stream).transform<Q>({ transform: (quad, done, push) => {
+      push(quad);
+      // First check whether we already have a reifier for this triple.
+      const tripleTerm = DF.quad(quad.subject, quad.predicate, quad.object);
+      const graph = quad.graph;
+      wrap(store.match(null, DF.namedNode(CRDT.TAGGING), tripleTerm, graph)).toArray().then((reifierRes) => {
+        // TODO; this blank node should be distinct from all other blank nodes
+        const reifier = reifierRes.at(0)?.subject ?? DF.blankNode();
+        push(DF.quad(
+          reifier,
+          DF.namedNode(CRDT.ADD),
+          DF.literal(crypto.randomUUID(), DF.namedNode(CRDT.DT_UUID)),
+          graph,
+        ));
+        done();
+      }).catch((error) => {
+        throw error;
+      });
+    } });
+    return this.store.import(insertStream);
   }
 
   public match(
