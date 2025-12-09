@@ -3,8 +3,8 @@ import { EventEmitter } from 'node:events';
 import type { Quad, Store, Stream, Term, BaseQuad } from '@rdfjs/types';
 import type { AsyncIterator } from 'asynciterator';
 import { wrap } from 'asynciterator';
-import type { DataFactory } from 'rdf-data-factory';
 import { RdfStore } from 'rdf-stores';
+import type { DataFactoryUuid } from './DataFactoryUuid';
 
 export const prefixCrdt = 'https://rdf-set-crdt.knows.idlab.ugent.be/';
 
@@ -39,7 +39,7 @@ function termString(term: Term): string {
  * Depends on https://github.com/rubensworks/rdf-dereference.js/
  */
 export class CrdtStore<Q extends BaseQuad = Quad> implements Store<Q> {
-  public constructor(private store: Store<Q>, private readonly DF: DataFactory<Q>) {}
+  public constructor(private store: Store<Q>, private readonly DF: DataFactoryUuid<Q>) {}
 
   public deleteGraph(graph: Quad['graph'] | string): EventEmitter {
     return this.removeMatches(null, null, null, typeof graph === 'string' ? this.DF.namedNode(graph) : graph);
@@ -61,7 +61,11 @@ export class CrdtStore<Q extends BaseQuad = Quad> implements Store<Q> {
       const graph = quad.graph;
       wrap(store.match(null, DF.namedNode(CRDT.TAGGING), tripleTerm, graph)).toArray().then((reifierRes) => {
         // TODO; this blank node should be distinct from all other blank nodes
-        const reifier = reifierRes.at(0)?.subject ?? DF.blankNode();
+        let reifier = reifierRes.at(0)?.subject;
+        if (!reifier) {
+          reifier = DF.blankNode();
+          push(DF.quad(reifier, DF.namedNode(CRDT.TAGGING), tripleTerm, graph));
+        }
         push(DF.quad(
           reifier,
           DF.namedNode(CRDT.ADD),

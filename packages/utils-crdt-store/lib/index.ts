@@ -1,1 +1,1 @@
-export * from './CrdtStore';
+export { CrdtStore, CRDT } from './CrdtStore';
