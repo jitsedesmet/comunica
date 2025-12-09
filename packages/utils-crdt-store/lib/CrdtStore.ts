@@ -68,24 +68,23 @@ export class CrdtStore<Q extends BaseQuad = Quad> implements Store<Q> {
     const DF = this.DF;
     const store = this.store;
     // Should remove the item itself, remove the add labels, and make remove labels with the same subj and pred
-    const toAdd: Q[] = [];
-    const toRemove = wrap(stream)
+    const dataStream = wrap(stream).clone();
+    const metaDataTriples = dataStream.clone()
       .transform<Q>({
         transform: (quad, done, push) => {
           // Remove item itself
-          push(quad);
           const graph = quad.graph;
           const tripleTerm = DF.quad(quad.subject, quad.predicate, quad.object);
           // Perform lookup of add labels:
           (async() => {
-            const refierRes = await wrap(store.match(null, null, tripleTerm, graph)).toArray();
-            const reifier = refierRes.at(0)?.subject;
+            const reifierRes = await wrap(store.match(null, null, tripleTerm, graph)).toArray();
+            const reifier = reifierRes.at(0)?.subject;
             // Reifier should exist since all triples are tracked. Can now look for add labels
             if (reifier) {
               const metaDataStream = store.match(reifier, DF.namedNode(CRDT.ADD), null, graph);
               metaDataStream.on('data', (data: Q) => {
                 push(data);
-                toAdd.push(DF.quad(reifier, DF.namedNode(CRDT.DELETE), data.object, graph));
+                push(DF.quad(reifier, DF.namedNode(CRDT.DELETE), data.object, graph));
               });
               metaDataStream.on('end', () => done());
             } else {
@@ -98,15 +97,23 @@ export class CrdtStore<Q extends BaseQuad = Quad> implements Store<Q> {
       });
 
     const combined = new EventEmitter();
-    const removeEmitter = this.store.remove(toRemove);
+    let ended = 0;
+    function end(): void {
+      ended++;
+      if (ended > 1) {
+        combined.emit('end');
+      }
+    }
+    const metadataToRemove = metaDataTriples.clone().filter(data => data.predicate.value === CRDT.ADD);
+    const metadataToAdd = metaDataTriples.clone().filter(data => data.predicate.value === CRDT.DELETE);
+    const removeEmitter = this.store.remove(dataStream.clone().append(metadataToRemove));
+    const addEmitter = this.store.import(metadataToAdd);
     removeEmitter.on('data', data => combined.emit('data', data));
     removeEmitter.on('error', error => combined.emit('error', error));
-    removeEmitter.on('end', () => {
-      const addEmitter = this.store.import(wrap(toAdd));
-      addEmitter.on('data', data => combined.emit('data', data));
-      addEmitter.on('error', error => combined.emit('error', error));
-      addEmitter.on('end', () => combined.emit('end'));
-    });
+    removeEmitter.on('end', end);
+    addEmitter.on('data', data => combined.emit('data', data));
+    addEmitter.on('error', error => combined.emit('error', error));
+    addEmitter.on('end', end);
 
     return combined;
   }
@@ -185,13 +192,11 @@ export class CrdtStore<Q extends BaseQuad = Quad> implements Store<Q> {
           wrap(origStore.match(toOrigReifier[termString(tagger)] ?? tagger, DF.namedNode(CRDT.DELETE), null, graph))
             .map(translateOldQuadToNew)
             .append(wrap(otherStore.match(tagger, DF.namedNode(CRDT.DELETE), null, graph)));
-        (async() => {
-          for await (const quad of metaDataTriples) {
-            push(quad);
-          }
-          done();
-        })().catch((err) => {
-          throw err;
+
+        metaDataTriples.on('data', (data: Q) => push(data));
+        metaDataTriples.on('end', () => done());
+        metaDataTriples.on('error', (error) => {
+          throw error;
         });
       },
     });
