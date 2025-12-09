@@ -65,15 +65,37 @@ export class CrdtStore<Q extends BaseQuad = Quad> implements Store<Q> {
   }
 
   public remove(stream: Stream<Q>): EventEmitter {
+    const DF = this.DF;
+    const store = this.store;
     // Should remove the item itself, remove the add labels, and make remove labels with the same subj and pred
     const toAdd: Q[] = [];
     const toRemove = wrap(stream)
-      .transform<Q>({ transform: (item, done, push) => {
-        // Remove item itself
-        push(item);
-        // ToAdd.push(item);
-        done();
-      } });
+      .transform<Q>({
+        transform: (quad, done, push) => {
+          // Remove item itself
+          push(quad);
+          const graph = quad.graph;
+          const tripleTerm = DF.quad(quad.subject, quad.predicate, quad.object);
+          // Perform lookup of add labels:
+          (async() => {
+            const refierRes = await wrap(store.match(null, null, tripleTerm, graph)).toArray();
+            const reifier = refierRes.at(0)?.subject;
+            // Reifier should exist since all triples are tracked. Can now look for add labels
+            if (reifier) {
+              const metaDataStream = store.match(reifier, DF.namedNode(CRDT.ADD), null, graph);
+              metaDataStream.on('data', (data: Q) => {
+                push(data);
+                toAdd.push(DF.quad(reifier, DF.namedNode(CRDT.DELETE), data.object, graph));
+              });
+              metaDataStream.on('end', () => done());
+            } else {
+              done();
+            }
+          })().catch((err) => {
+            throw err;
+          });
+        },
+      });
 
     const combined = new EventEmitter();
     const removeEmitter = this.store.remove(toRemove);
@@ -111,24 +133,22 @@ export class CrdtStore<Q extends BaseQuad = Quad> implements Store<Q> {
 
     // Key = termType + value
     // used for knowing what reified is used for what quad (triple term)
-    // Mapping knownTagger (in newStore) to the one in store. (can only be one given correct merges)
-    const termTranslation: Record<string, Term | undefined> = {};
-    const mapTerm = (term: Term): Term => {
-      const newTerm = termTranslation[termString(term)];
-      return newTerm ?? term;
-    };
-    const translateQuad = (quad: Q): Q => {
-      const newSubj = mapTerm(quad.subject);
-      if (newSubj === quad.subject) {
-        return quad;
+    // Mapping knownTagger (in newStore) to the one in origStore. (can only be one given correct merges)
+    const toOrigReifier: Record<string, Term | undefined> = {};
+    const toNewReifier: Record<string, Term | undefined> = {};
+    const translateOldQuadToNew = (quad: Q): Q => {
+      const newSubj = toNewReifier[termString(quad.subject)];
+      if (newSubj) {
+        return DF.quad(newSubj, quad.predicate, quad.object, quad.graph);
       }
-      return DF.quad(newSubj, quad.predicate, quad.object, quad.graph);
+      return quad;
     };
 
     // Add others reifiers - they are already on the server (synced) so we give them precedence.
-    await new Promise(resolve =>
-      newStore.import(otherStore.match(null, this.DF.namedNode(CRDT.TAGGING), null, graph)).on('end', resolve));
-    // Populate termTranslation for those reification subjects in `this` that tag the same triple (triple term equality)
+    await new Promise((resolve, reject) =>
+      newStore.import(otherStore.match(null, this.DF.namedNode(CRDT.TAGGING), null, graph))
+        .on('end', resolve).on('error', reject));
+    // Populate toOrigReifier for those reification subjects in `this` that tag the same triple (triple term equality)
     // And add those that were not present in `other`.
     const newTags = wrap(origStore.match(null, this.DF.namedNode(CRDT.TAGGING), null, graph))
       .transform<Q>({
@@ -141,7 +161,8 @@ export class CrdtStore<Q extends BaseQuad = Quad> implements Store<Q> {
             // Is there a known tag? If yes, remember in case the name is different
             if (knownTagger) {
               if (!knownTagger.equals(currentTagger)) {
-                termTranslation[termString(currentTagger)] = knownTagger;
+                toOrigReifier[termString(knownTagger)] = currentTagger;
+                toNewReifier[termString(currentTagger)] = knownTagger;
               }
             } else {
               // Not yet present, push...
@@ -153,15 +174,17 @@ export class CrdtStore<Q extends BaseQuad = Quad> implements Store<Q> {
           });
         },
       });
-    await new Promise(resolve => newStore.import(newTags).on('end', resolve));
+    await new Promise((resolve, reject) => newStore.import(newTags)
+      .on('end', resolve).on('error', reject));
 
     // NewStore knows all thing being Tagged. Now add `remove tags`
     const removeTaggers = wrap(newStore.match(null, DF.namedNode(CRDT.TAGGING), null, graph)).transform<Q>({
       transform: (quad, done, push) => {
         const tagger = quad.subject;
-        const metaDataTriples = wrap(origStore.match(mapTerm(tagger), DF.namedNode(CRDT.DELETE), null, graph))
-          .map(translateQuad)
-          .append(wrap(otherStore.match(tagger, DF.namedNode(CRDT.DELETE), null, graph)));
+        const metaDataTriples =
+          wrap(origStore.match(toOrigReifier[termString(tagger)] ?? tagger, DF.namedNode(CRDT.DELETE), null, graph))
+            .map(translateOldQuadToNew)
+            .append(wrap(otherStore.match(tagger, DF.namedNode(CRDT.DELETE), null, graph)));
         (async() => {
           for await (const quad of metaDataTriples) {
             push(quad);
@@ -178,9 +201,10 @@ export class CrdtStore<Q extends BaseQuad = Quad> implements Store<Q> {
     const addTaggers = wrap(newStore.match(null, DF.namedNode(CRDT.TAGGING), null, graph)).transform<Q>({
       transform: (quad, done, push) => {
         const tagger = quad.subject;
-        const metaDataTriples = wrap(origStore.match(mapTerm(tagger), DF.namedNode(CRDT.ADD), null, graph))
-          .map(translateQuad)
-          .append(wrap(otherStore.match(tagger, DF.namedNode(CRDT.ADD), null, graph)));
+        const metaDataTriples =
+          wrap(origStore.match(toOrigReifier[termString(tagger)] ?? tagger, DF.namedNode(CRDT.ADD), null, graph))
+            .map(translateOldQuadToNew)
+            .append(wrap(otherStore.match(tagger, DF.namedNode(CRDT.ADD), null, graph)));
 
         (async() => {
           for await (const quad of metaDataTriples) {
@@ -199,19 +223,21 @@ export class CrdtStore<Q extends BaseQuad = Quad> implements Store<Q> {
 
     const activeTriple = wrap(newStore.match(null, DF.namedNode(CRDT.ADD), null, graph))
       .map(quad => quad.subject).uniq(tagger => termString(tagger))
-      .transform<Q>({ transform: (tagger, done, push) => {
-        const taggedRes = wrap(newStore.match(tagger, DF.namedNode(CRDT.TAGGING), null, graph));
-        taggedRes.toArray().then((list) => {
-          const quadToAdd = list.at(0)?.object;
-          if (!quadToAdd || quadToAdd.termType !== 'Quad') {
-            throw new Error(`Did not find tripleTerm of tagger ${termString(tagger)}`);
-          }
-          push(<Q> quadToAdd);
-          done();
-        }).catch((err) => {
-          throw err;
-        });
-      } });
+      .transform<Q>({
+        transform: (tagger, done, push) => {
+          const taggedRes = wrap(newStore.match(tagger, DF.namedNode(CRDT.TAGGING), null, graph));
+          taggedRes.toArray().then((list) => {
+            const quadToAdd = list.at(0)?.object;
+            if (!quadToAdd || quadToAdd.termType !== 'Quad') {
+              throw new Error(`Did not find tripleTerm of tagger ${termString(tagger)}`);
+            }
+            push(<Q>quadToAdd);
+            done();
+          }).catch((err) => {
+            throw err;
+          });
+        },
+      });
     await new Promise(resolve => newStore.import(activeTriple).on('end', resolve));
   }
 
@@ -220,7 +246,7 @@ export class CrdtStore<Q extends BaseQuad = Quad> implements Store<Q> {
    * Calls the merge function for each unique graph present.
    */
   public async crdtMerge(other: CrdtStore<Q>): Promise<void> {
-    const newStore: Store<Q> = <any> RdfStore.createDefault();
+    const newStore = <Store<Q>>RdfStore.createDefault();
     const store = this.store;
     const otherStore = other.store;
     const handledGraphs = new Set<string>();

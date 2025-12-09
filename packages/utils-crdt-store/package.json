@@ -39,6 +39,8 @@
   "dependencies": {
     "@traqula/algebra-transformations-1-2": "^0.0.24",
     "@traqula/core": "^0.0.24",
-    "rdf-dereference": "^4.0.0"
+    "rdf-dereference": "^4.0.0",
+    "asynciterator": "^3.10.0",
+    "rdf-stores": "^2.1.1"
   }
 }
