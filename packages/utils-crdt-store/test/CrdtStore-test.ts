@@ -1,3 +1,4 @@
+import type { EventEmitter } from 'node:events';
 import { expect } from '@playwright/test';
 import type { BaseQuad, Quad, Store, Term } from '@rdfjs/types';
 import type { AsyncIterator } from 'asynciterator';
@@ -31,6 +32,11 @@ function termString(term: Term): string {
   }
 }
 
+function eventToPromise(event: EventEmitter): Promise<void> {
+  return new Promise((resolve, reject) =>
+    event.on('end', resolve).on('error', reject));
+}
+
 function compareTerm(a: Term, b: Term): number {
   return termString(a).localeCompare(termString(b));
 }
@@ -54,7 +60,7 @@ describe('Crdt Store', () => {
       const crdt2 = new CrdtStore(times ? basicTestStore(DF) : store, DF);
 
       for (let i = 0; i < times; i++) {
-        await crdt1.crdtMerge(crdt2);
+        await eventToPromise(crdt1.crdtMerge(crdt2));
       }
       await expect(wrap(crdt1.match()).toArray()).resolves.toHaveLength(1);
       await expect(wrap(getStore(crdt1).match()).toArray()).resolves.toHaveLength(4);
@@ -78,7 +84,7 @@ describe('Crdt Store', () => {
       await expect(wrap(getStore(crdt1).match()).toArray()).resolves.toHaveLength(3);
       await expect(wrap(getStore(crdt1).match(null, DF.namedNode(CRDT.DELETE))).toArray()).resolves.toHaveLength(2);
 
-      await crdt1.crdtMerge(crdt2);
+      await eventToPromise(crdt1.crdtMerge(crdt2));
       await expect(wrap(getStore(crdt1).match()).toArray()).resolves.toHaveLength(3);
       await expect(getIter(crdt1).toArray()).resolves.toHaveLength(0);
     }
@@ -90,7 +96,7 @@ describe('Crdt Store', () => {
       const crdt2 = new CrdtStore(basicTestStore(DF), DF);
       await new Promise((resolve, reject) =>
         crdt1.removeMatches(null, null, null).on('end', resolve).on('error', reject));
-      await crdt1.crdtMerge(crdt2);
+      await eventToPromise(crdt1.crdtMerge(crdt2));
 
       // Test add external idempotence, internal non-idempotence
       for (let i = 0; i < times; i++) {
@@ -102,7 +108,7 @@ describe('Crdt Store', () => {
       await expect(getStoreIter(crdt1).toArray()).resolves.toHaveLength(4 + times);
 
       const inner1 = await getStoreIter(crdt1).toArray();
-      await crdt1.crdtMerge(crdt2);
+      await eventToPromise(crdt1.crdtMerge(crdt2));
       // Crdt1 should be unchanged
       await expect(getStoreIter(crdt1).toArray().then(x => x.sort(compareTerm)))
         .resolves.toEqual(inner1.sort(compareTerm));
@@ -112,7 +118,7 @@ describe('Crdt Store', () => {
         .resolves.not.toEqual((await getStoreIter(crdt2).toArray()).sort(compareTerm));
 
       // After merging CRDT1 in CRDT2 - they will be equal
-      await crdt2.crdtMerge(crdt1);
+      await eventToPromise(crdt2.crdtMerge(crdt1));
       await expect(getStoreIter(crdt1).toArray().then(x => x.sort(compareTerm)))
         .resolves.toEqual((await getStoreIter(crdt2).toArray()).sort(compareTerm));
     }
@@ -142,18 +148,25 @@ describe('Crdt Store', () => {
     await expect(getStoreIter(crdt2).toArray()).resolves.toHaveLength(7);
     await expect(getStoreIter(crdt1).toArray().then(x => x.sort(compareTerm)))
       .resolves.not.toEqual((await getStoreIter(crdt2).toArray()).sort(compareTerm));
-    await crdt1.crdtMerge(crdt2);
+    await eventToPromise(crdt1.crdtMerge(crdt2));
     await expect(getStoreIter(crdt1).toArray()).resolves.toHaveLength(10);
     // After merging, the structure should still be correct.
     // (Each reifies has a different node (definition of blank node usage))
     const taggers = await getStoreIter(crdt1, null, DF.namedNode(CRDT.TAGGING)).toArray();
     const taggersSet = new Set<string>();
     for (const tagger of taggers) {
-      (
-        taggersSet.add(termString(tagger.subject))
-      );
+      taggersSet.add(termString(tagger.subject));
     }
     expect(taggersSet.size).toBeGreaterThan(0);
     expect(taggersSet.size).toEqual(taggers.length);
+  });
+
+  it('does not care about removing non-existing', async() => {
+    const crdt1 = new CrdtStore(basicTestStore(DF), DF);
+    await expect(getStoreIter(crdt1).toArray()).resolves.toHaveLength(4);
+    await new Promise((resolve, reject) =>
+      crdt1.remove(wrap([ DF.quad(DF.namedNode(`${prefix}a`), DF.namedNode(`${prefix}a`), DF.namedNode(`${prefix}a`)) ]))
+        .on('end', resolve).on('error', reject));
+    await expect(getStoreIter(crdt1).toArray()).resolves.toHaveLength(4);
   });
 });
