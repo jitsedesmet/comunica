@@ -2,7 +2,7 @@ import { DataFactory, Parser, Writer } from 'n3';
 import { RdfStore } from 'rdf-stores';
 import { CrdtStore } from './CrdtStore';
 import type { DataFactoryUuid } from './DataFactoryUuid';
-import { eventToPromise } from './utils';
+import { eventToPromise, reverse } from './utils';
 import triple = DataFactory.triple;
 import { wrap } from 'asynciterator';
 
@@ -53,12 +53,16 @@ export class WebSyncedStore extends CrdtStore {
     for await (const quad of wrap(this.store.match())) {
       writer.addQuad(quad);
     }
-    const text = await new Promise<string>((resolve, reject) => writer.end((error, result) => {
+    let text = await new Promise<string>((resolve, reject) => writer.end((error, result) => {
       if (error) {
         reject(error);
       }
       resolve(result);
     }));
+    // TODO: this is only a temporary fix because N3 generator is wrong.
+    text = text.replaceAll('<<', '<<(');
+    // >>> -> >)>> : >>> -> >>> -> >>)> -> >)>>
+    text = reverse(reverse(text).replaceAll('>>', '>>)'));
 
     const response = await this.fetch(this.webSource, {
       method: 'PUT',
