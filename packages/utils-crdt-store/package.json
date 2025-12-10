@@ -41,6 +41,13 @@
     "@traqula/core": "^0.0.24",
     "rdf-dereference": "^4.0.0",
     "asynciterator": "^3.10.0",
-    "rdf-stores": "^2.1.1"
+    "rdf-stores": "^2.1.1",
+    "n3": "2.0.0-beta.2"
+  },
+  "devDependencies": {
+    "serve-static": "^2.2.0",
+    "finalhandler": "^2.1.1",
+    "@types/serve-static": "^2.2.0",
+    "@types/finalhandler": "^1.2.4"
   }
 }

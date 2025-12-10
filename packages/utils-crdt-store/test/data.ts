@@ -1,4 +1,5 @@
-import type { Store } from '@rdfjs/types';
+import type { Quad, Stream } from '@rdfjs/types';
+import type { AsyncIterator } from 'asynciterator';
 import { DataFactory } from 'rdf-data-factory';
 import { RdfStore } from 'rdf-stores';
 import { CRDT } from '../lib';
@@ -13,7 +14,7 @@ function uuid(val: string) {
 export const addTag = uuid('10591359-7b29-44f1-99df-e2e2bbf53adc');
 export const delTag = uuid('c269c6ec-b9b5-487e-aa93-f118b5af6842');
 
-export function basicTestStore(DF: DataFactory): Store {
+export function basicTestContent(DF: DataFactory): Stream<Quad> & AsyncIterator<Quad> {
   const testStore = RdfStore.createDefault();
 
   const triple = DF.quad(DF.namedNode(`${prefix}a`), DF.namedNode(`${prefix}b`), DF.namedNode(`${prefix}c`));
@@ -24,5 +25,5 @@ export function basicTestStore(DF: DataFactory): Store {
   testStore.addQuad(DF.quad(metaBlank, DF.namedNode(CRDT.ADD), addTag));
   testStore.addQuad(DF.quad(metaBlank, DF.namedNode(CRDT.DELETE), delTag));
 
-  return testStore;
+  return testStore.match();
 }
