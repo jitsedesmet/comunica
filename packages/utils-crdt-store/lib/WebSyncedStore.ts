@@ -1,4 +1,4 @@
-import { DataFactory, Parser } from 'n3';
+import { DataFactory, Parser, Writer } from 'n3';
 import { RdfStore } from 'rdf-stores';
 import { CrdtStore } from './CrdtStore';
 import type { DataFactoryUuid } from './DataFactoryUuid';
@@ -42,5 +42,37 @@ export class WebSyncedStore extends CrdtStore {
     await eventToPromise(remoteStore.import(wrap(triples)));
 
     await eventToPromise(this.crdtMerge(remoteStore));
+  }
+
+  public async pushData(): Promise<void> {
+    if (!this.remoteEtag) {
+      throw new Error('Store should not sync without first pulling');
+    }
+
+    const writer = new Writer({ factory: <any> this.DF, format: 'N-Quads' });
+    for await (const quad of wrap(this.store.match())) {
+      writer.addQuad(quad);
+    }
+    const text = await new Promise<string>((resolve, reject) => writer.end((error, result) => {
+      if (error) {
+        reject(error);
+      }
+      resolve(result);
+    }));
+
+    const response = await this.fetch(this.webSource, {
+      method: 'PUT',
+      headers: {
+        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/ETag#avoiding_mid-air_collisions
+        'If-Match': this.remoteEtag,
+      },
+      body: text,
+    });
+
+    if (!response.ok) {
+      throw new Error(`response not okay: ${await response.text()}`);
+    }
+
+    console.log(response);
   }
 }
