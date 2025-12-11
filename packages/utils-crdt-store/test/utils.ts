@@ -1,7 +1,7 @@
-import type {Quad, Store, Term} from '@rdfjs/types';
-import type {AsyncIterator} from 'asynciterator';
-import {wrap} from 'asynciterator';
-import type {CrdtStore} from '../lib';
+import type { Quad, Store, Term } from '@rdfjs/types';
+import type { AsyncIterator } from 'asynciterator';
+import { wrap } from 'asynciterator';
+import type { CrdtStore } from '../lib';
 
 export function getStore(crdt: CrdtStore): Store {
   return (<any>crdt).store;

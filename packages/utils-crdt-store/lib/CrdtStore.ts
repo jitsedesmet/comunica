@@ -195,6 +195,7 @@ export class CrdtStore implements Store {
 
   /**
    * Core of a state base CRDT - must be communicative, associative and idempotent
+   * OR-set:
    * https://youtu.be/OqqliwwG0SM?t=613&si=QGhZoSSPLYpvlObs
    * https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type#OR-Set_(Observed-Remove_Set)
    * https://inria.hal.science/inria-00555588/document#?page=29

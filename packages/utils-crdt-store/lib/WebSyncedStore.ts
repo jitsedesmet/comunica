@@ -77,6 +77,10 @@ export class WebSyncedStore extends CrdtStore {
       throw new Error(`response not okay: ${await response.text()}`);
     }
 
-    console.log(response);
+    const newEtag = response.headers.get('etag');
+    if (!newEtag) {
+      throw new Error('Push did not provide new etag');
+    }
+    this.remoteEtag = newEtag;
   }
 }

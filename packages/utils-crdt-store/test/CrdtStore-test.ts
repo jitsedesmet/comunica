@@ -5,7 +5,7 @@ import { CRDT, CrdtStore } from '../lib';
 import { DataFactoryUuid } from '../lib/DataFactoryUuid';
 import { eventToPromise } from '../lib/utils';
 import { basicTestContent, prefix } from './data';
-import { compareTerm, getIter, getStore, getStoreIter, termString } from './uitils';
+import { compareTerm, getIter, getStore, getStoreIter, termString } from './utils';
 
 describe('Crdt Store', () => {
   const DF = new DataFactoryUuid();
@@ -93,8 +93,8 @@ describe('Crdt Store', () => {
 
   it('does not break merge when adding to both CRDTs', async() => {
     const failTest = false;
-    const DF1 = failTest ? new DataFactory({ blankNodePrefix: 'bnode' }) : new DataFactoryUuid();
-    const DF2 = failTest ? new DataFactory({ blankNodePrefix: 'bnode' }) : new DataFactoryUuid();
+    const DF1 = <DataFactoryUuid> (failTest ? new DataFactory({ blankNodePrefix: 'bnode' }) : new DataFactoryUuid());
+    const DF2 = <DataFactoryUuid> (failTest ? new DataFactory({ blankNodePrefix: 'bnode' }) : new DataFactoryUuid());
     const crdt1 = new CrdtStore(DF1, basicTestContent(DF1));
     await expect(getStoreIter(crdt1).toArray()).resolves.toHaveLength(4);
     const crdt2 = new CrdtStore(DF2, basicTestContent(DF2));
