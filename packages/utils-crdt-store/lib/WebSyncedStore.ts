@@ -21,7 +21,7 @@ export class WebSyncedStore extends CrdtStore {
   protected parser: Parser;
   protected remoteEtag = '';
   public webSyncInterval: number;
-  private currentWebPromise: Promise<void> = Promise.resolve();
+  public currentWebPromise: Promise<void> = Promise.resolve();
 
   public constructor(option: WebSyncedStoreOptions) {
     super(option.dataFactory);
@@ -31,6 +31,11 @@ export class WebSyncedStore extends CrdtStore {
     this.webSyncInterval = option.webSyncInterval ?? 0;
 
     this.registerWebPromise();
+  }
+
+  public stop(): Promise<void> {
+    this.webSyncInterval = 0;
+    return this.currentWebPromise;
   }
 
   private registerWebPromise(): void {

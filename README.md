@@ -39,7 +39,9 @@ To test our approach, we use [a _'dumb_' HTML file server](packages/utils-crdt-s
 The webserver writes its content to [a file](packages/utils-crdt-store/test/public/test.nq) to ease inspection.
 
 Our [CRDT store](packages/utils-crdt-store/lib/CrdtStore.ts), or more specifically our [WebSyncedStore](packages/utils-crdt-store/lib/WebSyncedStore.ts) can be provided as a store to Comunica,
-and can be configured to periodically synchronise itself to the web. 
+and can be configured to periodically synchronise itself to the web server.
+We provide a few integration tests to showcase the stores use in Comunica
+[in the query-sparql engine tests](./engines/query-sparql/test/QuerySparqlCRDT-test.ts)
 
 
 ## Supported by
