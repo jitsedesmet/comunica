@@ -1,14 +1,22 @@
 import { wrap } from 'asynciterator';
+import { RdfStore } from 'rdf-stores';
 import { DataFactoryUuid } from '../lib/DataFactoryUuid';
 import { eventToPromise } from '../lib/utils';
 import { WebSyncedStore } from '../lib/WebSyncedStore';
-import { prefix } from './data';
+import { basicTestContent, prefix } from './data';
 import { getIter, getStoreIter } from './utils';
 
 describe('Web Synced Store', () => {
   const DF = new DataFactoryUuid();
 
   it('Single store communication', async() => {
+    const clearCrdt = new WebSyncedStore({ dataFactory: DF, webSource: 'http://localhost:3000/test.nq' });
+    await clearCrdt.pullData();
+    const store = RdfStore.createDefault();
+    await eventToPromise(store.import(basicTestContent(DF)));
+    (<any>clearCrdt).store = store;
+    await clearCrdt.pushData();
+
     const crdt = new WebSyncedStore({ dataFactory: DF, webSource: 'http://localhost:3000/test.nq' });
     await crdt.pullData();
     await expect(getStoreIter(crdt).toArray()).resolves.toHaveLength(4);

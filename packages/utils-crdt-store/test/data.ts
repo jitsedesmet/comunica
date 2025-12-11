@@ -14,7 +14,7 @@ function uuid(val: string) {
 export const addTag = uuid('10591359-7b29-44f1-99df-e2e2bbf53adc');
 export const delTag = uuid('c269c6ec-b9b5-487e-aa93-f118b5af6842');
 
-export function basicTestContent(DF: DataFactory): Stream<Quad> & AsyncIterator<Quad> {
+export function basicTestContent(DF: DataFactory): Stream & AsyncIterator<Quad> {
   const testStore = RdfStore.createDefault();
 
   const triple = DF.quad(DF.namedNode(`${prefix}a`), DF.namedNode(`${prefix}b`), DF.namedNode(`${prefix}c`));

@@ -1,15 +1,15 @@
-import { DataFactory, Parser, Writer } from 'n3';
+import { wrap } from 'asynciterator';
+import { Parser, Writer } from 'n3';
 import { RdfStore } from 'rdf-stores';
 import { CrdtStore } from './CrdtStore';
 import type { DataFactoryUuid } from './DataFactoryUuid';
 import { eventToPromise, reverse } from './utils';
-import triple = DataFactory.triple;
-import { wrap } from 'asynciterator';
 
 export interface WebSyncedStoreOptions {
   fetch?: typeof fetch;
   dataFactory: DataFactoryUuid;
   webSource: string;
+  webSyncInterval?: number;
 }
 
 /**
@@ -20,12 +20,37 @@ export class WebSyncedStore extends CrdtStore {
   protected webSource: string;
   protected parser: Parser;
   protected remoteEtag = '';
+  public webSyncInterval: number;
+  private currentWebPromise: Promise<void> = Promise.resolve();
 
   public constructor(option: WebSyncedStoreOptions) {
     super(option.dataFactory);
     this.fetch = option.fetch ?? fetch;
     this.webSource = option.webSource;
     this.parser = new Parser({ factory: <any> this.DF, format: 'N-Quads' });
+    this.webSyncInterval = option.webSyncInterval ?? 0;
+
+    this.registerWebPromise();
+  }
+
+  private registerWebPromise(): void {
+    if (this.webSyncInterval > 0) {
+      const running = this.currentWebPromise;
+      this.currentWebPromise = (async() => {
+        await running;
+        await new Promise(resolve => setTimeout(resolve, this.webSyncInterval));
+        // A smarter sync strategy might sync depending on the error
+        try {
+          await this.pullData();
+          await this.pushData();
+        } catch (error) {
+          console.error(error);
+        }
+        this.registerWebPromise();
+      })().catch((err) => {
+        throw err;
+      });
+    }
   }
 
   public async pullData(): Promise<void> {
