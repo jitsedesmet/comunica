@@ -55,6 +55,7 @@ export {
   toDateTimeRepresentation,
   toUTCDate,
   yearMonthDurationsToMonths,
+  extractTimeZone,
 } from './util/DateTimeHelpers';
 export {
   DateTimeLiteral,

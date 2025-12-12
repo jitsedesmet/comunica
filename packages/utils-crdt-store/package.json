@@ -42,7 +42,8 @@
     "rdf-dereference": "^4.0.0",
     "asynciterator": "^3.10.0",
     "rdf-stores": "^2.1.1",
-    "n3": "2.0.0-beta.2"
+    "n3": "2.0.0-beta.2",
+    "@comunica/utils-expression-evaluator": "^4.4.1"
   },
   "devDependencies": {
     "serve-static": "^2.2.0",

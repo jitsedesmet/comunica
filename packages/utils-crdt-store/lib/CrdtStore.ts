@@ -1,48 +1,36 @@
 /* eslint-disable import/no-nodejs-modules */
 import { EventEmitter } from 'node:events';
+import type { ITimeZoneRepresentation } from '@comunica/types';
+import {
+  addDurationToDateTime,
+  defaultedDurationRepresentation,
+  parseDateTime,
+  toDateTimeRepresentation,
+  toUTCDate,
+  extractTimeZone,
+} from '@comunica/utils-expression-evaluator';
 import type { Quad, Store, Stream, Term } from '@rdfjs/types';
 import type { AsyncIterator } from 'asynciterator';
 import { wrap } from 'asynciterator';
 import { RdfStore } from 'rdf-stores';
 import type { DataFactoryUuid } from './DataFactoryUuid';
+import { attachEvent, CRDT, prefixCrdt, termString } from './utils';
 
-export const prefixCrdt = 'https://rdf-set-crdt.knows.idlab.ugent.be/';
-
-/**
- * <> a CRDT:container .
- *
- * :a :b :c .
- * [] CRDT:tagging <<( :a :b :c )>> ;
- *    CRDT:add "10591359-7b29-44f1-99df-e2e2bbf53adc"^^CRDT:uuid
- *    CRDT:delete "2010-06-21T11:28:01Z---b4074a77-f529-4bfc-95f5-008b2f777261"^^CRDT:stamp-uuid
- *    CRDT:delete "c269c6ec-b9b5-487e-aa93-f118b5af6842"^^CRDT:uuid
- */
-export enum CRDT {
-  CONTAINER = `https://rdf-set-crdt.knows.idlab.ugent.be/container`,
-  TAGGING = `https://rdf-set-crdt.knows.idlab.ugent.be/tagging`,
-  ADD = `https://rdf-set-crdt.knows.idlab.ugent.be/add`,
-  DELETE = `https://rdf-set-crdt.knows.idlab.ugent.be/delete`,
-  DT_UUID = `https://rdf-set-crdt.knows.idlab.ugent.be/uuid`,
-  // TODO: future work: garbage collecting
-  DT_STAMP_UUID = `https://rdf-set-crdt.knows.idlab.ugent.be/stamp-uuid`,
-}
-
-function termString(term: Term): string {
-  // Works since no termType is a prefix of another termType
-  return `${term.termType}${term.value}`;
-}
-
-function attachEvent(from: EventEmitter, to: EventEmitter): void {
-  from.on('data', data => to.emit('data', data));
-  from.on('error', error => to.emit('error', error));
-  from.on('end', () => to.emit('end'));
+export interface CrdtStoreArgs {
+  dataFactory: DataFactoryUuid;
+  initialCrdtState?: AsyncIterator<Quad>;
+  now?: () => Date;
+  /**
+   * When (now - expirationDuration) is higher than the tombstone tag creation date, it will be removed.
+   * Provided in seconds. LTE 0 seconds means you never remove.
+   */
+  expirationDuration?: number;
 }
 
 /**
- * Implementation of a state-based Set CRDT (SU-set).
+ * Implementation of a state-based Set CRDT (SU-set/ OR-set).
  * Has an internal store that reflects the remote data,
  * but wraps around that store to be a front for what is exported outside.
- * Depends on https://github.com/rubensworks/rdf-dereference.js/
  */
 export class CrdtStore implements Store {
   /**
@@ -50,7 +38,16 @@ export class CrdtStore implements Store {
    */
   public actionableList: EventEmitter[] = [];
   protected store: Store;
-  public constructor(protected readonly DF: DataFactoryUuid, initial?: AsyncIterator<Quad>) {
+  protected readonly DF: DataFactoryUuid;
+  protected now: () => Date;
+  protected readonly expirationDuration: number;
+
+  public constructor(args: CrdtStoreArgs) {
+    this.DF = args.dataFactory;
+    this.now = args.now ?? (() => new Date(Date.now()));
+    this.expirationDuration = args.expirationDuration ?? 0;
+
+    const initial = args.initialCrdtState;
     this.store = <Store> RdfStore.createDefault();
     if (initial) {
       this.sequentializeEvent(() => this.store.import(initial));
@@ -129,6 +126,7 @@ export class CrdtStore implements Store {
   }
 
   public remove(stream: Stream): EventEmitter {
+    // TODO: tombstone should be time marked
     return this.sequentializeEvent(() => {
       const DF = this.DF;
       const store = this.store;
@@ -194,7 +192,8 @@ export class CrdtStore implements Store {
   }
 
   /**
-   * Core of a state base CRDT - must be communicative, associative and idempotent
+   * Core of a state base CRDT - must be communicative, associative and idempotent.
+   * Remove tombstones older then {@link this.expirationDuration}.
    * OR-set:
    * https://youtu.be/OqqliwwG0SM?t=613&si=QGhZoSSPLYpvlObs
    * https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type#OR-Set_(Observed-Remove_Set)
@@ -251,7 +250,7 @@ export class CrdtStore implements Store {
       .on('end', resolve).on('error', reject));
 
     // NewStore knows all thing being Tagged. Now add `remove tags`
-    const removeTaggers = wrap(newStore.match(null, DF.namedNode(CRDT.TAGGING), null, graph)).transform<Quad>({
+    let removeTaggers = wrap(newStore.match(null, DF.namedNode(CRDT.TAGGING), null, graph)).transform<Quad>({
       transform: (quad, done, push) => {
         const tagger = quad.subject;
         const metaDataTriples =
@@ -266,22 +265,49 @@ export class CrdtStore implements Store {
         });
       },
     });
+    if (this.expirationDuration > 0) {
+      const now = this.now();
+      const defaultTimeZone: ITimeZoneRepresentation = extractTimeZone(now);
+      const currentTimeAsLiteral = toDateTimeRepresentation({ date: now, timeZone: defaultTimeZone });
+      // Remove old tombstones
+      removeTaggers = removeTaggers.filter((quad) => {
+        const tag = quad.object;
+        if (tag.termType !== 'Literal' || tag.datatype.value !== CRDT.DT_STAMP_UUID) {
+          return true;
+        }
+        // Value is concat of a uuid and a XSD:dateTime (https://www.w3.org/TR/xmlschema-2/#dateTime)
+        const [ _, timeStamp ] = tag.datatype.value.split('--');
+        const timeStampLiteral = parseDateTime(timeStamp);
+        const expiresAfter = addDurationToDateTime(
+          timeStampLiteral,
+          defaultedDurationRepresentation({ seconds: this.expirationDuration }),
+        );
+        // Valid only if expiresAfter is after now
+        return toUTCDate(expiresAfter, defaultTimeZone).getTime() >
+          toUTCDate(currentTimeAsLiteral, defaultTimeZone).getTime();
+      });
+    }
     await new Promise(resolve => newStore.import(removeTaggers).on('end', resolve));
 
     // Now add those add tags that are not removed.
     const addTaggers = wrap(newStore.match(null, DF.namedNode(CRDT.TAGGING), null, graph)).transform<Quad>({
       transform: (quad, done, push) => {
+        // For each tagger, get the adding quads in other and this
         const tagger = quad.subject;
-        const metaDataTriples =
+        const addTagQuads =
           wrap(origStore.match(toOrigReifier[termString(tagger)] ?? tagger, DF.namedNode(CRDT.ADD), null, graph))
             .map(translateOldQuadToNew)
             .append(wrap(otherStore.match(tagger, DF.namedNode(CRDT.ADD), null, graph)));
 
         (async() => {
-          for await (const quad of metaDataTriples) {
-            if ((await wrap(newStore.match(quad.subject, DF.namedNode(CRDT.DELETE), quad.object, graph))
-              .toArray()).length === 0) {
-              push(quad);
+          // For each add tag, check whether there is a delete
+          for await (const addTagQuad of addTagQuads) {
+            const tag = addTagQuad.object.value;
+            const deletesOnTagerWithSameTag =
+              wrap(newStore.match(addTagQuad.subject, DF.namedNode(CRDT.DELETE), null, graph))
+                .filter(removeQuad => removeQuad.object.value.includes(tag));
+            if ((await deletesOnTagerWithSameTag.toArray()).length === 0) {
+              push(addTagQuad);
             }
           }
           done();

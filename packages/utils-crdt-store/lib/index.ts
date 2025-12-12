@@ -1,1 +1,2 @@
-export { CrdtStore, CRDT } from './CrdtStore';
+export { CrdtStore } from './CrdtStore';
+export { CRDT } from './utils';

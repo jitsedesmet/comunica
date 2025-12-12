@@ -11,7 +11,7 @@ describe('Crdt Store', () => {
   const DF = new DataFactoryUuid();
 
   it('filters out CRDT triples', async() => {
-    const crdt = new CrdtStore(DF, basicTestContent(DF));
+    const crdt = new CrdtStore({ dataFactory: DF, initialCrdtState: basicTestContent(DF) });
 
     await expect(getStoreIter(crdt).toArray()).resolves.toHaveLength(4);
     await expect(getIter(crdt).toArray()).resolves.toHaveLength(1);
@@ -20,9 +20,9 @@ describe('Crdt Store', () => {
   it('is idempotent', async() => {
     for (let times = 0; times < 10; times++) {
       const content = basicTestContent(DF);
-      const crdt1 = new CrdtStore(DF, content);
+      const crdt1 = new CrdtStore({ dataFactory: DF, initialCrdtState: content });
       // When not running the merge, blank node labels otherwise differ
-      const crdt2 = new CrdtStore(DF, times ? basicTestContent(DF) : content);
+      const crdt2 = new CrdtStore({ dataFactory: DF, initialCrdtState: times ? basicTestContent(DF) : content });
 
       for (let i = 0; i < times; i++) {
         await eventToPromise(crdt1.crdtMerge(crdt2));
@@ -38,8 +38,8 @@ describe('Crdt Store', () => {
 
   it('registers removal', async() => {
     for (let times = 1; times < 10; times++) {
-      const crdt1 = new CrdtStore(DF, basicTestContent(DF));
-      const crdt2 = new CrdtStore(DF, basicTestContent(DF));
+      const crdt1 = new CrdtStore({ dataFactory: DF, initialCrdtState: basicTestContent(DF) });
+      const crdt2 = new CrdtStore({ dataFactory: DF, initialCrdtState: basicTestContent(DF) });
       await expect(getIter(crdt1).toArray()).resolves.toHaveLength(1);
 
       // Test idempotence remove
@@ -59,8 +59,8 @@ describe('Crdt Store', () => {
 
   it('registers addition', async() => {
     for (let times = 1; times < 10; times++) {
-      const crdt1 = new CrdtStore(DF, basicTestContent(DF));
-      const crdt2 = new CrdtStore(DF, basicTestContent(DF));
+      const crdt1 = new CrdtStore({ dataFactory: DF, initialCrdtState: basicTestContent(DF) });
+      const crdt2 = new CrdtStore({ dataFactory: DF, initialCrdtState: basicTestContent(DF) });
       await new Promise((resolve, reject) =>
         crdt1.removeMatches(null, null, null).on('end', resolve).on('error', reject));
       await eventToPromise(crdt1.crdtMerge(crdt2));
@@ -95,9 +95,9 @@ describe('Crdt Store', () => {
     const failTest = false;
     const DF1 = <DataFactoryUuid> (failTest ? new DataFactory({ blankNodePrefix: 'bnode' }) : new DataFactoryUuid());
     const DF2 = <DataFactoryUuid> (failTest ? new DataFactory({ blankNodePrefix: 'bnode' }) : new DataFactoryUuid());
-    const crdt1 = new CrdtStore(DF1, basicTestContent(DF1));
+    const crdt1 = new CrdtStore({ dataFactory: DF1, initialCrdtState: basicTestContent(DF1) });
     await expect(getStoreIter(crdt1).toArray()).resolves.toHaveLength(4);
-    const crdt2 = new CrdtStore(DF2, basicTestContent(DF2));
+    const crdt2 = new CrdtStore({ dataFactory: DF2, initialCrdtState: basicTestContent(DF2) });
 
     // Separate DFs result in same construction
     if (failTest) {
@@ -129,7 +129,7 @@ describe('Crdt Store', () => {
   });
 
   it('does not care about removing non-existing', async() => {
-    const crdt1 = new CrdtStore(DF, basicTestContent(DF));
+    const crdt1 = new CrdtStore({ dataFactory: DF, initialCrdtState: basicTestContent(DF) });
     await expect(getStoreIter(crdt1).toArray()).resolves.toHaveLength(4);
     await new Promise((resolve, reject) =>
       crdt1.remove(wrap([ DF.quad(DF.namedNode(`${prefix}a`), DF.namedNode(`${prefix}a`), DF.namedNode(`${prefix}a`)) ]))

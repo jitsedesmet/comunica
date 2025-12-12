@@ -1,13 +1,12 @@
 import { wrap } from 'asynciterator';
 import { Parser, Writer } from 'n3';
 import { RdfStore } from 'rdf-stores';
+import type { CrdtStoreArgs } from './CrdtStore';
 import { CrdtStore } from './CrdtStore';
-import type { DataFactoryUuid } from './DataFactoryUuid';
 import { eventToPromise, reverse } from './utils';
 
-export interface WebSyncedStoreOptions {
+export interface WebSyncedStoreOptions extends CrdtStoreArgs {
   fetch?: typeof fetch;
-  dataFactory: DataFactoryUuid;
   webSource: string;
   webSyncInterval?: number;
 }
@@ -24,7 +23,7 @@ export class WebSyncedStore extends CrdtStore {
   public currentWebPromise: Promise<void> = Promise.resolve();
 
   public constructor(option: WebSyncedStoreOptions) {
-    super(option.dataFactory);
+    super(option);
     this.fetch = option.fetch ?? fetch;
     this.webSource = option.webSource;
     this.parser = new Parser({ factory: <any> this.DF, format: 'N-Quads' });
