@@ -31,6 +31,34 @@ If you would like to support this project, you may consider:
 * Contributing directly by [writing code or documentation](https://comunica.dev/contribute/); or
 * Contributing indirectly by funding this project via [Open Collective](https://opencollective.com/comunica-association).
 
+## CRDT branch specifics
+
+This Git branch focuses on the support of add-wins state-based set CRDT.
+We implemented an RDF store that functions as an OR-set over RDF 1.2.
+To test our approach, we use [a _'dumb_' HTML file server](packages/utils-crdt-store/test/public/webserver.ts) that can [help avoid mid-air collisions](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/ETag#avoiding_mid-air_collisions), a basic HTTP functionality.
+The webserver writes its content to [a file](packages/utils-crdt-store/test/public/test.nq) to ease inspection.
+
+Our [CRDT store](packages/utils-crdt-store/lib/CrdtStore.ts), or more specifically our [WebSyncedStore](packages/utils-crdt-store/lib/WebSyncedStore.ts) can be provided as a store to Comunica,
+and can be configured to periodically synchronise itself to the web server.
+We provide a few integration tests to showcase the stores use in Comunica
+[in the query-sparql engine tests](./engines/query-sparql/test/QuerySparqlCRDT-test.ts)
+
+### Running the example
+
+First setup the environment and run the server:
+
+```bash
+yarn install
+tsc packages/utils-crdt-store/test/public/webserver.ts
+node packages/utils-crdt-store/test/public/webserver.js 
+```
+
+While the server is running, execute the test:
+```bash
+yarn test engines/query-sparql/test/QuerySparqlCRDT-test.ts
+```
+
+
 ## Supported by
 
 Comunica is a community-driven project, sustained by the [Comunica Association](https://comunica.dev/association/).

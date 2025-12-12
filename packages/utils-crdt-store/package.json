@@ -1,0 +1,58 @@
+{
+  "name": "@comunica/utils-crdt-store",
+  "version": "4.0.2",
+  "description": "Ana add-wins CRDT RDF store using RDF1.2",
+  "license": "MIT",
+  "funding": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/comunica-association"
+  },
+  "homepage": "https://comunica.dev/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/comunica/comunica.git",
+    "directory": "packages/utils-crdt-store"
+  },
+  "bugs": {
+    "url": "https://github.com/comunica/comunica/issues"
+  },
+  "keywords": [
+    "comunica",
+    "crdt",
+    "add-wins set CRDT"
+  ],
+  "sideEffects": false,
+  "main": "lib/index.js",
+  "typings": "lib/index",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "lib/**/*.d.ts",
+    "lib/**/*.js",
+    "lib/**/*.js.map"
+  ],
+  "scripts": {
+    "build": "yarn run build:ts",
+    "build:ts": "node \"../../node_modules/typescript/bin/tsc\""
+  },
+  "dependencies": {
+    "@traqula/algebra-transformations-1-2": "^0.0.24",
+    "@traqula/core": "^0.0.24",
+    "rdf-dereference": "^4.0.0",
+    "asynciterator": "^3.10.0",
+    "rdf-stores": "^2.1.1",
+    "n3": "2.0.0-beta.2",
+    "@comunica/utils-expression-evaluator": "^4.4.1"
+  },
+  "devDependencies": {
+    "serve-static": "^2.2.0",
+    "finalhandler": "^2.1.1",
+    "@types/serve-static": "^2.2.0",
+    "@types/finalhandler": "^1.2.4",
+    "express": "^5.2.1",
+    "@types/express": "^5.0.6",
+    "etag": "^1.8.1",
+    "@types/etag": "^1.8.4"
+  }
+}
