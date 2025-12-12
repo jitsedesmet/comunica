@@ -8,6 +8,7 @@ import {
   toDateTimeRepresentation,
   toUTCDate,
   extractTimeZone,
+  DateTimeLiteral,
 } from '@comunica/utils-expression-evaluator';
 import type { Quad, Store, Stream, Term } from '@rdfjs/types';
 import type { AsyncIterator } from 'asynciterator';
@@ -130,12 +131,15 @@ export class CrdtStore implements Store {
     return this.sequentializeEvent(() => {
       const DF = this.DF;
       const store = this.store;
+      const now = this.now();
+      const timezone = extractTimeZone(now);
+      const nowAsString = new DateTimeLiteral(toDateTimeRepresentation({ date: now, timeZone: timezone })).str();
       // Should remove the item itself, remove the add labels, and make remove labels with the same subj and pred
       const dataStream = wrap(stream).clone();
       const metaDataTriples = dataStream.clone()
         .transform<Quad>({
           transform: (quad, done, push) => {
-          // Remove item itself
+            // Remove item itself
             const graph = quad.graph;
             const tripleTerm = DF.quad(quad.subject, quad.predicate, quad.object);
             // Perform lookup of add labels:
@@ -147,7 +151,10 @@ export class CrdtStore implements Store {
                 const metaDataStream = store.match(reifier, DF.namedNode(CRDT.ADD), null, graph);
                 metaDataStream.on('data', (data: Quad) => {
                   push(data);
-                  push(DF.quad(reifier, DF.namedNode(CRDT.DELETE), data.object, graph));
+                  const deleteObject = this.expirationDuration <= 0 ?
+                    data.object :
+                    DF.literal(`${data.object.value}--${nowAsString}`, DF.namedNode(CRDT.DT_STAMP_UUID));
+                  push(DF.quad(reifier, DF.namedNode(CRDT.DELETE), deleteObject, graph));
                 });
                 metaDataStream.on('end', () => done());
               } else {
@@ -276,7 +283,7 @@ export class CrdtStore implements Store {
           return true;
         }
         // Value is concat of a uuid and a XSD:dateTime (https://www.w3.org/TR/xmlschema-2/#dateTime)
-        const [ _, timeStamp ] = tag.datatype.value.split('--');
+        const [ _, timeStamp ] = tag.value.split('--');
         const timeStampLiteral = parseDateTime(timeStamp);
         const expiresAfter = addDurationToDateTime(
           timeStampLiteral,

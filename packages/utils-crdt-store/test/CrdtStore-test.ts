@@ -1,7 +1,9 @@
 import { expect } from '@playwright/test';
 import { wrap } from 'asynciterator';
+import type { Literal } from 'n3';
 import { DataFactory } from 'rdf-data-factory';
 import { CRDT, CrdtStore } from '../lib';
+import type { CrdtStoreArgs } from '../lib/CrdtStore';
 import { DataFactoryUuid } from '../lib/DataFactoryUuid';
 import { eventToPromise } from '../lib/utils';
 import { basicTestContent, prefix } from './data';
@@ -135,5 +137,78 @@ describe('Crdt Store', () => {
       crdt1.remove(wrap([ DF.quad(DF.namedNode(`${prefix}a`), DF.namedNode(`${prefix}a`), DF.namedNode(`${prefix}a`)) ]))
         .on('end', resolve).on('error', reject));
     await expect(getStoreIter(crdt1).toArray()).resolves.toHaveLength(4);
+  });
+
+  it('timestamps tombstones when asked', async() => {
+    const crdt1 = new CrdtStore({ dataFactory: DF });
+    const crdt2 = new CrdtStore({ dataFactory: DF, expirationDuration: 60 * 60 * 5 });
+    const testTriple = DF.quad(DF.namedNode(`${prefix}a`), DF.namedNode(`${prefix}a`), DF.namedNode(`${prefix}a`));
+    await eventToPromise(crdt1.import(wrap([ testTriple ])));
+    await eventToPromise(crdt2.import(wrap([ testTriple ])));
+    await expect(getStoreIter(crdt1).toArray()).resolves.toHaveLength(3);
+    await expect(getStoreIter(crdt2).toArray()).resolves.toHaveLength(3);
+
+    await eventToPromise(crdt1.removeMatches());
+    await eventToPromise(crdt2.removeMatches());
+    await expect(getStoreIter(crdt1).toArray()).resolves.toHaveLength(2);
+    await expect(getStoreIter(crdt2).toArray()).resolves.toHaveLength(2);
+
+    await expect(getStoreIter(crdt1, null, DF.namedNode(CRDT.DELETE)).toArray().then((x) => {
+      const lit = <Literal> x.at(0)?.object;
+      return lit.datatype.value;
+    })).resolves.toEqual(CRDT.DT_UUID);
+    await expect(getStoreIter(crdt2, null, DF.namedNode(CRDT.DELETE)).toArray().then((x) => {
+      const lit = <Literal> x.at(0)?.object;
+      return lit.datatype.value;
+    })).resolves.toEqual(CRDT.DT_STAMP_UUID);
+  });
+
+  it('merging timestamped tombstones', async() => {
+    const now = new Date(Date.now());
+    const args: CrdtStoreArgs = {
+      dataFactory: DF,
+      expirationDuration: 60 * 60 * 5,
+      now: () => now,
+    };
+    const crdt1 = new CrdtStore(args);
+    const crdt2 = new CrdtStore(args);
+
+    const testTriple = DF.quad(DF.namedNode(`${prefix}a`), DF.namedNode(`${prefix}a`), DF.namedNode(`${prefix}a`));
+    await eventToPromise(crdt1.import(wrap([ testTriple ])));
+    await eventToPromise(crdt1.crdtMerge(crdt2));
+    await eventToPromise(crdt2.crdtMerge(crdt1));
+    await expect(getStoreIter(crdt1).toArray()).resolves.toHaveLength(3);
+    await expect(getStoreIter(crdt2).toArray()).resolves.toHaveLength(3);
+
+    await eventToPromise(crdt1.removeMatches());
+    await eventToPromise(crdt1.crdtMerge(crdt2));
+    await eventToPromise(crdt2.crdtMerge(crdt1));
+    await expect(getStoreIter(crdt1).toArray()).resolves.toHaveLength(2);
+    await expect(getStoreIter(crdt2).toArray()).resolves.toHaveLength(2);
+  });
+
+  it('merging old timestamped tombstones removes them', async() => {
+    // 5 hours ago
+    const oldTimeDiffMs = 1000 * 60 * 60 * 5;
+    const oldTime = new Date(Date.now() - oldTimeDiffMs);
+    const now = new Date(Date.now());
+    const args: CrdtStoreArgs = {
+      dataFactory: DF,
+      expirationDuration: oldTimeDiffMs / 1000 / 3,
+      now: () => now,
+    };
+    const crdtOld = new CrdtStore({ ...args, now: () => oldTime });
+    const crdtNow = new CrdtStore(args);
+
+    const testTriple = DF.quad(DF.namedNode(`${prefix}a`), DF.namedNode(`${prefix}a`), DF.namedNode(`${prefix}a`));
+    await eventToPromise(crdtOld.import(wrap([ testTriple ])));
+    await eventToPromise(crdtOld.crdtMerge(crdtNow));
+    await expect(getStoreIter(crdtOld).toArray()).resolves.toHaveLength(3);
+    await eventToPromise(crdtOld.removeMatches());
+
+    await eventToPromise(crdtOld.crdtMerge(crdtNow));
+    await eventToPromise(crdtNow.crdtMerge(crdtOld));
+    await expect(getStoreIter(crdtOld).toArray()).resolves.toHaveLength(2);
+    await expect(getStoreIter(crdtNow).toArray()).resolves.toHaveLength(1);
   });
 });
