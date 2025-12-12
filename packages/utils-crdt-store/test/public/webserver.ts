@@ -1,7 +1,8 @@
 import { writeFile, stat } from 'node:fs/promises';
-import etag from 'etag';
+import { join } from 'node:path';
 import type { RequestHandler } from 'express';
 
+const etag = require('etag');
 const express = require('express');
 const serveStatic = require('serve-static');
 
@@ -29,7 +30,7 @@ app.put('/test.nq', (async(req, res) => {
       return res.status(428).send('If-Match required');
     }
 
-    const currentEtag = await fileEtag('./test.nq');
+    const currentEtag = await fileEtag(join(__dirname, 'test.nq'));
 
     if (ifMatch !== currentEtag) {
       return res
@@ -38,9 +39,9 @@ app.put('/test.nq', (async(req, res) => {
         .send(`Precondition Failed. Etag is ${currentEtag}`);
     }
 
-    await writeFile('./test.nq', incoming);
+    await writeFile(join(__dirname, 'test.nq'), incoming);
 
-    const newEtag = await fileEtag('./test.nq');
+    const newEtag = await fileEtag(join(__dirname, 'test.nq'));
 
     return res
       .status(200)
@@ -48,5 +49,5 @@ app.put('/test.nq', (async(req, res) => {
       .end();
   });
 }) satisfies RequestHandler);
-app.use(serveStatic('.'));
+app.use(serveStatic(__dirname));
 app.listen(3000);

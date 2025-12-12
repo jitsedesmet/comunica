@@ -43,6 +43,21 @@ and can be configured to periodically synchronise itself to the web server.
 We provide a few integration tests to showcase the stores use in Comunica
 [in the query-sparql engine tests](./engines/query-sparql/test/QuerySparqlCRDT-test.ts)
 
+### Running the example
+
+First setup the environment and run the server:
+
+```bash
+yarn install
+tsc packages/utils-crdt-store/test/public/webserver.ts
+node packages/utils-crdt-store/test/public/webserver.js 
+```
+
+While the server is running, execute the test:
+```bash
+yarn test engines/query-sparql/test/QuerySparqlCRDT-test.ts
+```
+
 
 ## Supported by
 
