@@ -15,7 +15,7 @@ import type { AsyncIterator } from 'asynciterator';
 import { wrap } from 'asynciterator';
 import { RdfStore } from 'rdf-stores';
 import type { DataFactoryUuid } from './DataFactoryUuid';
-import { attachEvent, CRDT, prefixCrdt, termString } from './utils';
+import { attachEvent, CRDT, eventToPromise, prefixCrdt, termString } from './utils';
 
 export interface CrdtStoreArgs {
   dataFactory: DataFactoryUuid;
@@ -127,7 +127,6 @@ export class CrdtStore implements Store {
   }
 
   public remove(stream: Stream): EventEmitter {
-    // TODO: tombstone should be time marked
     return this.sequentializeEvent(() => {
       const DF = this.DF;
       const store = this.store;
@@ -224,9 +223,7 @@ export class CrdtStore implements Store {
     };
 
     // Add others reifiers - they are already on the server (synced) so we give them precedence.
-    await new Promise((resolve, reject) =>
-      newStore.import(otherStore.match(null, this.DF.namedNode(CRDT.TAGGING), null, graph))
-        .on('end', resolve).on('error', reject));
+    await eventToPromise(newStore.import(otherStore.match(null, this.DF.namedNode(CRDT.TAGGING), null, graph)));
     // Populate toOrigReifier for those reification subjects in `this` that tag the same triple (triple term equality)
     // And add those that were not present in `other`.
     const newTags = wrap(origStore.match(null, this.DF.namedNode(CRDT.TAGGING), null, graph))
@@ -253,8 +250,7 @@ export class CrdtStore implements Store {
           });
         },
       });
-    await new Promise((resolve, reject) => newStore.import(newTags)
-      .on('end', resolve).on('error', reject));
+    await eventToPromise(newStore.import(newTags));
 
     // NewStore knows all thing being Tagged. Now add `remove tags`
     let removeTaggers = wrap(newStore.match(null, DF.namedNode(CRDT.TAGGING), null, graph)).transform<Quad>({
@@ -365,5 +361,24 @@ export class CrdtStore implements Store {
         } })
         .on('end', () => this.store = newStore);
     });
+  }
+
+  public cleanTaggers(): EventEmitter {
+    const DF = this.DF;
+    const store = this.store;
+    const toRemove = wrap(store.match(null, DF.namedNode(CRDT.TAGGING)))
+      .transform<Quad>({ transform: (quad, done, push) => {
+        (async() => {
+          const addTags = await wrap(store.match(quad.subject, DF.namedNode(CRDT.ADD)))
+            .append(wrap(store.match(quad.subject, DF.namedNode(CRDT.DELETE)))).toArray();
+          if (addTags.length === 0) {
+            push(quad);
+          }
+          done();
+        })().catch((err) => {
+          console.log(err);
+        });
+      } });
+    return this.remove(toRemove);
   }
 }

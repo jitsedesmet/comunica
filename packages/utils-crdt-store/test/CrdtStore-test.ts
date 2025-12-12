@@ -210,5 +210,8 @@ describe('Crdt Store', () => {
     await eventToPromise(crdtNow.crdtMerge(crdtOld));
     await expect(getStoreIter(crdtOld).toArray()).resolves.toHaveLength(2);
     await expect(getStoreIter(crdtNow).toArray()).resolves.toHaveLength(1);
+
+    await eventToPromise(crdtNow.cleanTaggers());
+    await expect(getStoreIter(crdtNow).toArray()).resolves.toHaveLength(0);
   });
 });
