@@ -80,6 +80,7 @@ export enum TypeURL {
   XSD_DURATION = 'http://www.w3.org/2001/XMLSchema#duration',
   XSD_YEAR_MONTH_DURATION = 'http://www.w3.org/2001/XMLSchema#yearMonthDuration',
   XSD_DAY_TIME_DURATION = 'http://www.w3.org/2001/XMLSchema#dayTimeDuration',
+  XSD_UNTYPED_ATOMIC = 'http://www.w3.org/2001/XMLSchema#untypedAtomic',
 }
 
 // ----------------------------------------------------------------------------
@@ -90,7 +91,6 @@ export type GeneralOperator = KnownOperator | string;
 
 export type KnownOperator = SparqlOperator | NamedOperator;
 
-// TODO: Remove unneeded double typing
 export enum SparqlOperator {
   // Operator mapping
   // https://www.w3.org/TR/sparql11-query/#OperatorMapping

@@ -1,9 +1,9 @@
 import { KeysInitQuery } from '@comunica/context-entries';
-import type { IAction, IActorArgs, IActorTest } from '@comunica/core';
+import type { IActorArgs, IActorTest } from '@comunica/core';
 import { Actor } from '@comunica/core';
 import type { IActionContext } from '@comunica/types';
 import { Readable } from 'readable-stream';
-import type { IActorDereferenceOutput } from '.';
+import type { IActorDereferenceOutput, IActionDereference } from './ActorDereference';
 
 export function emptyReadable<S extends Readable>(): S {
   const data = new Readable();
@@ -21,6 +21,14 @@ export function isHardError(context: IActionContext): boolean {
 }
 
 /**
+ * If a warning should be emitted for the given type of error.
+ * @param error An error.
+ */
+export function shouldLogWarning(error: Error): boolean {
+  return error.name !== 'AbortError';
+}
+
+/**
  * A base actor for dereferencing URLs to (generic) streams.
  *
  * Actor types:
@@ -32,7 +40,7 @@ export function isHardError(context: IActionContext): boolean {
  * @see IActorDereferenceOutput
  */
 export abstract class ActorDereferenceBase<
-  I extends IAction,
+  I extends IActionDereference,
 T extends IActorTest,
 O extends IActorDereferenceOutput,
 TS = undefined,
@@ -57,7 +65,9 @@ TS = undefined,
     if (isHardError(action.context)) {
       throw error;
     }
-    this.logWarn(action.context, (<Error> error).message);
+    if (shouldLogWarning(<Error> error)) {
+      this.logWarn(action.context, (<Error>error).message, () => ({ url: action.url }));
+    }
     return { ...output, data: emptyReadable<M>() };
   }
 }

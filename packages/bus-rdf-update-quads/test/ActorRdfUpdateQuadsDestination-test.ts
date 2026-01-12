@@ -1,15 +1,16 @@
 import type { EventEmitter } from 'node:stream';
-import { skolemizeQuad } from '@comunica/actor-context-preprocess-query-source-skolemize';
+import { skolemizeQuad } from '@comunica/actor-optimize-query-operation-query-source-skolemize';
 import { KeysInitQuery, KeysQuerySourceIdentify, KeysRdfUpdateQuads } from '@comunica/context-entries';
 import { ActionContext, Bus } from '@comunica/core';
 import type { IActionContext } from '@comunica/types';
+import { getContextDestinationUrl } from '@comunica/utils-query-operation';
 import type * as RDF from '@rdfjs/types';
 import { ArrayIterator } from 'asynciterator';
 import { DataFactory, Store } from 'n3';
 import { DataFactory as RdfDataFactory } from 'rdf-data-factory';
 import '@comunica/utils-jest';
 import type { IActorRdfUpdateQuadsOutput } from '../lib';
-import { ActorRdfUpdateQuadsDestination, getContextDestinationUrl } from '../lib';
+import { ActorRdfUpdateQuadsDestination } from '../lib';
 
 const { quad, namedNode, blankNode } = DataFactory;
 

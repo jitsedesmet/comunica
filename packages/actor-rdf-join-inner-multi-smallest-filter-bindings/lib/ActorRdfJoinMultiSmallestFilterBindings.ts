@@ -1,16 +1,15 @@
-import { AlgebraFactory } from '@comunica/algebra-sparql-comunica';
 import type {
   IActionRdfJoin,
   IActorRdfJoinArgs,
-  MediatorRdfJoin,
   IActorRdfJoinOutputInner,
   IActorRdfJoinTestSideData,
+  MediatorRdfJoin,
 } from '@comunica/bus-rdf-join';
 import { ActorRdfJoin } from '@comunica/bus-rdf-join';
 import type { MediatorRdfJoinEntriesSort } from '@comunica/bus-rdf-join-entries-sort';
 import { KeysInitQuery, KeysRdfJoin } from '@comunica/context-entries';
 import type { TestResult } from '@comunica/core';
-import { passTestWithSideData, failTest, passTest } from '@comunica/core';
+import { failTest, passTest, passTestWithSideData } from '@comunica/core';
 import type { IMediatorTypeJoinCoefficients } from '@comunica/mediatortype-join-coefficients';
 import type {
   BindingsStream,
@@ -20,6 +19,7 @@ import type {
   IJoinEntryWithMetadata,
   IQuerySourceWrapper,
 } from '@comunica/types';
+import { AlgebraFactory } from '@comunica/utils-algebra';
 import { bindingsToString } from '@comunica/utils-bindings-factory';
 import { ChunkedIterator } from '@comunica/utils-iterator';
 import { doesShapeAcceptOperation, getOperationSource, getSafeBindings } from '@comunica/utils-query-operation';
@@ -44,6 +44,10 @@ export class ActorRdfJoinMultiSmallestFilterBindings extends ActorRdfJoin {
       limitEntriesMin: true,
       isLeaf: false,
     });
+    this.selectivityModifier = args.selectivityModifier;
+    this.blockSize = args.blockSize;
+    this.mediatorJoinEntriesSort = args.mediatorJoinEntriesSort;
+    this.mediatorJoin = args.mediatorJoin;
   }
 
   /**
@@ -214,7 +218,11 @@ export class ActorRdfJoinMultiSmallestFilterBindings extends ActorRdfJoin {
     }
     const testingOperation = second.operation;
     const selectorShape = await sourceWrapper.source.getSelectorShape(action.context);
-    if (!doesShapeAcceptOperation(selectorShape, testingOperation, { filterBindings: true })) {
+    const wildcardAcceptAllExtensionFunctions = action.context.get(KeysInitQuery.extensionFunctionsAlwaysPushdown);
+    if (!doesShapeAcceptOperation(selectorShape, testingOperation, {
+      filterBindings: true,
+      wildcardAcceptAllExtensionFunctions,
+    })) {
       return failTest(`Actor ${this.name} can only process if entries[1] accept filterBindings`);
     }
 

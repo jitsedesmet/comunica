@@ -1,21 +1,16 @@
-import { Algebra, AlgebraFactory } from '@comunica/algebra-sparql-comunica';
 import type {
   IActionBindingsAggregatorFactory,
   IActorBindingsAggregatorFactoryOutput,
 } from '@comunica/bus-bindings-aggregator-factory';
 import type { IActionContextPreprocess, IActorContextPreprocessOutput } from '@comunica/bus-context-preprocess';
 import type { IActionDereference, IActorDereferenceOutput } from '@comunica/bus-dereference';
-import type {
-  IActionDereferenceRdf,
-  IActorDereferenceRdfOutput,
-} from '@comunica/bus-dereference-rdf';
+import type { IActionDereferenceRdf, IActorDereferenceRdfOutput } from '@comunica/bus-dereference-rdf';
 import type {
   IActionExpressionEvaluatorFactory,
   IActorExpressionEvaluatorFactoryOutput,
 } from '@comunica/bus-expression-evaluator-factory';
 import type { IActionFunctionFactory, IActorFunctionFactoryOutput } from '@comunica/bus-function-factory';
 import type { IActionHashBindings, IActorHashBindingsOutput } from '@comunica/bus-hash-bindings';
-import type { IActionHashQuads, IActorHashQuadsOutput } from '@comunica/bus-hash-quads';
 import type { IActionHttp, IActorHttpOutput } from '@comunica/bus-http';
 import type {
   IActionOptimizeQueryOperation,
@@ -28,6 +23,11 @@ import type {
   IActorTestQueryResultSerializeHandle,
 } from '@comunica/bus-query-result-serialize';
 
+import type { IActionQuerySerialize, IActorQuerySerializeOutput } from '@comunica/bus-query-serialize';
+import type {
+  IActionQuerySourceDereferenceLink,
+  IActorQuerySourceDereferenceLinkOutput,
+} from '@comunica/bus-query-source-dereference-link';
 import type { IActionQuerySourceIdentify, IActorQuerySourceIdentifyOutput } from '@comunica/bus-query-source-identify';
 import type {
   IActionQuerySourceIdentifyHypermedia,
@@ -62,13 +62,14 @@ import type {
   IActionTermComparatorFactory,
   IActorTermComparatorFactoryOutput,
 } from '@comunica/bus-term-comparator-factory';
+import type { Bus, IAction, IActorOutput, IActorTest, Mediate } from '@comunica/core';
 import { ActionContext, failTest } from '@comunica/core';
-import type { Mediate, IAction, IActorOutput, IActorTest, Bus } from '@comunica/core';
 import type { IMediatorTypeAccuracy } from '@comunica/mediatortype-accuracy';
 import type { IMediatorTypeJoinCoefficients } from '@comunica/mediatortype-join-coefficients';
 import type { Runner } from '@comunica/runner';
 import { instantiateComponent } from '@comunica/runner';
 import type { IActionContext, IQueryOperationResultBindings } from '@comunica/types';
+import { Algebra, AlgebraFactory } from '@comunica/utils-algebra';
 import { DataFactory } from 'rdf-data-factory';
 import { QueryEngineFactory } from '../lib';
 
@@ -96,7 +97,7 @@ describe('System test: mediators', () => {
   );
   addTest<IActionContextPreprocess, IActorContextPreprocessOutput>(
     'context-preprocess',
-    ':context-preprocess/actors#query-source-identify',
+    ':optimize-query-operation/actors#query-source-identify',
     'mediatorContextPreprocess',
     {},
     `Context preprocessing failed`,
@@ -110,7 +111,7 @@ describe('System test: mediators', () => {
   );
   addTest<IActionDereferenceRdf, IActorDereferenceRdfOutput>(
     'dereference-rdf',
-    ':query-source-identify/actors#hypermedia',
+    ':query-source-dereference-link/actors#dereference',
     'mediatorDereferenceRdf',
     <any> { handle: <any> { data: <any> undefined, context, mediaType: 'text/css', url: 'http://example.org/' }},
     `RDF dereferencing failed: none of the configured parsers were able to handle the media type text/css for http://example.org/`,
@@ -138,17 +139,10 @@ describe('System test: mediators', () => {
   );
   addTest<IActionHashBindings, IActorHashBindingsOutput>(
     'hash-bindings',
-    ':query-operation/actors#distinct',
+    ':rdf-join/actors#inner-hash-def',
     'mediatorHashBindings',
     { allowHashCollisions: false },
     `Failed to obtaining hash functions for bindings`,
-  );
-  addTest<IActionHashQuads, IActorHashQuadsOutput>(
-    'hash-quads',
-    ':query-operation/actors#distinct',
-    'mediatorHashQuads',
-    { allowHashCollisions: false },
-    `Failed to obtaining hash functions for quads`,
   );
   addTest<IActionHttp, IActorHttpOutput>(
     'http',
@@ -193,9 +187,26 @@ IActorTestQueryResultSerializeHandle
   { handle: { type: 'abc', context }},
     `Query result serialization failed: none of the configured actors were able to serialize for type abc`,
 );
+  addTest<
+    IActionQuerySerialize,
+    IActorQuerySerializeOutput
+  >(
+    'query-serialize',
+    ':query-source-identify-hypermedia/actors#sparql',
+    'mediatorQuerySerialize',
+    { queryFormat: { language: 'sparql', version: '1.1' }, operation: <any> {}},
+    `Query serializing failed: none of the configured parsers were able to serialize for the query language "sparql" at version "1.1"`,
+  );
+  addTest<IActionQuerySourceDereferenceLink, IActorQuerySourceDereferenceLinkOutput>(
+    'query-source-dereference-link',
+    ':query-source-identify/actors#hypermedia',
+    'mediatorQuerySourceDereferenceLink',
+    { link: { url: 'abc' }},
+    `Query source dereference link failed: none of the configured actors were able to resolve abc`,
+  );
   addTest<IActionQuerySourceIdentify, IActorQuerySourceIdentifyOutput>(
     'query-source-identify',
-    ':query-operation/actors#service',
+    ':optimize-query-operation/actors#query-source-identify',
     'mediatorQuerySourceIdentify',
     { querySourceUnidentified: { value: 'abc' }},
     `Query source identification failed: none of the configured actors were able to identify abc`,
@@ -206,7 +217,7 @@ IActorQuerySourceIdentifyHypermediaOutput,
 IActorQuerySourceIdentifyHypermediaTest
 >(
   'query-source-identify-hypermedia',
-  ':query-source-identify/actors#hypermedia',
+  ':query-source-dereference-link/actors#dereference',
   'mediatorQuerySourceIdentifyHypermedia',
   { url: 'http://example.org/', metadata: {}, quads: <any> undefined },
     `Query source hypermedia identification failed: none of the configured actors were able to identify http://example.org/`,
@@ -271,7 +282,7 @@ IMediatorTypeJoinCoefficients
     ':query-source-identify/actors#hypermedia',
     'mediatorRdfResolveHypermediaLinksQueue',
     { firstUrl: 'http://example.org/' },
-    `Link queue creation failed: none of the configured actors were able to create a link queue starting from http://example.org/`,
+    `Link queue creation failed: none of the configured actors were able to create a link queue`,
   );
   addTest<IActionRdfSerializeHandle, IActorOutputRdfSerializeHandle, IActorTestRdfSerializeHandle>(
     'rdf-serialize',
@@ -337,6 +348,9 @@ IMediatorTypeJoinCoefficients
         });
 
         it('mediator rejects', async() => {
+          if (!mediator) {
+            throw new Error(`Could not find the mediator in '${mediatorAccessorActorName}' through '${mediatorAccessorActorMediatorField}'`);
+          }
           await expect(mediator.mediate(<I> { ...action, context })).rejects.toThrow(failMessage);
         });
       });

@@ -1,6 +1,6 @@
-import { AlgebraFactory } from '@comunica/algebra-sparql-comunica';
 import { Actor, Bus } from '@comunica/core';
 import type { IQuerySourceWrapper } from '@comunica/types';
+import { AlgebraFactory } from '@comunica/utils-algebra';
 import { assignOperationSource } from '@comunica/utils-query-operation';
 import { DataFactory } from 'rdf-data-factory';
 import { termToString } from 'rdf-string';
@@ -93,6 +93,14 @@ describe('ActorAbstractPath', () => {
         )).toEqual([
           source1,
         ]);
+      });
+
+      it('throws on unknown type', () => {
+        const noLink = AF.createLink(DF.namedNode('a'));
+        noLink.type = <any> 'unknown type';
+        expect(() => actor.getPathSources(
+          assignOperationSource(noLink, source1),
+        )).toThrow(`Can not extract path sources from operation of type`);
       });
 
       it('throws on link without source', () => {

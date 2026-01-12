@@ -5,11 +5,11 @@ import { stringify as stringifyStream } from '@jeswr/stream-to-string';
 import type * as RDF from '@rdfjs/types';
 import { ArrayIterator } from 'asynciterator';
 import type { AsyncIterator } from 'asynciterator';
+import { streamifyArray } from 'streamify-array';
 import { ActorRdfSerializeN3 } from '../lib/ActorRdfSerializeN3';
 import '@comunica/utils-jest';
 
 const quad = require('rdf-quad');
-const streamifyArray = require('streamify-array');
 
 describe('ActorRdfSerializeN3', () => {
   let bus: any;
@@ -125,11 +125,11 @@ describe('ActorRdfSerializeN3', () => {
         );
       });
 
-      it('should run on quoted triples', async() => {
+      it('should run on triple terms', async() => {
         const output: any = await actor
           .run({ handle: { quadStream: quadStreamQuoted(), context }, handleMediaType: 'text/turtle', context });
         await expect(stringifyStream(output.handle.data)).resolves.toBe(
-          `<<<ex:s1> <ex:p1> <ex:o1>>> <http://example.org/b> <http://example.org/c>;
+          `<<(<ex:s1> <ex:p1> <ex:o1>)>> <http://example.org/b> <http://example.org/c>;
     <http://example.org/d> <http://example.org/e>.
 `,
         );

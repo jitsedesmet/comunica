@@ -1,10 +1,11 @@
-import { AlgebraFactory } from '@comunica/algebra-sparql-comunica';
 import { KeysInitQuery } from '@comunica/context-entries';
 import { ActionContext, Bus } from '@comunica/core';
 import type { BindingsStream, IActionContext } from '@comunica/types';
+import { AlgebraFactory } from '@comunica/utils-algebra';
 import { BindingsFactory } from '@comunica/utils-bindings-factory';
 import { MetadataValidationState } from '@comunica/utils-metadata';
 import { DataFactory } from 'rdf-data-factory';
+import { streamifyArray } from 'streamify-array';
 import {
   ActorQuerySourceIdentifyHypermediaAnnotateSource,
   KEY_CONTEXT_WRAPPED,
@@ -13,7 +14,6 @@ import '@comunica/utils-jest';
 import { mediatorQuerySourceIdentifyHypermedia } from './mediatorQuerySourceIdentify-util';
 
 const quad = require('rdf-quad');
-const streamifyArray = require('streamify-array');
 
 const DF = new DataFactory();
 const AF = new AlgebraFactory();

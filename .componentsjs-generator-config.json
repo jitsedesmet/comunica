@@ -7,13 +7,14 @@
     "packages/actor-init-sparql",
     "packages/actor-init-sparql-file",
     "packages/actor-init-sparql-rdfjs",
-    "packages/algebra-sparql-comunica",
     "packages/context-entries",
     "packages/packager",
     "packages/runner-cli",
     "packages/statistic-base",
+    "packages/statistic-intermediate-results",
     "packages/statistic-link-dereference",
     "packages/statistic-link-discovery",
+    "packages/utils-algebra",
     "packages/utils-expression-evaluator",
     "packages/utils-bindings-factory",
     "packages/utils-bindings-index",
@@ -53,6 +54,7 @@
     "Response",
     "RequestInfo",
     "RequestInit",
+    "AsyncIterator",
 
     "IStatistic",
     "ILink",
@@ -71,6 +73,10 @@
     "FragmentSelectorShape",
     "ChunkedIterator",
     "IQuerySource",
+    "LogicalJoinType",
+    "ICachePolicy",
+    "DereferenceCachePolicyHttpWrapper",
+    "CachePolicyHttpCacheSemanticsWrapper",
 
     "RDF.Stream",
     "Omit",
@@ -84,7 +90,8 @@
     "ExpressionEvaluator",
     "AggregateEvaluator",
     "ExpressionFunctionBase",
-    "TermFunctionBase"
+    "TermFunctionBase",
+    "possibleOperationTypes"
   ],
   "modulePrefix": {
     "@comunica/actor-query-operation-service": "caqoser",

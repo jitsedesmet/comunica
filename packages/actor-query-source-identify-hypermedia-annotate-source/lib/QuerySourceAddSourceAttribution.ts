@@ -1,4 +1,3 @@
-import type { Algebra } from '@comunica/algebra-sparql-comunica';
 import { KeysMergeBindingsContext } from '@comunica/context-entries';
 import type {
   BindingsStream,
@@ -7,7 +6,9 @@ import type {
   IQueryBindingsOptions,
   IQuerySource,
   MetadataBindings,
+  QuerySourceReference,
 } from '@comunica/types';
+import type { Algebra } from '@comunica/utils-algebra';
 import { Bindings } from '@comunica/utils-bindings-factory';
 import type * as RDF from '@rdfjs/types';
 import type { AsyncIterator } from 'asynciterator';
@@ -23,6 +24,10 @@ export class QuerySourceAddSourceAttribution implements IQuerySource {
 
   public constructor(innerSource: IQuerySource) {
     this.innerSource = innerSource;
+  }
+
+  public getFilterFactor(context: IActionContext): Promise<number> {
+    return this.innerSource.getFilterFactor(context);
   }
 
   public async getSelectorShape(context: IActionContext): Promise<FragmentSelectorShape> {
@@ -71,7 +76,7 @@ export class QuerySourceAddSourceAttribution implements IQuerySource {
     return this.innerSource.queryVoid(operation, context);
   }
 
-  public get referenceValue(): string | RDF.Source {
+  public get referenceValue(): QuerySourceReference {
     return this.innerSource.referenceValue;
   }
 

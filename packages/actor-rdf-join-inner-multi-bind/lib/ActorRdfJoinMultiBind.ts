@@ -1,4 +1,3 @@
-import { AlgebraFactory, Algebra } from '@comunica/algebra-sparql-comunica';
 import type { MediatorMergeBindingsContext } from '@comunica/bus-merge-bindings-context';
 import type { MediatorQueryOperation } from '@comunica/bus-query-operation';
 import type {
@@ -20,6 +19,7 @@ import type {
   IJoinEntryWithMetadata,
   IQueryOperationResultBindings,
 } from '@comunica/types';
+import { AlgebraFactory, Algebra, algebraUtils } from '@comunica/utils-algebra';
 import { BindingsFactory } from '@comunica/utils-bindings-factory';
 import { getSafeBindings, materializeOperation } from '@comunica/utils-query-operation';
 import { MultiTransformIterator, TransformIterator, UnionIterator } from 'asynciterator';
@@ -42,6 +42,12 @@ export class ActorRdfJoinMultiBind extends ActorRdfJoin<IActorRdfJoinMultiBindTe
       canHandleUndefs: true,
       isLeaf: false,
     });
+    this.bindOrder = args.bindOrder;
+    this.selectivityModifier = args.selectivityModifier;
+    this.minMaxCardinalityRatio = args.minMaxCardinalityRatio;
+    this.mediatorJoinEntriesSort = args.mediatorJoinEntriesSort;
+    this.mediatorQueryOperation = args.mediatorQueryOperation;
+    this.mediatorMergeBindingsContext = args.mediatorMergeBindingsContext;
   }
 
   /**
@@ -92,6 +98,7 @@ export class ActorRdfJoinMultiBind extends ActorRdfJoin<IActorRdfJoinMultiBindTe
         return new UnionIterator(baseStream.transform({
           map: binder,
           optional,
+          autoStart: false,
         }), { autoStart: false });
       default:
         // eslint-disable-next-line ts/restrict-template-expressions
@@ -115,13 +122,18 @@ export class ActorRdfJoinMultiBind extends ActorRdfJoin<IActorRdfJoinMultiBindTe
     this.logDebug(
       action.context,
       'First entry for Bind Join: ',
-      () => ({ entry: entries[0].operation, metadata: entries[0].metadata }),
+      () => ({
+        entry: { ...entries[0].operation, metadata: undefined },
+        cardinality: entries[0].metadata.cardinality,
+        order: entries[0].metadata.order,
+        availableOrders: entries[0].metadata.availableOrders,
+      }),
     );
 
-    // Close the non-smallest streams
+    // Destroy the non-smallest streams
     for (const [ i, element ] of entries.entries()) {
       if (i !== 0) {
-        element.output.bindingsStream.close();
+        element.output.bindingsStream.destroy();
       }
     }
 
@@ -142,7 +154,8 @@ export class ActorRdfJoinMultiBind extends ActorRdfJoin<IActorRdfJoinMultiBindTe
         // Send the materialized patterns to the mediator for recursive join evaluation.
         const operation = operations.length === 1 ?
           operations[0] :
-          algebraFactory.createJoin(operations);
+          // Flattening should only take place if none of the input operations have associated metadata
+          algebraFactory.createJoin(operations, operations.every(op => !op.metadata));
         const output = getSafeBindings(await this.mediatorQueryOperation.mediate(
           { operation, context: subContext?.set(KeysQueryOperation.joinBindings, operationBindings) },
         ));
@@ -170,7 +183,7 @@ export class ActorRdfJoinMultiBind extends ActorRdfJoin<IActorRdfJoinMultiBindTe
 
   public canBindWithOperation(operation: Algebra.Operation): boolean {
     let valid = true;
-    Algebra.visitOperation(operation, {
+    algebraUtils.visitOperation(operation, {
       [Algebra.Types.EXTEND]: { preVisitor: () => {
         valid = false;
         return { shortcut: true };

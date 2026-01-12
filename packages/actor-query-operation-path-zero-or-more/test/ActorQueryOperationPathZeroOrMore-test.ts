@@ -1,10 +1,10 @@
-import { Algebra, AlgebraFactory } from '@comunica/algebra-sparql-comunica';
 import { ActorQueryOperation } from '@comunica/bus-query-operation';
 import { KeysInitQuery, KeysQueryOperation } from '@comunica/context-entries';
-import { Bus, ActionContext } from '@comunica/core';
+import { ActionContext, Bus } from '@comunica/core';
 import type { IQuerySourceWrapper } from '@comunica/types';
-import { BindingsFactory } from '@comunica/utils-bindings-factory';
+import { Algebra, AlgebraFactory } from '@comunica/utils-algebra';
 import type { Bindings } from '@comunica/utils-bindings-factory';
+import { BindingsFactory } from '@comunica/utils-bindings-factory';
 import { assignOperationSource, getSafeBindings } from '@comunica/utils-query-operation';
 import type * as RDF from '@rdfjs/types';
 import { ArrayIterator } from 'asynciterator';
@@ -364,15 +364,15 @@ describe('ActorQueryOperationPathZeroOrMore', () => {
           [ DF.variable('y'), DF.namedNode('1') ],
         ]),
         BF.bindings([
+          [ DF.variable('x'), DF.namedNode('3') ],
+          [ DF.variable('y'), DF.namedNode('3') ],
+        ]),
+        BF.bindings([
           [ DF.variable('x'), DF.namedNode('1') ],
           [ DF.variable('y'), DF.namedNode('2') ],
         ]),
         BF.bindings([
           [ DF.variable('x'), DF.namedNode('1') ],
-          [ DF.variable('y'), DF.namedNode('3') ],
-        ]),
-        BF.bindings([
-          [ DF.variable('x'), DF.namedNode('3') ],
           [ DF.variable('y'), DF.namedNode('3') ],
         ]),
         BF.bindings([
@@ -458,17 +458,17 @@ describe('ActorQueryOperationPathZeroOrMore', () => {
           [ DF.variable('g'), DF.namedNode('4') ],
         ]),
         BF.bindings([
+          [ DF.variable('x'), DF.namedNode('3') ],
+          [ DF.variable('y'), DF.namedNode('3') ],
+          [ DF.variable('g'), DF.namedNode('4') ],
+        ]),
+        BF.bindings([
           [ DF.variable('x'), DF.namedNode('1') ],
           [ DF.variable('y'), DF.namedNode('2') ],
           [ DF.variable('g'), DF.namedNode('4') ],
         ]),
         BF.bindings([
           [ DF.variable('x'), DF.namedNode('1') ],
-          [ DF.variable('y'), DF.namedNode('3') ],
-          [ DF.variable('g'), DF.namedNode('4') ],
-        ]),
-        BF.bindings([
-          [ DF.variable('x'), DF.namedNode('3') ],
           [ DF.variable('y'), DF.namedNode('3') ],
           [ DF.variable('g'), DF.namedNode('4') ],
         ]),
@@ -485,21 +485,21 @@ describe('ActorQueryOperationPathZeroOrMore', () => {
         BF.bindings([
           [ DF.variable('x'), DF.namedNode('2') ],
           [ DF.variable('y'), DF.namedNode('2') ],
-          [ DF.variable('g'), DF.namedNode('5') ],
-        ]),
-        BF.bindings([
-          [ DF.variable('x'), DF.namedNode('2') ],
-          [ DF.variable('y'), DF.namedNode('1') ],
-          [ DF.variable('g'), DF.namedNode('5') ],
-        ]),
-        BF.bindings([
-          [ DF.variable('x'), DF.namedNode('2') ],
-          [ DF.variable('y'), DF.namedNode('3') ],
           [ DF.variable('g'), DF.namedNode('5') ],
         ]),
         BF.bindings([
           [ DF.variable('x'), DF.namedNode('4') ],
           [ DF.variable('y'), DF.namedNode('4') ],
+          [ DF.variable('g'), DF.namedNode('5') ],
+        ]),
+        BF.bindings([
+          [ DF.variable('x'), DF.namedNode('2') ],
+          [ DF.variable('y'), DF.namedNode('1') ],
+          [ DF.variable('g'), DF.namedNode('5') ],
+        ]),
+        BF.bindings([
+          [ DF.variable('x'), DF.namedNode('2') ],
+          [ DF.variable('y'), DF.namedNode('3') ],
           [ DF.variable('g'), DF.namedNode('5') ],
         ]),
         BF.bindings([

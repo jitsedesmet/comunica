@@ -1,9 +1,9 @@
-import { Algebra } from '@comunica/algebra-sparql-comunica';
 import type { IActorQueryOperationTypedMediatedArgs } from '@comunica/bus-query-operation';
 import { ActorQueryOperationTypedMediated } from '@comunica/bus-query-operation';
 import type { MediatorRdfUpdateQuads } from '@comunica/bus-rdf-update-quads';
 import type { IActorTest, TestResult } from '@comunica/core';
 import type { IActionContext, IQueryOperationResult } from '@comunica/types';
+import { Algebra } from '@comunica/utils-algebra';
 import { testReadOnly } from '@comunica/utils-query-operation';
 
 /**
@@ -15,6 +15,7 @@ export class ActorQueryOperationCreate extends ActorQueryOperationTypedMediated<
 
   public constructor(args: IActorQueryOperationCreateArgs) {
     super(args, Algebra.Types.CREATE);
+    this.mediatorUpdateQuads = args.mediatorUpdateQuads;
   }
 
   public async testOperation(operation: Algebra.Create, context: IActionContext): Promise<TestResult<IActorTest>> {

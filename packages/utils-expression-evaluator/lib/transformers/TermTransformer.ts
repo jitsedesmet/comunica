@@ -1,11 +1,12 @@
-import { Algebra } from '@comunica/algebra-sparql-comunica';
 import type { Expression, GeneralSuperTypeDict, ISuperTypeProvider } from '@comunica/types';
+import { Algebra } from '@comunica/utils-algebra';
 import type * as RDF from '@rdfjs/types';
 import * as RDFString from 'rdf-string';
 import * as E from '../expressions';
 import { TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
 import { isExpressionError } from '../util/Errors';
+import * as P from '../util/Parsing';
 import {
   parseDate,
   parseDateTime,
@@ -14,7 +15,6 @@ import {
   parseTime,
   parseYearMonthDuration,
 } from '../util/Parsing';
-import * as P from '../util/Parsing';
 import { getSuperTypeDict } from '../util/TypeHandling';
 
 export interface ITermTransformer {

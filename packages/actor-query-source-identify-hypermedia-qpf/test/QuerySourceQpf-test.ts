@@ -1,10 +1,10 @@
 import 'jest-rdf';
 import { Readable } from 'node:stream';
-import { AlgebraFactory } from '@comunica/algebra-sparql-comunica';
 import type { IActorDereferenceRdfOutput } from '@comunica/bus-dereference-rdf';
 import { KeysQueryOperation } from '@comunica/context-entries';
 import { ActionContext } from '@comunica/core';
 import type { IActionContext } from '@comunica/types';
+import { AlgebraFactory } from '@comunica/utils-algebra';
 import { BindingsFactory } from '@comunica/utils-bindings-factory';
 import { MetadataValidationState } from '@comunica/utils-metadata';
 import type * as RDF from '@rdfjs/types';
@@ -12,11 +12,11 @@ import arrayifyStream from 'arrayify-stream';
 import { ArrayIterator } from 'asynciterator';
 import { DataFactory } from 'rdf-data-factory';
 import { PassThrough } from 'readable-stream';
+import { streamifyArray } from 'streamify-array';
 import { QuerySourceQpf } from '../lib/QuerySourceQpf';
 import '@comunica/utils-jest';
 
 const quad = require('rdf-quad');
-const streamifyArray = require('streamify-array');
 
 const DF = new DataFactory();
 const AF = new AlgebraFactory();
@@ -173,6 +173,12 @@ describe('QuerySourceQpf', () => {
           quad('s1', 'p1', 'o1'),
           quad('s2', 'p2', 'o2'),
         ]);
+      });
+    });
+
+    describe('getFilterFactor', () => {
+      it('should return 1', async() => {
+        await expect(source.getFilterFactor()).resolves.toBe(1);
       });
     });
 
@@ -984,7 +990,7 @@ describe('QuerySourceQpf', () => {
       mediatorDereferenceRdf = {
         mediate: (args: any): Promise<IActorDereferenceRdfOutput> => Promise.resolve({
           url: args.url,
-          data: streamifyArray([
+          data: <any> streamifyArray([
             quad('s1', 'p1', 'o1', 'DEFAULT_GRAPH'),
             quad('s2', 'p2', 'o2', 'DEFAULT_GRAPH'),
             quad('s1', 'p3', 'o1', 'CUSTOM_GRAPH'),
@@ -995,6 +1001,7 @@ describe('QuerySourceQpf', () => {
           metadata: { triples: false },
           exists: true,
           requestTime: 0,
+          status: 200,
         }),
       };
       ctx = new ActionContext();

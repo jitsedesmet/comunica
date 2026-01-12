@@ -1,10 +1,7 @@
-import type { Algebra as Alg } from '@comunica/algebra-sparql-comunica';
 import type {
   ILink,
   BindingsStream,
   FragmentSelectorShape,
-  IActionContext,
-  IQueryBindingsOptions,
   IQuerySource,
   QuerySourceReference,
 } from '@comunica/types';
@@ -19,14 +16,33 @@ class MockQuerySource implements IQuerySource {
     this.referenceValue = referenceValue;
   }
 
-  public getSelectorShape: (context: IActionContext) => Promise<FragmentSelectorShape>;
-  public queryBindings: (operation: Alg.Operation, context: IActionContext, options?: IQueryBindingsOptions | undefined)
-  => BindingsStream;
+  public async getFilterFactor(): Promise<number> {
+    return 0;
+  }
 
-  public queryQuads: (operation: Alg.Operation, context: IActionContext) => AsyncIterator<Quad>;
-  public queryBoolean: (operation: Alg.Ask, context: IActionContext) => Promise<boolean>;
-  public queryVoid: (operation: Alg.Operation, context: IActionContext) => Promise<void>;
-  public toString: () => string;
+  public async getSelectorShape(): Promise<FragmentSelectorShape> {
+    return <any> undefined;
+  }
+
+  public queryBindings(): BindingsStream {
+    return <any> undefined;
+  }
+
+  public queryQuads(): AsyncIterator<Quad> {
+    return <any> undefined;
+  }
+
+  public queryBoolean(): Promise<boolean> {
+    return <any> undefined;
+  }
+
+  public queryVoid(): Promise<void> {
+    return <any> undefined;
+  }
+
+  public toString(): string {
+    return <any> undefined;
+  }
 }
 
 describe('StatisticLinkDereference', () => {

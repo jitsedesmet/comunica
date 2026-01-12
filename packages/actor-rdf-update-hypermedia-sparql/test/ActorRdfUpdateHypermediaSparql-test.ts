@@ -68,6 +68,33 @@ describe('ActorRdfUpdateHypermediaSparql', () => {
         .resolves.toPassTestVoid();
     });
 
+    it('should test on invalid metadata when URL ends with /sparql/', async() => {
+      const context = new ActionContext({ [KeysRdfUpdateQuads.destination.name]: 'abc' });
+      const url = 'abc/sparql/';
+      const metadata = { somethingElse: true };
+      const exists = true;
+      await expect(actor.test({ context, url, metadata, exists }))
+        .resolves.toPassTestVoid();
+    });
+
+    it('should test on invalid metadata when URL ends with /update', async() => {
+      const context = new ActionContext({ [KeysRdfUpdateQuads.destination.name]: 'abc' });
+      const url = 'abc/update';
+      const metadata = { somethingElse: true };
+      const exists = true;
+      await expect(actor.test({ context, url, metadata, exists }))
+        .resolves.toPassTestVoid();
+    });
+
+    it('should test on invalid metadata when URL ends with /update/', async() => {
+      const context = new ActionContext({ [KeysRdfUpdateQuads.destination.name]: 'abc' });
+      const url = 'abc/update/';
+      const metadata = { somethingElse: true };
+      const exists = true;
+      await expect(actor.test({ context, url, metadata, exists }))
+        .resolves.toPassTestVoid();
+    });
+
     it('should not test on invalid metadata when URL ends with /sparql when checkUrlSuffix is false', async() => {
       actor = new ActorRdfUpdateHypermediaSparql({
         name: 'actor',
@@ -120,6 +147,24 @@ describe('ActorRdfUpdateHypermediaSparql', () => {
       const { destination } = await actor.run({ context, url, metadata, exists });
       expect(destination).toEqual(expect.any(QuadDestinationSparql));
       expect((<any> destination).url).toBe('service');
+      expect((<any> destination).endpointFetcher.sparqlJsonParser.parseUnsupportedVersions).toBe(false);
+      expect((<any> destination).endpointFetcher.sparqlXmlParser.parseUnsupportedVersions).toBe(false);
+    });
+
+    it('should pass parseUnsupportedVersions to the parsers', async() => {
+      const context = new ActionContext({
+        [KeysInitQuery.dataFactory.name]: DF,
+        [KeysRdfUpdateQuads.destination.name]: 'abc',
+        [KeysInitQuery.parseUnsupportedVersions.name]: true,
+      });
+      const url = 'abc';
+      const metadata = { sparqlService: 'service' };
+      const exists = true;
+      const { destination } = await actor.run({ context, url, metadata, exists });
+      expect(destination).toEqual(expect.any(QuadDestinationSparql));
+      expect((<any> destination).url).toBe('service');
+      expect((<any> destination).endpointFetcher.sparqlJsonParser.parseUnsupportedVersions).toBe(true);
+      expect((<any> destination).endpointFetcher.sparqlXmlParser.parseUnsupportedVersions).toBe(true);
     });
 
     it('should run without sparqlService metadata', async() => {

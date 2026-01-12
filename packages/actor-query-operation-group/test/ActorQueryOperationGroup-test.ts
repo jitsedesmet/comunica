@@ -9,7 +9,6 @@ import { WildcardCountAggregator } from '@comunica/actor-bindings-aggregator-fac
 import { ActorFunctionFactoryTermAddition } from '@comunica/actor-function-factory-term-addition';
 import { ActorFunctionFactoryTermDivision } from '@comunica/actor-function-factory-term-division';
 import { createTermCompMediator } from '@comunica/actor-term-comparator-factory-expression-evaluator/test/util';
-import { Algebra, AlgebraFactory } from '@comunica/algebra-sparql-comunica';
 import type {
   IActionBindingsAggregatorFactory,
   IActorBindingsAggregatorFactoryOutput,
@@ -22,8 +21,9 @@ import type { IActionQueryOperation } from '@comunica/bus-query-operation';
 import { ActorQueryOperation } from '@comunica/bus-query-operation';
 import type { MediatorTermComparatorFactory } from '@comunica/bus-term-comparator-factory';
 import { KeysInitQuery } from '@comunica/context-entries';
-import { Bus, ActionContext } from '@comunica/core';
+import { ActionContext, Bus } from '@comunica/core';
 import type { Bindings, IActionContext } from '@comunica/types';
+import { Algebra, AlgebraFactory } from '@comunica/utils-algebra';
 import { BindingsFactory } from '@comunica/utils-bindings-factory';
 import { SparqlOperator } from '@comunica/utils-expression-evaluator';
 import { getMockEEActionContext, getMockEEFactory } from '@comunica/utils-expression-evaluator/test/util/helpers';

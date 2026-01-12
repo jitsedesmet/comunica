@@ -1,4 +1,3 @@
-import { Algebra, AlgebraFactory } from '@comunica/algebra-sparql-comunica';
 import type {
   IActionOptimizeQueryOperation,
   IActorOptimizeQueryOperationOutput,
@@ -8,7 +7,14 @@ import { ActorOptimizeQueryOperation } from '@comunica/bus-optimize-query-operat
 import { KeysInitQuery, KeysQuerySourceIdentify } from '@comunica/context-entries';
 import type { IActorTest, TestResult } from '@comunica/core';
 import { failTest, passTestVoid } from '@comunica/core';
-import type { ComunicaDataFactory, IActionContext, IQuerySourceWrapper, MetadataBindings } from '@comunica/types';
+import type {
+  ComunicaDataFactory,
+  IActionContext,
+  IQuerySourceWrapper,
+  MetadataBindings,
+  QueryResultCardinality,
+} from '@comunica/types';
+import { Algebra, AlgebraFactory, algebraUtils, isKnownOperation } from '@comunica/utils-algebra';
 import { doesShapeAcceptOperation, getOperationSource } from '@comunica/utils-query-operation';
 
 /**
@@ -19,6 +25,7 @@ export class ActorOptimizeQueryOperationPruneEmptySourceOperations extends Actor
 
   public constructor(args: IActorOptimizeQueryOperationPruneEmptySourceOperationsArgs) {
     super(args);
+    this.useAskIfSupported = args.useAskIfSupported;
   }
 
   public async test(action: IActionOptimizeQueryOperation): Promise<TestResult<IActorTest>> {
@@ -37,7 +44,7 @@ export class ActorOptimizeQueryOperationPruneEmptySourceOperations extends Actor
     // Collect all operations with source types
     // Only consider unions of patterns or alts of links, since these are created during exhaustive source assignment.
     const collectedOperations: (Algebra.Pattern | Algebra.Link)[] = [];
-    Algebra.visitOperation(operation, {
+    algebraUtils.visitOperation(operation, {
       [Algebra.Types.UNION]: { preVisitor: (subOperation) => {
         this.collectMultiOperationInputs(subOperation.input, collectedOperations, Algebra.Types.PATTERN);
         return {};
@@ -53,7 +60,7 @@ export class ActorOptimizeQueryOperationPruneEmptySourceOperations extends Actor
     const emptyOperations: Set<Algebra.Operation> = new Set();
     await Promise.all(collectedOperations.map(async(collectedOperation) => {
       const checkOperation = collectedOperation.type === Algebra.Types.LINK ?
-        algebraFactory.createPattern(dataFactory.variable('?s'), collectedOperation.iri, dataFactory.variable('?o')) :
+        algebraFactory.createPattern(dataFactory.variable('s'), collectedOperation.iri, dataFactory.variable('?o')) :
         collectedOperation;
       if (!await this.hasSourceResults(
         algebraFactory,
@@ -69,7 +76,7 @@ export class ActorOptimizeQueryOperationPruneEmptySourceOperations extends Actor
     if (emptyOperations.size > 0) {
       this.logDebug(action.context, `Pruning ${emptyOperations.size} source-specific operations`);
       // Rewrite operations by removing the empty children
-      operation = Algebra.mapOperation<'unsafe', typeof operation>(operation, {
+      operation = algebraUtils.mapOperation(operation, {
         [Algebra.Types.UNION]: { transform: (subOperation, origOp) =>
           this.mapMultiOperation(subOperation, origOp, emptyOperations, children =>
             algebraFactory.createUnion(children)) },
@@ -105,7 +112,7 @@ export class ActorOptimizeQueryOperationPruneEmptySourceOperations extends Actor
     // But if we find a union with multiple children,
     // *all* of the children must be empty before the full operation is considered empty.
     let emptyOperation = false;
-    Algebra.visitOperation(operation, {
+    algebraUtils.visitOperation(operation, {
       [Algebra.Types.UNION]: { preVisitor: (unionOp) => {
         if (unionOp.input.every(subSubOperation => ActorOptimizeQueryOperationPruneEmptySourceOperations
           .hasEmptyOperation(subSubOperation))) {
@@ -139,7 +146,7 @@ export class ActorOptimizeQueryOperationPruneEmptySourceOperations extends Actor
     inputType: (Algebra.Pattern | Algebra.Link)['type'],
   ): void {
     for (const input of inputs) {
-      if (getOperationSource(input) && Algebra.isKnownOperation(input, inputType)) {
+      if (getOperationSource(input) && isKnownOperation(input, inputType)) {
         collectedOperations.push(input);
       }
     }
@@ -185,28 +192,53 @@ export class ActorOptimizeQueryOperationPruneEmptySourceOperations extends Actor
     input: Algebra.Operation,
     context: IActionContext,
   ): Promise<boolean> {
-    // Traversal sources should never be considered empty at optimization time.
-    if (source.context?.get(KeysQuerySourceIdentify.traverse)) {
+    const mergedContext = source.context ? context.merge(source.context) : context;
+    const wildcardAcceptAllExtensionFunctions = mergedContext.get(KeysInitQuery.extensionFunctionsAlwaysPushdown);
+
+    // Traversal contexts should never be considered empty at optimization time.
+    if (mergedContext.get(KeysQuerySourceIdentify.traverse)) {
       return true;
     }
 
-    // Send an ASK query
+    // Prefer ASK over COUNT when instructed to, and the source allows it
     if (this.useAskIfSupported) {
       const askOperation = algebraFactory.createAsk(input);
-      if (doesShapeAcceptOperation(await source.source.getSelectorShape(context), askOperation)) {
-        return source.source.queryBoolean(askOperation, context);
+      const askSupported = doesShapeAcceptOperation(
+        await source.source.getSelectorShape(context),
+        askOperation,
+        { wildcardAcceptAllExtensionFunctions },
+      );
+      if (askSupported) {
+        return source.source.queryBoolean(askOperation, mergedContext);
       }
     }
 
-    // Send the operation as-is and check the response cardinality
-    const bindingsStream = source.source.queryBindings(input, context);
-    return new Promise((resolve, reject) => {
+    // Fall back to sending the full operation, and extracting the cardinality from metadata
+    const bindingsStream = source.source.queryBindings(input, mergedContext);
+    const cardinality = await new Promise<QueryResultCardinality>((resolve, reject) => {
       bindingsStream.on('error', reject);
       bindingsStream.getProperty('metadata', (metadata: MetadataBindings) => {
         bindingsStream.destroy();
-        resolve(metadata.cardinality.value > 0);
+        resolve(metadata.cardinality);
       });
     });
+
+    // If the cardinality is an estimate, such as from a VoID description,
+    // verify it using ASK if the source supports it.
+    // Since the VoID estimators in Comunica cannot produce false negatives, only positive assignments must be verified.
+    if (cardinality.type === 'estimate' && cardinality.value > 0) {
+      const askOperation = algebraFactory.createAsk(input);
+      const askSupported = doesShapeAcceptOperation(
+        await source.source.getSelectorShape(context),
+        askOperation,
+        { wildcardAcceptAllExtensionFunctions },
+      );
+      if (askSupported) {
+        return source.source.queryBoolean(askOperation, mergedContext);
+      }
+    }
+
+    return cardinality.value > 0;
   }
 }
 

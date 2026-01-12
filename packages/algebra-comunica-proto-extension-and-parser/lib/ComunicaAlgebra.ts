@@ -1,4 +1,4 @@
-import type { Algebra } from '@comunica/algebra-sparql-comunica';
+import type { Algebra } from '@comunica/utils-algebra';
 import type { Algebra as TraqulaAlgebra } from '@traqula/algebra-transformations-1-2';
 
 export type KnownOperationOrLat = Algebra.KnownOperation | Lateral;

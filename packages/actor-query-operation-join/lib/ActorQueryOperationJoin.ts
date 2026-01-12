@@ -1,4 +1,3 @@
-import { Algebra } from '@comunica/algebra-sparql-comunica';
 import type { IActorQueryOperationTypedMediatedArgs } from '@comunica/bus-query-operation';
 import {
   ActorQueryOperationTypedMediated,
@@ -8,6 +7,7 @@ import { ActorRdfJoin } from '@comunica/bus-rdf-join';
 import type { IActorTest, TestResult } from '@comunica/core';
 import { passTestVoid } from '@comunica/core';
 import type { IQueryOperationResult, IActionContext, IJoinEntry } from '@comunica/types';
+import { Algebra } from '@comunica/utils-algebra';
 import { MetadataValidationState } from '@comunica/utils-metadata';
 import { getSafeBindings } from '@comunica/utils-query-operation';
 import type * as RDF from '@rdfjs/types';
@@ -22,6 +22,7 @@ export class ActorQueryOperationJoin extends ActorQueryOperationTypedMediated<Al
 
   public constructor(args: IActorQueryOperationJoinArgs) {
     super(args, Algebra.Types.JOIN);
+    this.mediatorJoin = args.mediatorJoin;
   }
 
   public async testOperation(_operation: Algebra.Join, _context: IActionContext): Promise<TestResult<IActorTest>> {
@@ -44,7 +45,7 @@ export class ActorQueryOperationJoin extends ActorQueryOperationTypedMediated<Al
 
     // Return immediately if one of the join entries has cardinality zero, to avoid actor testing overhead.
     if ((await Promise.all(entries.map(entry => entry.output.metadata())))
-      .some(entry => entry.cardinality.value === 0)) {
+      .some(entry => (entry.cardinality.value === 0 && entry.cardinality.type === 'exact'))) {
       for (const entry of entries) {
         entry.output.bindingsStream.close();
       }

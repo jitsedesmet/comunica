@@ -1,5 +1,3 @@
-import type { Algebra } from '@comunica/algebra-sparql-comunica';
-import { AlgebraFactory } from '@comunica/algebra-sparql-comunica';
 import type { MediatorContextPreprocess } from '@comunica/bus-context-preprocess';
 import type { MediatorMergeBindingsContext } from '@comunica/bus-merge-bindings-context';
 import type { MediatorOptimizeQueryOperation } from '@comunica/bus-optimize-query-operation';
@@ -7,23 +5,18 @@ import type { MediatorQueryOperation } from '@comunica/bus-query-operation';
 import type { MediatorQueryParse } from '@comunica/bus-query-parse';
 import type {
   IActionQueryProcess,
-  IActorQueryProcessOutput,
   IActorQueryProcessArgs,
+  IActorQueryProcessOutput,
   IQueryProcessSequential,
   IQueryProcessSequentialOutput,
 } from '@comunica/bus-query-process';
-import {
-  ActorQueryProcess,
-} from '@comunica/bus-query-process';
+import { ActorQueryProcess } from '@comunica/bus-query-process';
 import { KeysInitQuery } from '@comunica/context-entries';
 import type { IActorTest, TestResult } from '@comunica/core';
-import { failTest, passTestVoid, ActionContextKey } from '@comunica/core';
-import type {
-  ComunicaDataFactory,
-  IActionContext,
-  IQueryOperationResult,
-  QueryFormatType,
-} from '@comunica/types';
+import { ActionContextKey, failTest, passTestVoid } from '@comunica/core';
+import type { ComunicaDataFactory, IActionContext, IQueryOperationResult, QueryFormatType } from '@comunica/types';
+import type { Algebra } from '@comunica/utils-algebra';
+import { AlgebraFactory } from '@comunica/utils-algebra';
 import { BindingsFactory } from '@comunica/utils-bindings-factory';
 import { materializeOperation } from '@comunica/utils-query-operation';
 import type * as RDF from '@rdfjs/types';
@@ -40,6 +33,11 @@ export class ActorQueryProcessSequential extends ActorQueryProcess implements IQ
 
   public constructor(args: IActorQueryProcessSequentialArgs) {
     super(args);
+    this.mediatorContextPreprocess = args.mediatorContextPreprocess;
+    this.mediatorQueryParse = args.mediatorQueryParse;
+    this.mediatorOptimizeQueryOperation = args.mediatorOptimizeQueryOperation;
+    this.mediatorQueryOperation = args.mediatorQueryOperation;
+    this.mediatorMergeBindingsContext = args.mediatorMergeBindingsContext;
   }
 
   public async test(action: IActionQueryProcess): Promise<TestResult<IActorTest>> {
@@ -91,6 +89,7 @@ export class ActorQueryProcessSequential extends ActorQueryProcess implements IQ
         context.get(KeysInitQuery.initialBindings)!,
         algebraFactory,
         bindingsFactory,
+        { strictTargetVariables: true },
       );
 
       // Delete the query string from the context, since our initial query might have changed

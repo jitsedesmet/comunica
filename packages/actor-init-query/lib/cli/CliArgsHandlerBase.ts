@@ -94,6 +94,10 @@ export class CliArgsHandlerBase implements ICliArgsHandler {
           type: 'string',
           describe: 'base IRI for the query (e.g., http://example.org/)',
         },
+        fileBaseIRI: {
+          type: 'string',
+          describe: 'base IRI for the file (e.g., http://example.org/), useful when using comunica-sparql-file',
+        },
         dateTime: {
           alias: 'd',
           type: 'string',
@@ -108,6 +112,10 @@ export class CliArgsHandlerBase implements ICliArgsHandler {
         lenient: {
           type: 'boolean',
           describe: 'If failing requests and parsing errors should be logged instead of causing a hard crash',
+        },
+        parseUnsupportedVersions: {
+          type: 'boolean',
+          describe: 'If no error should be emitted on unsupported versions',
         },
         version: {
           alias: 'v',
@@ -138,6 +146,10 @@ export class CliArgsHandlerBase implements ICliArgsHandler {
           type: 'number',
           describe: 'The upper limit in milliseconds for the delay between fetch retries',
         },
+        httpCache: {
+          type: 'boolean',
+          describe: 'Enables HTTP-level caching',
+        },
         unionDefaultGraph: {
           type: 'boolean',
           describe: 'If the default graph should also contain the union of all named graphs',
@@ -149,6 +161,10 @@ export class CliArgsHandlerBase implements ICliArgsHandler {
         distinctConstruct: {
           type: 'boolean',
           describe: 'If the query engine should deduplicate resulting triples',
+        },
+        extensionFunctionsAlwaysPushdown: {
+          type: 'boolean',
+          describe: 'If extension functions must always be pushed down',
         },
       })
       .exitProcess(false)
@@ -218,9 +234,19 @@ export class CliArgsHandlerBase implements ICliArgsHandler {
       context[KeysInitQuery.baseIRI.name] = args.baseIRI;
     }
 
+    // Define the file base IRI
+    if (args.fileBaseIRI) {
+      context[KeysInitQuery.fileBaseIRI.name] = args.fileBaseIRI;
+    }
+
     // Define lenient-mode
     if (args.lenient) {
       context[KeysInitQuery.lenient.name] = true;
+    }
+
+    // Define parseUnsupportedVersions
+    if (args.parseUnsupportedVersions) {
+      context[KeysInitQuery.parseUnsupportedVersions.name] = true;
     }
 
     // Define HTTP timeout
@@ -270,6 +296,11 @@ export class CliArgsHandlerBase implements ICliArgsHandler {
     // Define if results should be deduplicated
     if (args.distinctConstruct) {
       context[KeysInitQuery.distinctConstruct.name] = true;
+    }
+
+    // Pushing down of extension functions
+    if (args.extensionFunctionsAlwaysPushdown) {
+      context[KeysInitQuery.extensionFunctionsAlwaysPushdown.name] = true;
     }
   }
 }

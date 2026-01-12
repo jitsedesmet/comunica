@@ -1,9 +1,9 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
-    "target": "es2021",
+    "target": "es2023",
     "lib": [
-      "es2021",
+      "es2023",
       "dom"
     ],
     "module": "commonjs",
@@ -11,22 +11,15 @@
 
     "strict": true,
     "strictFunctionTypes": true,
-    "strictPropertyInitialization": false,
+    "strictPropertyInitialization": true,
     "noImplicitOverride": true,
     "declaration": true,
     "downlevelIteration": true,
     "inlineSources": true,
     "preserveConstEnums": true,
     "removeComments": false,
-    "sourceMap": true,
-    "skipLibCheck": true
+    "sourceMap": true
   },
-  "references": [
-    { "path": "../../../PhD/code/traqula/packages/core" },
-    { "path": "../../../PhD/code/traqula/packages/algebra-transformations-1-1" },
-    { "path": "../../../PhD/code/traqula/packages/algebra-transformations-1-2" },
-    { "path": "../../../PhD/code/traqula/packages/rules-sparql-1-1" }
-  ],
   "include": [
     "engines/*/bin/**/*",
     "engines/*/lib/**/*",
@@ -36,7 +29,6 @@
     "performance/*/lib/**/*"
   ],
   "exclude": [
-    "**/node_modules",
-    "../../../PhD/**"
+    "**/node_modules"
   ]
 }

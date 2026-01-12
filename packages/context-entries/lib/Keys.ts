@@ -1,34 +1,35 @@
-import type { Algebra } from '@comunica/algebra-sparql-comunica';
 import { ActionContextKey, CONTEXT_KEY_LOGGER } from '@comunica/core';
 import type {
   AsyncExtensionFunctionCreator,
   Bindings,
+  ComunicaDataFactory,
   FunctionArgumentsCache,
   IActionContext,
-  IAggregatedStore,
   ICliArgsHandler,
   IDataDestination,
+  IDiscoverEventData,
+  ILink,
   IPhysicalQueryPlanLogger,
   IProxyHandler,
   IQuerySourceWrapper,
+  IStatisticBase,
   ISuperTypeProvider,
   ITimeZoneRepresentation,
   MetadataBindings,
+  PartialResult,
   QueryExplainMode,
   QuerySourceReference,
   QuerySourceUnidentified,
-  ComunicaDataFactory,
-  IStatisticBase,
-  IDiscoverEventData,
-  ILink,
 } from '@comunica/types';
+import type { Algebra } from '@comunica/utils-algebra';
 import type * as RDF from '@rdfjs/types';
 import type { IDocumentLoader } from 'jsonld-context-parser';
 
 /**
  * When adding entries to this file, also add a shortcut for them in the contextKeyShortcuts TSDoc comment in
- * ActorInitQueryBase in @comunica/actor-init-query if it makes sense to use this entry externally.
- * Also, add this shortcut to IQueryContextCommon in @comunica/types.
+ * ActorContextPreprocessConvertShortcuts in @comunica/actor-init-query if it makes sense to use this entry externally.
+ * Also, add this shortcut to IQueryContextCommon in @comunica/types,
+ * and possibly the CliArgsHandlers in @comunica/actor-init-query.
  */
 
 export const KeysCore = {
@@ -81,6 +82,16 @@ export const KeysHttp = {
    * This can be used to, for example, force retries on server-side errors in the 500 range.
    */
   httpRetryStatusCodes: new ActionContextKey<number[]>('@comunica/bus-http:http-retry-status-codes'),
+  /**
+   * An abort signal for aborting pending HTTP requests.
+   */
+  httpAbortSignal: new ActionContextKey<AbortSignal>('@comunica/bus-http:http-abort-controller'),
+  /**
+   * If the HTTP-level cache must be enabled.
+   * When enabled, HTTP responses will be stored within the cache, and/or responses can be read from the cache.
+   * This only will only do something outside a browser environment, as browsers take care of caching internally.
+   */
+  httpCache: new ActionContextKey<boolean>('@comunica/bus-http:httpCache'),
 };
 
 export const KeysHttpWayback = {
@@ -130,6 +141,12 @@ export const KeysInitQuery = {
    */
   lenient: new ActionContextKey<boolean>('@comunica/actor-init-query:lenient'),
   /**
+   * By default, errors will be emitted if parsers encounter unsupported versions.
+   * Setting this flag to true will silence those checks.
+   * Errors may still be emitted if unsupported grammar is encountered.
+   */
+  parseUnsupportedVersions: new ActionContextKey<boolean>('@comunica/actor-init-query:parseUnsupportedVersions'),
+  /**
    * The original query string.
    */
   queryString: new ActionContextKey<string>('@comunica/actor-init-query:queryString'),
@@ -141,6 +158,10 @@ export const KeysInitQuery = {
    * The query's base IRI.
    */
   baseIRI: new ActionContextKey<string>('@comunica/actor-init-query:baseIRI'),
+  /**
+   * The file's base IRI.
+   */
+  fileBaseIRI: new ActionContextKey<string>('@comunica/actor-init-query:fileBaseIRI'),
   /**
    * Object to cache function argument overload resolutions.
    * Defaults to an object that is reused across query executions.
@@ -181,11 +202,18 @@ export const KeysInitQuery = {
   Record<string, (args: RDF.Term[]) => Promise<RDF.Term>>
     >('@comunica/actor-init-query:extensionFunctions'),
   /**
+   * If extension functions must always be pushed down to sources that support expressions,
+   * even if those sources to not explicitly declare support for these extension functions.
+   */
+  extensionFunctionsAlwaysPushdown: new ActionContextKey<boolean>(
+    '@comunica/actor-init-query:extensionFunctionsAlwaysPushdown',
+  ),
+  /**
    * Enables manipulation of the CLI arguments and their processing.
    */
   cliArgsHandlers: new ActionContextKey<ICliArgsHandler[]>('@comunica/actor-init-query:cliArgsHandlers'),
   /**
-   * Explain mode of the query. Can be 'parsed', 'logical', 'physical', or 'physical-json'.
+   * Explain mode of the query. Can be 'parsed', 'logical', 'query', 'physical', or 'physical-json'.
    */
   explain: new ActionContextKey<QueryExplainMode>('@comunica/actor-init-query:explain'),
   /**
@@ -267,6 +295,12 @@ export const KeysQueryOperation = {
    * The sources to query over.
    */
   querySources: new ActionContextKey<IQuerySourceWrapper[]>('@comunica/bus-query-operation:querySources'),
+  /**
+   * A mapping of SERVICE targets to sources.
+   */
+  serviceSources: new ActionContextKey<Record<string, IQuerySourceWrapper>>(
+    '@comunica/bus-query-operation:serviceSources',
+  ),
 };
 
 export const KeysRdfParseJsonLd = {
@@ -303,12 +337,6 @@ export const KeysQuerySourceIdentify = {
     '@comunica/bus-query-source-identify:sourceIds',
   ),
   /**
-   * Hypermedia sources mapping to their aggregated store.
-   */
-  hypermediaSourcesAggregatedStores: new ActionContextKey<Map<string, IAggregatedStore>>(
-    '@comunica/bus-query-source-identify:hypermediaSourcesAggregatedStores',
-  ),
-  /**
    * If links may be traversed from this source.
    * This means that sources annotated with this flag are considered incomplete until all links have been traversed.
    */
@@ -341,12 +369,18 @@ export const KeysStatistics = {
    * All discovered links during query execution. Not all of them will necessarily be dereferenced.
    */
   discoveredLinks: new ActionContextKey<IStatisticBase<IDiscoverEventData>>(
-    '@comunica/bus-context-preprocess:discoveredLinks',
+    '@comunica/statistic:discoveredLinks',
   ),
   /**
    * Information about what links are dereferenced and when
    */
   dereferencedLinks: new ActionContextKey<IStatisticBase<ILink>>(
-    '@comunica/bus-context-preprocess:dereferencedLinks',
+    '@comunica/statistic:dereferencedLinks',
+  ),
+  /**
+   * Intermediate results produced during query execution
+   */
+  intermediateResults: new ActionContextKey<IStatisticBase<PartialResult>>(
+    '@comunica/statistic:intermediateResults',
   ),
 };

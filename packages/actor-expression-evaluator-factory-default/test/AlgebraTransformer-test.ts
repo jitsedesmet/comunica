@@ -7,8 +7,8 @@ import {
 import { ActorFunctionFactoryExpressionIf } from '@comunica/actor-function-factory-expression-if';
 import { ActorFunctionFactoryTermNot } from '@comunica/actor-function-factory-term-not';
 import { ActorFunctionFactoryTermUnaryMinus } from '@comunica/actor-function-factory-term-unary-minus';
-import { AlgebraFactory } from '@comunica/algebra-sparql-comunica';
 import { createFuncMediator } from '@comunica/bus-function-factory/test/util';
+import { AlgebraFactory } from '@comunica/utils-algebra';
 import * as Eval from '@comunica/utils-expression-evaluator';
 import { getMockEEActionContext } from '@comunica/utils-expression-evaluator/test/util/helpers';
 import { DataFactory } from 'rdf-data-factory';
@@ -115,5 +115,12 @@ describe('AlgebraTransformer', () => {
     await expect(algebraTransformer.transformAlgebra(
       AF.createWildcardExpression(),
     )).resolves.toEqual(new Eval.NamedNode('*'));
+  });
+
+  it('throws on unknown expression type', async() => {
+    const notWildcard = AF.createWildcardExpression();
+    notWildcard.subType = <any> 'unknown type';
+    await expect(async() => await algebraTransformer.transformAlgebra(notWildcard))
+      .rejects.toThrow('unknown type cannot be converted into internal representation of expression.');
   });
 });

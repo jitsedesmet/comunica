@@ -8,14 +8,17 @@ import { ActionObserver } from '@comunica/core';
  */
 export class ActionObserverHttp extends ActionObserver<IActionHttp, IActorHttpOutput> {
   public readonly httpInvalidator: ActorHttpInvalidateListenable;
+  public readonly observedActors: string[];
   public requests = 0;
 
   /* eslint-disable max-len */
   /**
-   * @param args - @defaultNested {<npmd:@comunica/bus-http/^4.0.0/components/ActorHttp.jsonld#ActorHttp_default_bus>} bus
+   * @param args - @defaultNested {<npmd:@comunica/bus-http/^5.0.0/components/ActorHttp.jsonld#ActorHttp_default_bus>} bus
    */
   public constructor(args: IActionObserverHttpArgs) {
     super(args);
+    this.httpInvalidator = args.httpInvalidator;
+    this.observedActors = args.observedActors;
     this.bus.subscribeObserver(this);
     this.httpInvalidator.addInvalidateListener(() => {
       this.requests = 0;
@@ -24,11 +27,13 @@ export class ActionObserverHttp extends ActionObserver<IActionHttp, IActorHttpOu
   /* eslint-enable max-len */
 
   public onRun(
-    _actor: Actor<IActionHttp, IActorTest, IActorHttpOutput, undefined>,
+    actor: Actor<IActionHttp, IActorTest, IActorHttpOutput, undefined>,
     _action: IActionHttp,
     _output: Promise<IActorHttpOutput>,
   ): void {
-    this.requests++;
+    if (this.observedActors.includes(actor.name)) {
+      this.requests++;
+    }
   }
 }
 
@@ -36,8 +41,13 @@ export interface IActionObserverHttpArgs extends IActionObserverArgs<IActionHttp
   /* eslint-disable max-len */
   /**
    * An actor that listens to HTTP invalidation events
-   * @default {<default_invalidator> a <npmd:@comunica/bus-http-invalidate/^4.0.0/components/ActorHttpInvalidateListenable.jsonld#ActorHttpInvalidateListenable>}
+   * @default {<default_invalidator> a <npmd:@comunica/bus-http-invalidate/^5.0.0/components/ActorHttpInvalidateListenable.jsonld#ActorHttpInvalidateListenable>}
    */
   httpInvalidator: ActorHttpInvalidateListenable;
   /* eslint-enable max-len */
+  /**
+   * The URIs of the observed actors.
+   * @default {urn:comunica:default:http/actors#fetch}
+   */
+  observedActors: string[];
 }

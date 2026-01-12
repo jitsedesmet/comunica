@@ -1,4 +1,3 @@
-import { Algebra } from '@comunica/algebra-sparql-comunica';
 import type { MediatorHashBindings } from '@comunica/bus-hash-bindings';
 import type { MediatorHashQuads } from '@comunica/bus-hash-quads';
 import type { IActorQueryOperationTypedMediatedArgs } from '@comunica/bus-query-operation';
@@ -15,6 +14,7 @@ import type {
   IQueryOperationResultBindings,
   IQueryOperationResultQuads,
 } from '@comunica/types';
+import { Algebra } from '@comunica/utils-algebra';
 import { getSafeBindings, getSafeQuads } from '@comunica/utils-query-operation';
 import type * as RDF from '@rdfjs/types';
 import type { AsyncIterator } from 'asynciterator';
@@ -28,6 +28,8 @@ export class ActorQueryOperationDistinctHash extends ActorQueryOperationTypedMed
 
   public constructor(args: IActorQueryOperationDistinctHashArgs) {
     super(args, Algebra.Types.DISTINCT);
+    this.mediatorHashBindings = args.mediatorHashBindings;
+    this.mediatorHashQuads = args.mediatorHashQuads;
   }
 
   public async testOperation(_operation: Algebra.Distinct, _context: IActionContext): Promise<TestResult<IActorTest>> {

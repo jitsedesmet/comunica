@@ -1,5 +1,3 @@
-import type { Algebra } from '@comunica/algebra-sparql-comunica';
-import { AlgebraFactory } from '@comunica/algebra-sparql-comunica';
 import type {
   IActionRdfJoin,
   IActorRdfJoinArgs,
@@ -10,15 +8,17 @@ import { ActorRdfJoin } from '@comunica/bus-rdf-join';
 import type { MediatorRdfJoinEntriesSort } from '@comunica/bus-rdf-join-entries-sort';
 import { KeysInitQuery } from '@comunica/context-entries';
 import type { TestResult } from '@comunica/core';
-import { passTestWithSideData, failTest, passTest } from '@comunica/core';
+import { failTest, passTest, passTestWithSideData } from '@comunica/core';
 import type { IMediatorTypeJoinCoefficients } from '@comunica/mediatortype-join-coefficients';
 import type {
+  ComunicaDataFactory,
+  IActionContext,
   IJoinEntryWithMetadata,
   IQueryOperationResultBindings,
   IQuerySourceWrapper,
-  IActionContext,
-  ComunicaDataFactory,
 } from '@comunica/types';
+import type { Algebra } from '@comunica/utils-algebra';
+import { AlgebraFactory } from '@comunica/utils-algebra';
 import { ChunkedIterator } from '@comunica/utils-iterator';
 import { doesShapeAcceptOperation, getOperationSource } from '@comunica/utils-query-operation';
 import type * as RDF from '@rdfjs/types';
@@ -39,6 +39,9 @@ export class ActorRdfJoinMultiBindSource extends ActorRdfJoin<IActorRdfJoinMulti
       physicalName: 'bind-source',
       canHandleUndefs: true,
     });
+    this.selectivityModifier = args.selectivityModifier;
+    this.blockSize = args.blockSize;
+    this.mediatorJoinEntriesSort = args.mediatorJoinEntriesSort;
   }
 
   public async getOutput(
@@ -53,7 +56,12 @@ export class ActorRdfJoinMultiBindSource extends ActorRdfJoin<IActorRdfJoinMulti
     this.logDebug(
       action.context,
       'First entry for Bind Join Source: ',
-      () => ({ entry: entries[0].operation, metadata: entries[0].metadata }),
+      () => ({
+        entry: entries[0].operation,
+        cardinality: entries[0].metadata.cardinality,
+        order: entries[0].metadata.order,
+        availableOrders: entries[0].metadata.availableOrders,
+      }),
     );
 
     // Close the non-smallest streams
@@ -166,7 +174,11 @@ export class ActorRdfJoinMultiBindSource extends ActorRdfJoin<IActorRdfJoinMulti
     const sourceWrapper: IQuerySourceWrapper = <IQuerySourceWrapper> sources[0];
     const testingOperation = this.createOperationFromEntries(algebraFactory, remainingEntries);
     const selectorShape = await sourceWrapper.source.getSelectorShape(action.context);
-    if (!doesShapeAcceptOperation(selectorShape, testingOperation, { joinBindings: true })) {
+    const wildcardAcceptAllExtensionFunctions = action.context.get(KeysInitQuery.extensionFunctionsAlwaysPushdown);
+    if (!doesShapeAcceptOperation(selectorShape, testingOperation, {
+      joinBindings: true,
+      wildcardAcceptAllExtensionFunctions,
+    })) {
       return failTest(`Actor ${this.name} detected a source that can not handle passing down join bindings`);
     }
 

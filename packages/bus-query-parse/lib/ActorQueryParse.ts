@@ -1,15 +1,15 @@
-import type { Algebra } from '@comunica/algebra-sparql-comunica';
 import type { IAction, IActorArgs, IActorOutput, IActorTest, Mediate } from '@comunica/core';
 import { Actor } from '@comunica/core';
+import type { Algebra } from '@comunica/utils-algebra';
 import type * as RDF from '@rdfjs/types';
 
 /**
  * A comunica actor for query-parse events.
  *
  * Actor types:
- * * Input:  IActionSparqlParse:      A SPARQL query string.
+ * * Input:  IActionSparqlParse:      A query string.
  * * Test:   <none>
- * * Output: IActorSparqlParseOutput: A parsed query in SPARQL query algebra.
+ * * Output: IActorSparqlParseOutput: A parsed query in query algebra.
  *
  * @see IActionQueryParse
  * @see IActorQueryParseOutput

@@ -1,4 +1,3 @@
-import { Algebra } from '@comunica/algebra-sparql-comunica';
 import type { IActorQueryOperationTypedMediatedArgs } from '@comunica/bus-query-operation';
 import {
   ActorQueryOperationTypedMediated,
@@ -7,6 +6,7 @@ import type { MediatorRdfJoin } from '@comunica/bus-rdf-join';
 import type { IActorTest, TestResult } from '@comunica/core';
 import { passTestVoid } from '@comunica/core';
 import type { IActionContext, IQueryOperationResult, IJoinEntry } from '@comunica/types';
+import { Algebra } from '@comunica/utils-algebra';
 import { getSafeBindings } from '@comunica/utils-query-operation';
 
 /**
@@ -17,6 +17,7 @@ export class ActorQueryOperationMinus extends ActorQueryOperationTypedMediated<A
 
   public constructor(args: IActorQueryOperationMinusArgs) {
     super(args, Algebra.Types.MINUS);
+    this.mediatorJoin = args.mediatorJoin;
   }
 
   public async testOperation(_operation: Algebra.Minus, _context: IActionContext): Promise<TestResult<IActorTest>> {
@@ -27,6 +28,9 @@ export class ActorQueryOperationMinus extends ActorQueryOperationTypedMediated<A
     operationOriginal: Algebra.Minus,
     context: IActionContext,
   ): Promise<IQueryOperationResult> {
+    // Propagate information about GRAPH ?g existing outside the MINUS scope to the join actor.
+    const graphVariableFromParentScope = operationOriginal.graphScopeVar;
+
     const entries: IJoinEntry[] = (await Promise.all(operationOriginal.input
       .map(async subOperation => ({
         output: await this.mediatorQueryOperation.mediate({ operation: subOperation, context }),
@@ -37,7 +41,7 @@ export class ActorQueryOperationMinus extends ActorQueryOperationTypedMediated<A
         operation,
       }));
 
-    return this.mediatorJoin.mediate({ type: 'minus', entries, context });
+    return this.mediatorJoin.mediate({ type: 'minus', entries, context, graphVariableFromParentScope });
   }
 }
 

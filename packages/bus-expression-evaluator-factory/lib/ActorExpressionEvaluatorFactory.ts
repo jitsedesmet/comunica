@@ -1,10 +1,10 @@
-import type { Algebra } from '@comunica/algebra-sparql-comunica';
 import type { MediatorFunctionFactory, MediatorFunctionFactoryUnsafe } from '@comunica/bus-function-factory';
 import type { MediatorMergeBindingsContext } from '@comunica/bus-merge-bindings-context';
 import type { MediatorQueryOperation } from '@comunica/bus-query-operation';
 import type { IAction, IActorArgs, IActorOutput, IActorTest, Mediate } from '@comunica/core';
 import { Actor } from '@comunica/core';
 import type { IExpressionEvaluator } from '@comunica/types';
+import type { Algebra } from '@comunica/utils-algebra';
 
 /**
  * A comunica actor for utils-expression-evaluator-factory events.
@@ -12,7 +12,7 @@ import type { IExpressionEvaluator } from '@comunica/types';
  * Actor types:
  * * Input:  IActionExpressionEvaluatorFactory: The Query Operation and Function factory mediators.
  * * Test:   <none>
- * * Output: IActorExpressionEvaluatorFactoryOutput: TODO: fill in.
+ * * Output: IActorExpressionEvaluatorFactoryOutput: The constructed expression evaluator.
  *
  * @see IActionExpressionEvaluatorFactory
  * @see IActorExpressionEvaluatorFactoryOutput

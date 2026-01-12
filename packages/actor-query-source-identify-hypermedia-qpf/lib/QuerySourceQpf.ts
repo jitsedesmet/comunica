@@ -1,6 +1,4 @@
 import type { ISearchForm } from '@comunica/actor-rdf-metadata-extract-hydra-controls';
-import { Algebra } from '@comunica/algebra-sparql-comunica';
-import type { AlgebraFactory } from '@comunica/algebra-sparql-comunica';
 import type { MediatorDereferenceRdf } from '@comunica/bus-dereference-rdf';
 import { filterMatchingQuotedQuads, quadsToBindings } from '@comunica/bus-query-source-identify';
 import type { MediatorRdfMetadata, IActorRdfMetadataOutput } from '@comunica/bus-rdf-metadata';
@@ -15,6 +13,8 @@ import type {
   MetadataBindings,
   ComunicaDataFactory,
 } from '@comunica/types';
+import type { AlgebraFactory } from '@comunica/utils-algebra';
+import { isKnownOperation, Algebra } from '@comunica/utils-algebra';
 import type { BindingsFactory } from '@comunica/utils-bindings-factory';
 import { MetadataValidationState } from '@comunica/utils-metadata';
 import type * as RDF from '@rdfjs/types';
@@ -138,6 +138,10 @@ export class QuerySourceQpf implements IQuerySource {
         };
   }
 
+  public async getFilterFactor(): Promise<number> {
+    return 1;
+  }
+
   public async getSelectorShape(): Promise<FragmentSelectorShape> {
     return this.selectorShape;
   }
@@ -147,7 +151,7 @@ export class QuerySourceQpf implements IQuerySource {
     context: IActionContext,
     options?: IQueryBindingsOptions,
   ): BindingsStream {
-    if (!Algebra.isKnownOperation(operation, Algebra.Types.PATTERN)) {
+    if (!isKnownOperation(operation, Algebra.Types.PATTERN)) {
       throw new Error(`Attempted to pass non-pattern operation '${operation.type}' to QuerySourceQpf`);
     }
 
@@ -266,8 +270,9 @@ export class QuerySourceQpf implements IQuerySource {
           });
           return quads;
         }
-      } else if (Object.keys(this.searchForm.mappings).length === 3) {
+      } else {
         // If have a TPF endpoint, set graph to variable so we could get the cached triples
+        // In this case: Object.keys(this.searchForm.mappings).length === 3
         graph = this.dataFactory.variable('g');
       }
     }

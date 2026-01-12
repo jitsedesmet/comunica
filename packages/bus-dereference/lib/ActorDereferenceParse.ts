@@ -4,8 +4,13 @@ import type { IActorArgs, IActorTest, TestResult } from '@comunica/core';
 import { passTestVoid } from '@comunica/core';
 import type { Readable } from 'readable-stream';
 import { PassThrough } from 'readable-stream';
-import type { IActionDereference, IActorDereferenceOutput, MediatorDereference } from './ActorDereference';
-import { ActorDereferenceBase, isHardError } from './ActorDereferenceBase';
+import type {
+  IActionDereference,
+  IActorDereferenceOutput,
+  MediatorDereference,
+} from './ActorDereference';
+import { ActorDereferenceBase, isHardError, emptyReadable, shouldLogWarning } from './ActorDereferenceBase';
+import { DereferenceRdfCachePolicyDereferenceWrapper } from './DereferenceRdfCachePolicyDereferenceWrapper';
 
 /**
  * Get the media type based on the extension of the given path,
@@ -58,6 +63,10 @@ export abstract class ActorDereferenceParse<
 
   public constructor(args: IActorDereferenceParseArgs<S, K, M>) {
     super(args);
+    this.mediatorDereference = args.mediatorDereference;
+    this.mediatorParse = args.mediatorParse;
+    this.mediatorParseMediatypes = args.mediatorParseMediatypes;
+    this.mediaMappings = args.mediaMappings;
   }
 
   public async test(_action: IActionDereference): Promise<TestResult<IActorTest>> {
@@ -77,7 +86,9 @@ export abstract class ActorDereferenceParse<
     // If we don't emit hard errors, make parsing error events log instead, and silence them downstream.
     if (!isHardError(action.context)) {
       data.on('error', (error) => {
-        this.logWarn(action.context, error.message, () => ({ url: action.url }));
+        if (shouldLogWarning(error)) {
+          this.logWarn(action.context, error.message, () => ({ url: action.url }));
+        }
         // Make sure the errored stream is ended.
         data.push(null);
       });
@@ -90,30 +101,42 @@ export abstract class ActorDereferenceParse<
 
   public async run(action: IActionDereferenceParse<K>): Promise<IActorDereferenceParseOutput<S, M>> {
     const { context } = action;
-    const dereference = await this.mediatorDereference.mediate({
-      ...action,
-      mediaTypes: async() => (await this.mediatorParseMediatypes?.mediate({ context, mediaTypes: true }))?.mediaTypes,
-    });
+    const mediaTypes: () => Promise<Record<string, number> | undefined> =
+      async() => (await this.mediatorParseMediatypes?.mediate({ context, mediaTypes: true }))?.mediaTypes;
+    const dereference = await this.mediatorDereference.mediate({ ...action, mediaTypes });
 
     let result: IActorParseOutput<S, M>;
-    try {
-      result = (await this.mediatorParse.mediate({
-        context,
-        handle: { context, ...dereference, metadata: await this.getMetadata(dereference) },
-        // eslint-disable-next-line ts/prefer-nullish-coalescing
-        handleMediaType: (dereference.mediaType ||
-          getMediaTypeFromExtension(dereference.url, this.mediaMappings)) ||
-          action.mediaType,
-      })).handle;
-      result.data = this.handleDereferenceStreamErrors(action, result.data);
-    } catch (error: unknown) {
-      // Close the body, to avoid process to hang
+
+    if (dereference.exists) {
+      try {
+        result = (await this.mediatorParse.mediate({
+          context,
+          handle: { context, ...dereference, metadata: await this.getMetadata(dereference) },
+          // eslint-disable-next-line ts/prefer-nullish-coalescing
+          handleMediaType: dereference.mediaType || action.mediaType ||
+            getMediaTypeFromExtension(dereference.url, this.mediaMappings),
+        })).handle;
+        result.data = this.handleDereferenceStreamErrors(action, result.data);
+      } catch (error: unknown) {
+        // Close the body, to avoid process to hang
+        await dereference.data.close?.();
+        result = await this.dereferenceErrorHandler(action, error, {});
+      }
+    } else {
+      // Close the dereference stream and return an empty response directly to avoid unnecessary processing.
+      // This code is equivalent to the error handler above in the catch clause, but avoids redundant processing.
       await dereference.data.close?.();
-      result = await this.dereferenceErrorHandler(action, error, {});
+      result = { data: emptyReadable() };
     }
 
     // Return the parsed stream and any metadata
-    return { ...dereference, ...result };
+    return {
+      ...dereference,
+      ...result,
+      cachePolicy: dereference.cachePolicy ?
+        new DereferenceRdfCachePolicyDereferenceWrapper(dereference.cachePolicy, mediaTypes) :
+        undefined,
+    };
   }
 }
 

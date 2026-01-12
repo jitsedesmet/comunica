@@ -1,17 +1,17 @@
-import { AlgebraFactory } from '@comunica/algebra-sparql-comunica';
 import type {
   IActionRdfJoin,
-  IActorRdfJoinOutputInner,
   IActorRdfJoinArgs,
-  MediatorRdfJoin,
+  IActorRdfJoinOutputInner,
   IActorRdfJoinTestSideData,
+  MediatorRdfJoin,
 } from '@comunica/bus-rdf-join';
 import { ActorRdfJoin } from '@comunica/bus-rdf-join';
 import { KeysInitQuery } from '@comunica/context-entries';
 import type { TestResult } from '@comunica/core';
 import { passTestWithSideData } from '@comunica/core';
 import type { IMediatorTypeJoinCoefficients } from '@comunica/mediatortype-join-coefficients';
-import type { IJoinEntry, ComunicaDataFactory } from '@comunica/types';
+import type { ComunicaDataFactory, IJoinEntry } from '@comunica/types';
+import { AlgebraFactory } from '@comunica/utils-algebra';
 import { getSafeBindings } from '@comunica/utils-query-operation';
 
 /**
@@ -30,6 +30,7 @@ export class ActorRdfJoinMultiSequential extends ActorRdfJoin {
       canHandleUndefs: true,
       isLeaf: false,
     });
+    this.mediatorJoin = args.mediatorJoin;
   }
 
   protected async getOutput(action: IActionRdfJoin): Promise<IActorRdfJoinOutputInner> {

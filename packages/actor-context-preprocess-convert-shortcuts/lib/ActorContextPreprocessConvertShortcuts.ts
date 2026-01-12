@@ -12,6 +12,7 @@ export class ActorContextPreprocessConvertShortcuts extends ActorContextPreproce
 
   public constructor(args: IActorContextPreprocessConvertShortcutsArgs) {
     super(args);
+    this.contextKeyShortcuts = args.contextKeyShortcuts;
   }
 
   public async test(_action: IAction): Promise<TestResult<IActorTest>> {
@@ -39,6 +40,8 @@ export class ActorContextPreprocessConvertShortcuts extends ActorContextPreproce
 export interface IActorContextPreprocessConvertShortcutsArgs extends IActorContextPreprocessArgs {
   /**
    * A record of context shortcuts to full context keys (as defined in @comunica/context-entries).
+   * These should be aligned with to IQueryContextCommon in @comunica/types,
+   * and possibly the CliArgsHandlers in @comunica/actor-init-query.
    * @range {json}
    * @default {{
    *   "sources": "@comunica/actor-init-query:querySourcesUnidentified",
@@ -46,12 +49,14 @@ export interface IActorContextPreprocessConvertShortcutsArgs extends IActorConte
    *   "initialBindings": "@comunica/actor-init-query:initialBindings",
    *   "queryFormat": "@comunica/actor-init-query:queryFormat",
    *   "baseIRI": "@comunica/actor-init-query:baseIRI",
+   *   "fileBaseIRI": "@comunica/actor-init-query:fileBaseIRI",
    *   "log": "@comunica/core:log",
    *   "datetime": "@comunica/actor-http-memento:datetime",
    *   "queryTimestamp": "@comunica/actor-init-query:queryTimestamp",
    *   "queryTimestampHighResolution": "@comunica/actor-init-query:queryTimestampHighResolution",
    *   "httpProxyHandler": "@comunica/actor-http-proxy:httpProxyHandler",
    *   "lenient": "@comunica/actor-init-query:lenient",
+   *   "parseUnsupportedVersions": "@comunica/actor-init-query:parseUnsupportedVersions",
    *   "httpIncludeCredentials": "@comunica/bus-http:include-credentials",
    *   "httpAuth": "@comunica/bus-http:auth",
    *   "httpTimeout": "@comunica/bus-http:http-timeout",
@@ -59,10 +64,14 @@ export interface IActorContextPreprocessConvertShortcutsArgs extends IActorConte
    *   "httpRetryCount": "@comunica/bus-http:http-retry-count",
    *   "httpRetryDelayFallback": "@comunica/bus-http:http-retry-delay-fallback",
    *   "httpRetryDelayLimit": "@comunica/bus-http:http-retry-delay-limit",
+   *   "httpRetryStatusCodes": "@comunica/bus-http:http-retry-status-codes",
+   *   "httpAbortSignal": "@comunica/bus-http:http-abort-controller",
+   *   "httpCache": "@comunica/bus-http:httpCache",
    *   "fetch": "@comunica/bus-http:fetch",
    *   "recoverBrokenLinks": "@comunica/bus-http-wayback:recover-broken-links",
    *   "readOnly": "@comunica/bus-query-operation:readOnly",
    *   "extensionFunctions": "@comunica/actor-init-query:extensionFunctions",
+   *   "extensionFunctionsAlwaysPushdown": "@comunica/actor-init-query:extensionFunctionsAlwaysPushdown",
    *   "extensionFunctionCreator": "@comunica/actor-init-query:extensionFunctionCreator",
    *   "functionArgumentsCache": "@comunica/actor-init-query:functionArgumentsCache",
    *   "explain": "@comunica/actor-init-query:explain",

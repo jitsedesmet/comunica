@@ -21,12 +21,15 @@ export class ActorRdfUpdateHypermediaSparql extends ActorRdfUpdateHypermedia {
 
   public constructor(args: IActorRdfUpdateHypermediaSparqlArgs) {
     super(args, 'sparql');
+    this.mediatorHttp = args.mediatorHttp;
+    this.checkUrlSuffixSparql = args.checkUrlSuffixSparql;
+    this.checkUrlSuffixUpdate = args.checkUrlSuffixUpdate;
   }
 
   public async testMetadata(action: IActionRdfUpdateHypermedia): Promise<TestResult<IActorTest>> {
     if (!action.forceDestinationType && !action.metadata.sparqlService &&
-      !(this.checkUrlSuffixSparql && action.url.endsWith('/sparql')) &&
-      !(this.checkUrlSuffixUpdate && action.url.endsWith('/update'))) {
+      !(this.checkUrlSuffixSparql && (action.url.endsWith('/sparql') || action.url.endsWith('/sparql/'))) &&
+      !(this.checkUrlSuffixUpdate && (action.url.endsWith('/update') || action.url.endsWith('/update/')))) {
       return failTest(`Actor ${this.name} could not detect a SPARQL service description or URL ending on /sparql or /update.`);
     }
     return passTestVoid();
@@ -42,6 +45,7 @@ export class ActorRdfUpdateHypermediaSparql extends ActorRdfUpdateHypermedia {
         action.context,
         this.mediatorHttp,
         dataFactory,
+        Boolean(action.context.get(KeysInitQuery.parseUnsupportedVersions)),
       ),
     };
   }

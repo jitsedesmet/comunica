@@ -1,6 +1,5 @@
 import { ActorAbstractPath } from '@comunica/actor-abstract-path';
 import { ActorQueryOperationUnion } from '@comunica/actor-query-operation-union';
-import { Algebra, AlgebraFactory } from '@comunica/algebra-sparql-comunica';
 import type { IActorQueryOperationTypedMediatedArgs } from '@comunica/bus-query-operation';
 import type { MediatorRdfMetadataAccumulate } from '@comunica/bus-rdf-metadata-accumulate';
 import { KeysInitQuery } from '@comunica/context-entries';
@@ -11,6 +10,7 @@ import type {
   MetadataBindings,
   ComunicaDataFactory,
 } from '@comunica/types';
+import { Algebra, AlgebraFactory } from '@comunica/utils-algebra';
 import { getSafeBindings } from '@comunica/utils-query-operation';
 import { UnionIterator } from 'asynciterator';
 
@@ -22,6 +22,7 @@ export class ActorQueryOperationPathAlt extends ActorAbstractPath {
 
   public constructor(args: IActorQueryOperationPathAltArgs) {
     super(args, Algebra.Types.ALT);
+    this.mediatorRdfMetadataAccumulate = args.mediatorRdfMetadataAccumulate;
   }
 
   public async runOperation(operation: Algebra.Path, context: IActionContext): Promise<IQueryOperationResult> {

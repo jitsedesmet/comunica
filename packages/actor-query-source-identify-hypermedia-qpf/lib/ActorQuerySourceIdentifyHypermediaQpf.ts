@@ -1,21 +1,19 @@
-import { AlgebraFactory } from '@comunica/algebra-sparql-comunica';
 import type { MediatorDereferenceRdf } from '@comunica/bus-dereference-rdf';
 import type { MediatorMergeBindingsContext } from '@comunica/bus-merge-bindings-context';
 import type {
   IActionQuerySourceIdentifyHypermedia,
-  IActorQuerySourceIdentifyHypermediaOutput,
   IActorQuerySourceIdentifyHypermediaArgs,
+  IActorQuerySourceIdentifyHypermediaOutput,
   IActorQuerySourceIdentifyHypermediaTest,
 } from '@comunica/bus-query-source-identify-hypermedia';
-import {
-  ActorQuerySourceIdentifyHypermedia,
-} from '@comunica/bus-query-source-identify-hypermedia';
+import { ActorQuerySourceIdentifyHypermedia } from '@comunica/bus-query-source-identify-hypermedia';
 import type { MediatorRdfMetadata } from '@comunica/bus-rdf-metadata';
 import type { MediatorRdfMetadataExtract } from '@comunica/bus-rdf-metadata-extract';
 import { KeysInitQuery } from '@comunica/context-entries';
 import type { TestResult } from '@comunica/core';
 import { failTest, passTest } from '@comunica/core';
 import type { ComunicaDataFactory, IActionContext } from '@comunica/types';
+import { AlgebraFactory } from '@comunica/utils-algebra';
 import { BindingsFactory } from '@comunica/utils-bindings-factory';
 import type * as RDF from '@rdfjs/types';
 import { QuerySourceQpf } from './QuerySourceQpf';
@@ -33,8 +31,17 @@ export class ActorQuerySourceIdentifyHypermediaQpf extends ActorQuerySourceIdent
   public readonly predicateUri: string;
   public readonly objectUri: string;
   public readonly graphUri?: string;
+
   public constructor(args: IActorQuerySourceIdentifyHypermediaQpfArgs) {
     super(args, 'qpf');
+    this.mediatorMetadata = args.mediatorMetadata;
+    this.mediatorMetadataExtract = args.mediatorMetadataExtract;
+    this.mediatorDereferenceRdf = args.mediatorDereferenceRdf;
+    this.mediatorMergeBindingsContext = args.mediatorMergeBindingsContext;
+    this.subjectUri = args.subjectUri;
+    this.predicateUri = args.predicateUri;
+    this.objectUri = args.objectUri;
+    this.graphUri = args.graphUri;
   }
 
   public override async test(

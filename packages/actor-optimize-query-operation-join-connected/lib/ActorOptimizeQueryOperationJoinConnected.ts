@@ -1,4 +1,3 @@
-import { Algebra, algebraUtils, AlgebraFactory } from '@comunica/algebra-sparql-comunica';
 import type {
   IActionOptimizeQueryOperation,
   IActorOptimizeQueryOperationOutput,
@@ -8,6 +7,7 @@ import { KeysInitQuery } from '@comunica/context-entries';
 import type { IActorTest, TestResult } from '@comunica/core';
 import { passTestVoid } from '@comunica/core';
 import type { ComunicaDataFactory } from '@comunica/types';
+import { Algebra, algebraUtils, AlgebraFactory } from '@comunica/utils-algebra';
 
 /**
  * A comunica Join Connected Optimize Query Operation Actor.
@@ -21,7 +21,7 @@ export class ActorOptimizeQueryOperationJoinConnected extends ActorOptimizeQuery
     const dataFactory: ComunicaDataFactory = action.context.getSafe(KeysInitQuery.dataFactory);
     const factory = new AlgebraFactory(dataFactory);
 
-    const operation = Algebra.mapOperation<'unsafe', typeof action.operation>(action.operation, {
+    const operation = algebraUtils.mapOperation(action.operation, {
       [Algebra.Types.JOIN]: {
         preVisitor: () => ({ continue: false }),
         transform: op => ActorOptimizeQueryOperationJoinConnected.cluster(op, factory),

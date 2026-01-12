@@ -1,9 +1,5 @@
-import {
-  ActorExpressionEvaluatorFactoryDefault,
-} from '@comunica/actor-expression-evaluator-factory-default';
+import { ActorExpressionEvaluatorFactoryDefault } from '@comunica/actor-expression-evaluator-factory-default';
 import { InternalEvaluator } from '@comunica/actor-expression-evaluator-factory-default/lib/InternalEvaluator';
-import type { Algebra } from '@comunica/algebra-sparql-comunica';
-import { AlgebraFactory } from '@comunica/algebra-sparql-comunica';
 import type {
   ActorExpressionEvaluatorFactory,
   IActorExpressionEvaluatorFactoryArgs,
@@ -15,6 +11,8 @@ import type { MediatorQueryOperation } from '@comunica/bus-query-operation';
 import { KeysExpressionEvaluator, KeysInitQuery } from '@comunica/context-entries';
 import { ActionContext, Bus } from '@comunica/core';
 import type { GeneralSuperTypeDict, IActionContext, ISuperTypeProvider } from '@comunica/types';
+import type { Algebra } from '@comunica/utils-algebra';
+import { AlgebraFactory } from '@comunica/utils-algebra';
 import { BindingsFactory } from '@comunica/utils-bindings-factory';
 import type * as RDF from '@rdfjs/types';
 import { LRUCache } from 'lru-cache';

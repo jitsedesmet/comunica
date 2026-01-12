@@ -1,13 +1,8 @@
-import type { Algebra } from '@comunica/algebra-sparql-comunica';
 import { KeysInitQuery, KeysQueryOperation } from '@comunica/context-entries';
 import type { IActorTest, TestResult } from '@comunica/core';
 import { failTest } from '@comunica/core';
-import type {
-  IQueryOperationResult,
-  IPhysicalQueryPlanLogger,
-  IActionContext,
-  IMetadata,
-} from '@comunica/types';
+import type { IActionContext, IMetadata, IPhysicalQueryPlanLogger, IQueryOperationResult } from '@comunica/types';
+import type { Algebra } from '@comunica/utils-algebra';
 import { cachifyMetadata } from '@comunica/utils-metadata';
 import type * as RDF from '@rdfjs/types';
 import type { IActionQueryOperation, IActorQueryOperationArgs } from './ActorQueryOperation';
@@ -23,7 +18,8 @@ TS = undefined,
   public readonly operationName: string;
 
   protected constructor(args: IActorQueryOperationArgs<TS>, operationName: string) {
-    super(<any> { ...args, operationName });
+    super(args);
+    this.operationName = operationName;
     if (!this.operationName) {
       throw new Error('A valid "operationName" argument must be provided.');
     }

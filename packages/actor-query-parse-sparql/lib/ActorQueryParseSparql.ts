@@ -1,26 +1,26 @@
-import {
-  ComunicaSparqlParser as SparqlParser,
-  toComunicaAlgebra as toAlgebra,
-} from '@comunica/algebra-comunica-proto-extension-and-parser';
 import type { IActionQueryParse, IActorQueryParseArgs, IActorQueryParseOutput } from '@comunica/bus-query-parse';
 import { ActorQueryParse } from '@comunica/bus-query-parse';
 import { KeysInitQuery } from '@comunica/context-entries';
 import type { IActorTest, TestResult } from '@comunica/core';
 import { failTest, passTestVoid } from '@comunica/core';
 import type { ComunicaDataFactory } from '@comunica/types';
+import { toAlgebra } from '@traqula/algebra-sparql-1-2';
+import { Parser as SparqlParser } from '@traqula/parser-sparql-1-2';
 import { AstFactory } from '@traqula/rules-sparql-1-2';
 
 /**
  * A comunica Algebra SPARQL Parse Actor.
  */
 export class ActorQueryParseSparql extends ActorQueryParse {
-  public readonly prefixes: Record<string, string>;
+  public readonly prefixes: Record<string, string> | undefined;
   private readonly parser: SparqlParser;
 
   public constructor(args: IActorQueryParseSparqlArgs) {
     super(args);
-    this.prefixes = Object.freeze(this.prefixes);
-    this.parser = new SparqlParser();
+    this.prefixes = Object.freeze(args.prefixes);
+    this.parser = new SparqlParser({ lexerConfig: {
+      positionTracking: 'onlyOffset',
+    }});
   }
 
   public async test(action: IActionQueryParse): Promise<TestResult<IActorTest>> {

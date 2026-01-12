@@ -1,4 +1,3 @@
-import { Algebra, AlgebraFactory } from '@comunica/algebra-sparql-comunica';
 import type { IActorQueryOperationTypedMediatedArgs } from '@comunica/bus-query-operation';
 import { ActorQueryOperationTypedMediated } from '@comunica/bus-query-operation';
 import type { MediatorQuerySourceIdentify } from '@comunica/bus-query-source-identify';
@@ -6,6 +5,7 @@ import type { MediatorRdfUpdateQuads } from '@comunica/bus-rdf-update-quads';
 import { KeysInitQuery } from '@comunica/context-entries';
 import type { IActorTest, TestResult } from '@comunica/core';
 import type { ComunicaDataFactory, IActionContext, IQueryOperationResult } from '@comunica/types';
+import { Algebra, AlgebraFactory } from '@comunica/utils-algebra';
 import { assignOperationSource, getSafeQuads, testReadOnly } from '@comunica/utils-query-operation';
 
 /**
@@ -18,6 +18,8 @@ export class ActorQueryOperationLoad extends ActorQueryOperationTypedMediated<Al
 
   public constructor(args: IActorQueryOperationLoadArgs) {
     super(args, Algebra.Types.LOAD);
+    this.mediatorUpdateQuads = args.mediatorUpdateQuads;
+    this.mediatorQuerySourceIdentify = args.mediatorQuerySourceIdentify;
   }
 
   public async testOperation(operation: Algebra.Load, context: IActionContext): Promise<TestResult<IActorTest>> {
