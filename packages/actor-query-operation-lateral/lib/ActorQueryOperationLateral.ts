@@ -1,4 +1,3 @@
-import type { Lateral } from '@comunica/algebra-comunica-proto-extension-and-parser';
 import type { IActorQueryOperationTypedMediatedArgs } from '@comunica/bus-query-operation';
 import {
   ActorQueryOperationTypedMediated,
@@ -16,6 +15,7 @@ import type {
   IQueryOperationResultQuads,
   MetadataVariable,
 } from '@comunica/types';
+import type { Lateral } from '@comunica/utils-algebra-lateral';
 import { MetadataValidationState } from '@comunica/utils-metadata';
 import { getSafeBindings, getSafeQuads } from '@comunica/utils-query-operation';
 import type * as RDF from '@rdfjs/types';
@@ -29,6 +29,7 @@ export class ActorQueryOperationLateral extends ActorQueryOperationTypedMediated
 
   public constructor(args: IActorQueryOperationUnionArgs) {
     super(args, 'lateral');
+    this.mediatorRdfMetadataAccumulate = args.mediatorRdfMetadataAccumulate;
   }
 
   /**

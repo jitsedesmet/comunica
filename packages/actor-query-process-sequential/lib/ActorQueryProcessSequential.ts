@@ -5,18 +5,25 @@ import type { MediatorQueryOperation } from '@comunica/bus-query-operation';
 import type { MediatorQueryParse } from '@comunica/bus-query-parse';
 import type {
   IActionQueryProcess,
-  IActorQueryProcessArgs,
   IActorQueryProcessOutput,
+  IActorQueryProcessArgs,
   IQueryProcessSequential,
   IQueryProcessSequentialOutput,
 } from '@comunica/bus-query-process';
-import { ActorQueryProcess } from '@comunica/bus-query-process';
+import {
+  ActorQueryProcess,
+} from '@comunica/bus-query-process';
 import { KeysInitQuery } from '@comunica/context-entries';
 import type { IActorTest, TestResult } from '@comunica/core';
-import { ActionContextKey, failTest, passTestVoid } from '@comunica/core';
-import type { ComunicaDataFactory, IActionContext, IQueryOperationResult, QueryFormatType } from '@comunica/types';
-import type { Algebra } from '@comunica/utils-algebra';
+import { failTest, passTestVoid, ActionContextKey } from '@comunica/core';
+import type {
+  ComunicaDataFactory,
+  IActionContext,
+  IQueryOperationResult,
+  QueryFormatType,
+} from '@comunica/types';
 import { AlgebraFactory } from '@comunica/utils-algebra';
+import type { Algebra } from '@comunica/utils-algebra';
 import { BindingsFactory } from '@comunica/utils-bindings-factory';
 import { materializeOperation } from '@comunica/utils-query-operation';
 import type * as RDF from '@rdfjs/types';

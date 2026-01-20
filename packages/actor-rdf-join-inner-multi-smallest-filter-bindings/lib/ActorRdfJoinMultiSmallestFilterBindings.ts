@@ -1,15 +1,15 @@
 import type {
   IActionRdfJoin,
   IActorRdfJoinArgs,
+  MediatorRdfJoin,
   IActorRdfJoinOutputInner,
   IActorRdfJoinTestSideData,
-  MediatorRdfJoin,
 } from '@comunica/bus-rdf-join';
 import { ActorRdfJoin } from '@comunica/bus-rdf-join';
 import type { MediatorRdfJoinEntriesSort } from '@comunica/bus-rdf-join-entries-sort';
 import { KeysInitQuery, KeysRdfJoin } from '@comunica/context-entries';
 import type { TestResult } from '@comunica/core';
-import { failTest, passTest, passTestWithSideData } from '@comunica/core';
+import { passTestWithSideData, failTest, passTest } from '@comunica/core';
 import type { IMediatorTypeJoinCoefficients } from '@comunica/mediatortype-join-coefficients';
 import type {
   BindingsStream,

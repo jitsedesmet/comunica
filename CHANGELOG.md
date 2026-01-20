@@ -1,6 +1,39 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v5.1.0"></a>
+## [v5.1.0](https://github.com/comunica/comunica/compare/v5.0.5...v5.1.0) - 2026-01-16
+
+### Added
+* [Allow prefixes to passed to N3 serializer with rdfSerializationPrefixes](https://github.com/comunica/comunica/commit/ac1c640b8493b5efd25397dda3fd01725136ff31)
+
+<a name="v5.0.5"></a>
+## [v5.0.5](https://github.com/comunica/comunica/compare/v5.0.4...v5.0.5) - 2026-01-13
+
+### Fixed
+* [Fix incorrect handling of zero-or-one path with var subject and object](https://github.com/comunica/comunica/commit/6eedf80d80474c08a445be101213e73cdd4d83c5)
+
+<a name="v5.0.4"></a>
+## [v5.0.4](https://github.com/comunica/comunica/compare/v5.0.3...v5.0.4) - 2026-01-13
+
+### Changed
+* [Modernize depcheck util](https://github.com/comunica/comunica/commit/bac72f3ff4c30adaff8211b059b56f4dc8216aef)
+
+<a name="v5.0.3"></a>
+## [v5.0.3](https://github.com/comunica/comunica/compare/v5.0.2...v5.0.3) - 2026-01-12
+
+### Fixed
+* [Fix ActionContext#ensureActionContext failing in obfuscated environments](https://github.com/comunica/comunica/commit/470692e848e08405aeb83f16e9063924eafa21c0)
+
+<a name="v5.0.2"></a>
+## [v5.0.2](https://github.com/comunica/comunica/compare/v5.0.1...v5.0.2) - 2026-01-12
+
+### Fixed
+* [Fix ActionContext#ensureActionContext failing on dual packages](https://github.com/comunica/comunica/commit/6262cd4ca705c4d7960fd8accffa1441476cdb52)
+
+### Changed
+* [Bump shaclc dependencies to reduce bundle size](https://github.com/comunica/comunica/commit/34cca6fe5891ef492805eaae71434d02f4b373e4)
+
 <a name="v5.0.1"></a>
 ## [v5.0.1](https://github.com/comunica/comunica/compare/v5.0.0...v5.0.1) - 2026-01-08
 

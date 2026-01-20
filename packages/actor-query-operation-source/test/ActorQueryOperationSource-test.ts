@@ -2,12 +2,12 @@ import { KeysInitQuery } from '@comunica/context-entries';
 import { ActionContext, Bus } from '@comunica/core';
 import type {
   IActionContext,
-  IPhysicalQueryPlanLogger,
   IQueryOperationResultBindings,
   IQueryOperationResultBoolean,
   IQueryOperationResultQuads,
   IQueryOperationResultVoid,
   IQuerySourceWrapper,
+  IPhysicalQueryPlanLogger,
 } from '@comunica/types';
 import { AlgebraFactory } from '@comunica/utils-algebra';
 import { assignOperationSource } from '@comunica/utils-query-operation';

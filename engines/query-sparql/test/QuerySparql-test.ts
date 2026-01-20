@@ -969,6 +969,19 @@ SELECT * WHERE {
         expect((await bindingsStream.toArray()).length > 0).toBeTruthy();
       });*/
 
+      it('with join over lateral', async() => {
+        const bindingsStream = await engine.queryBindings(`
+SELECT * WHERE {
+  <https://api.community.hubl.world/skills/> <http://www.w3.org/ns/ldp#contains> ?contains.
+  {
+    { ?contains <http://www.w3.org/2000/01/rdf-schema#label> ?preload_0. }
+    LATERAL
+    { ?contains <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?preload_1. }
+  }
+}`, { sources: [ 'https://api.community.hubl.world/skills/' ]});
+        expect((await bindingsStream.toArray()).length > 0).toBeTruthy();
+      });
+
       it('on the LOV SPARQL service description (no browser)', async() => {
         await expect(engine.queryBindings(`
 PREFIX sh: <http://www.w3.org/ns/shacl#>
@@ -1429,6 +1442,68 @@ SELECT ?option WHERE {
 }
 `, { sources: [ store ]})))).resolves.toHaveLength(10);
         });
+      });
+
+      it('should handle zero-or-one path with variable subject and object', async() => {
+        const store = new Store([
+          DF.quad(DF.namedNode('ex:s1'), DF.namedNode('ex:name'), DF.literal('s1')),
+          DF.quad(DF.namedNode('ex:s1'), DF.namedNode('ex:knows'), DF.namedNode('ex:s2')),
+          DF.quad(DF.namedNode('ex:s2'), DF.namedNode('ex:name'), DF.literal('s2')),
+        ]);
+        const bindingsStream = await engine.queryBindings(`
+        PREFIX ex: <ex:>
+        SELECT ?s ?o WHERE {
+          ?s ex:knows? ?o .
+        }`, { sources: [ store ]});
+        await expect(bindingsStream).toEqualBindingsStream([
+          BF.bindings([
+            [ DF.variable('s'), DF.namedNode('ex:s1') ],
+            [ DF.variable('o'), DF.namedNode('ex:s2') ],
+          ]),
+          BF.bindings([
+            [ DF.variable('s'), DF.namedNode('ex:s1') ],
+            [ DF.variable('o'), DF.namedNode('ex:s1') ],
+          ]),
+          BF.bindings([
+            [ DF.variable('s'), DF.literal('s1') ],
+            [ DF.variable('o'), DF.literal('s1') ],
+          ]),
+          BF.bindings([
+            [ DF.variable('s'), DF.namedNode('ex:s2') ],
+            [ DF.variable('o'), DF.namedNode('ex:s2') ],
+          ]),
+          BF.bindings([
+            [ DF.variable('s'), DF.literal('s2') ],
+            [ DF.variable('o'), DF.literal('s2') ],
+          ]),
+        ]);
+      });
+
+      it('should handle zero-or-one and link path with variable subject and object', async() => {
+        const store = new Store([
+          DF.quad(DF.namedNode('ex:s1'), DF.namedNode('ex:name'), DF.literal('s1')),
+          DF.quad(DF.namedNode('ex:s1'), DF.namedNode('ex:knows'), DF.namedNode('ex:s2')),
+          DF.quad(DF.namedNode('ex:s2'), DF.namedNode('ex:name'), DF.literal('s2')),
+        ]);
+        const bindingsStream = await engine.queryBindings(`
+        PREFIX ex: <ex:>
+        SELECT ?s ?o WHERE {
+          ?s ex:knows?/ex:name ?o .
+        }`, { sources: [ store ]});
+        await expect(bindingsStream).toEqualBindingsStream([
+          BF.bindings([
+            [ DF.variable('s'), DF.namedNode('ex:s1') ],
+            [ DF.variable('o'), DF.literal('s1') ],
+          ]),
+          BF.bindings([
+            [ DF.variable('s'), DF.namedNode('ex:s1') ],
+            [ DF.variable('o'), DF.literal('s2') ],
+          ]),
+          BF.bindings([
+            [ DF.variable('s'), DF.namedNode('ex:s2') ],
+            [ DF.variable('o'), DF.literal('s2') ],
+          ]),
+        ]);
       });
     });
 

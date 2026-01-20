@@ -5,9 +5,9 @@ import type { MediatorRdfResolveHypermediaLinksQueue } from '@comunica/bus-rdf-r
 import { KeysStatistics } from '@comunica/context-entries';
 import { ActionContext } from '@comunica/core';
 import { StatisticLinkDiscovery } from '@comunica/statistic-link-discovery';
-import type { IActionContext, ILink, IQuerySource } from '@comunica/types';
-import type { Algebra } from '@comunica/utils-algebra';
+import type { IActionContext, IQuerySource, ILink } from '@comunica/types';
 import { AlgebraFactory } from '@comunica/utils-algebra';
+import type { Algebra } from '@comunica/utils-algebra';
 import { setTaskScheduler } from 'asynciterator';
 import { DataFactory } from 'rdf-data-factory';
 import type { ISourceState, SourceStateGetter } from '../lib/LinkedRdfSourcesAsyncRdfIterator';
@@ -52,7 +52,7 @@ describe('MediatedLinkedRdfSourcesAsyncRdfIterator', () => {
         };
       };
       sourceFactory = () => new MediatedLinkedRdfSourcesAsyncRdfIterator(
-        operation,
+        operation!,
         {},
         context,
         { url: 'first' },

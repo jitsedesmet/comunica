@@ -4,14 +4,14 @@ import type { MediatorMergeBindingsContext } from '@comunica/bus-merge-bindings-
 import type { MediatorQueryOperation } from '@comunica/bus-query-operation';
 import type {
   IActionRdfJoin,
-  IActorRdfJoinArgs,
   IActorRdfJoinOutputInner,
+  IActorRdfJoinArgs,
   IActorRdfJoinTestSideData,
 } from '@comunica/bus-rdf-join';
 import { ActorRdfJoin } from '@comunica/bus-rdf-join';
 import { KeysInitQuery, KeysQueryOperation } from '@comunica/context-entries';
 import type { TestResult } from '@comunica/core';
-import { failTest, passTestWithSideData } from '@comunica/core';
+import { passTestWithSideData, failTest } from '@comunica/core';
 import type { IMediatorTypeJoinCoefficients } from '@comunica/mediatortype-join-coefficients';
 import type { Bindings, BindingsStream, ComunicaDataFactory } from '@comunica/types';
 import { Algebra, AlgebraFactory } from '@comunica/utils-algebra';

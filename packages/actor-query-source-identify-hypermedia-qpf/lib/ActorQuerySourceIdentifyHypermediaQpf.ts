@@ -2,11 +2,13 @@ import type { MediatorDereferenceRdf } from '@comunica/bus-dereference-rdf';
 import type { MediatorMergeBindingsContext } from '@comunica/bus-merge-bindings-context';
 import type {
   IActionQuerySourceIdentifyHypermedia,
-  IActorQuerySourceIdentifyHypermediaArgs,
   IActorQuerySourceIdentifyHypermediaOutput,
+  IActorQuerySourceIdentifyHypermediaArgs,
   IActorQuerySourceIdentifyHypermediaTest,
 } from '@comunica/bus-query-source-identify-hypermedia';
-import { ActorQuerySourceIdentifyHypermedia } from '@comunica/bus-query-source-identify-hypermedia';
+import {
+  ActorQuerySourceIdentifyHypermedia,
+} from '@comunica/bus-query-source-identify-hypermedia';
 import type { MediatorRdfMetadata } from '@comunica/bus-rdf-metadata';
 import type { MediatorRdfMetadataExtract } from '@comunica/bus-rdf-metadata-extract';
 import { KeysInitQuery } from '@comunica/context-entries';

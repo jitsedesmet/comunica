@@ -4,7 +4,10 @@ import type {
 } from '@comunica/bus-bindings-aggregator-factory';
 import type { IActionContextPreprocess, IActorContextPreprocessOutput } from '@comunica/bus-context-preprocess';
 import type { IActionDereference, IActorDereferenceOutput } from '@comunica/bus-dereference';
-import type { IActionDereferenceRdf, IActorDereferenceRdfOutput } from '@comunica/bus-dereference-rdf';
+import type {
+  IActionDereferenceRdf,
+  IActorDereferenceRdfOutput,
+} from '@comunica/bus-dereference-rdf';
 import type {
   IActionExpressionEvaluatorFactory,
   IActorExpressionEvaluatorFactoryOutput,
@@ -62,8 +65,8 @@ import type {
   IActionTermComparatorFactory,
   IActorTermComparatorFactoryOutput,
 } from '@comunica/bus-term-comparator-factory';
-import type { Bus, IAction, IActorOutput, IActorTest, Mediate } from '@comunica/core';
 import { ActionContext, failTest } from '@comunica/core';
+import type { Mediate, IAction, IActorOutput, IActorTest, Bus } from '@comunica/core';
 import type { IMediatorTypeAccuracy } from '@comunica/mediatortype-accuracy';
 import type { IMediatorTypeJoinCoefficients } from '@comunica/mediatortype-join-coefficients';
 import type { Runner } from '@comunica/runner';

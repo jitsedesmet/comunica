@@ -1,14 +1,16 @@
 import type { IActorQueryOperationTypedMediatedArgs } from '@comunica/bus-query-operation';
-import { ActorQueryOperationTypedMediated } from '@comunica/bus-query-operation';
+import {
+  ActorQueryOperationTypedMediated,
+} from '@comunica/bus-query-operation';
 import { KeysInitQuery } from '@comunica/context-entries';
 import type { IActorTest, TestResult } from '@comunica/core';
 import { passTestVoid } from '@comunica/core';
 import type {
-  ComunicaDataFactory,
+  IQueryOperationResultBindings,
   IActionContext,
   IQueryOperationResult,
-  IQueryOperationResultBindings,
   MetadataQuads,
+  ComunicaDataFactory,
 } from '@comunica/types';
 import { Algebra, AlgebraFactory } from '@comunica/utils-algebra';
 import { getSafeBindings } from '@comunica/utils-query-operation';

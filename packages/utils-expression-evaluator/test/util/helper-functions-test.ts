@@ -1,7 +1,18 @@
 import type { IActionQueryOperation } from '@comunica/bus-query-operation';
 import { AlgebraFactory } from '@comunica/utils-algebra';
 import type * as RDF from '@rdfjs/types';
-import { date, decimal, DF, double, float, getMockEEFactory, int, makeAggregate, nonLiteral, string } from './helpers';
+import {
+  date,
+  decimal,
+  DF,
+  double,
+  float,
+  getMockEEFactory,
+  int,
+  makeAggregate,
+  nonLiteral,
+  string,
+} from './helpers';
 
 const AF = new AlgebraFactory();
 

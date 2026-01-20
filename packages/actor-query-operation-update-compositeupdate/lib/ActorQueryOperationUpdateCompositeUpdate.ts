@@ -1,5 +1,7 @@
 import type { IActorQueryOperationTypedMediatedArgs } from '@comunica/bus-query-operation';
-import { ActorQueryOperationTypedMediated } from '@comunica/bus-query-operation';
+import {
+  ActorQueryOperationTypedMediated,
+} from '@comunica/bus-query-operation';
 import type { IActorTest, TestResult } from '@comunica/core';
 import type { IActionContext, IQueryOperationResult } from '@comunica/types';
 import { Algebra } from '@comunica/utils-algebra';

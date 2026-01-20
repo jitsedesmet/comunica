@@ -1,4 +1,6 @@
-import { ActorFunctionFactoryExpressionConcat } from '@comunica/actor-function-factory-expression-concat';
+import {
+  ActorFunctionFactoryExpressionConcat,
+} from '@comunica/actor-function-factory-expression-concat';
 import { ActorFunctionFactoryTermAddition } from '@comunica/actor-function-factory-term-addition';
 import { ActorFunctionFactoryTermEquality } from '@comunica/actor-function-factory-term-equality';
 import { ActorFunctionFactoryTermIri } from '@comunica/actor-function-factory-term-iri';
@@ -8,7 +10,7 @@ import { createFuncMediator } from '@comunica/bus-function-factory/test/util';
 import { ActorQueryOperation } from '@comunica/bus-query-operation';
 import { KeysInitQuery } from '@comunica/context-entries';
 import { ActionContext, Bus } from '@comunica/core';
-import type { Bindings, IActionContext, IQueryOperationResultBindings } from '@comunica/types';
+import type { IQueryOperationResultBindings, Bindings, IActionContext } from '@comunica/types';
 import type { Algebra } from '@comunica/utils-algebra';
 import { AlgebraFactory } from '@comunica/utils-algebra';
 import { BindingsFactory } from '@comunica/utils-bindings-factory';

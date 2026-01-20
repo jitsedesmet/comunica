@@ -1,6 +1,11 @@
-import type { IAction, IActorArgs, IActorTest, Mediate } from '@comunica/core';
+import type { IActorArgs, IActorTest, IAction, Mediate } from '@comunica/core';
 import { Actor } from '@comunica/core';
-import type { Bindings, FunctionArgumentsCache, IActionContext, IQueryOperationResult } from '@comunica/types';
+import type {
+  IQueryOperationResult,
+  Bindings,
+  IActionContext,
+  FunctionArgumentsCache,
+} from '@comunica/types';
 import type { Algebra } from '@comunica/utils-algebra';
 import type * as RDF from '@rdfjs/types';
 

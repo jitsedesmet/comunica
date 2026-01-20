@@ -3,7 +3,7 @@ import type { IActionRdfJoinEntriesSort, MediatorRdfJoinEntriesSort } from '@com
 import type { MediatorRdfJoinSelectivity } from '@comunica/bus-rdf-join-selectivity';
 import { KeysInitQuery } from '@comunica/context-entries';
 import { ActionContext, Bus } from '@comunica/core';
-import type { IActionContext, IQuerySourceWrapper } from '@comunica/types';
+import type { IQuerySourceWrapper, IActionContext } from '@comunica/types';
 import { Algebra, AlgebraFactory } from '@comunica/utils-algebra';
 import { BindingsFactory } from '@comunica/utils-bindings-factory';
 import { MetadataValidationState } from '@comunica/utils-metadata';
@@ -11,8 +11,12 @@ import { assignOperationSource } from '@comunica/utils-query-operation';
 import type * as RDF from '@rdfjs/types';
 import { ArrayIterator, AsyncIterator } from 'asynciterator';
 import { DataFactory } from 'rdf-data-factory';
-import type { IActorRdfJoinMultiBindSourceTestSideData } from '../lib/ActorRdfJoinMultiBindSource';
-import { ActorRdfJoinMultiBindSource } from '../lib/ActorRdfJoinMultiBindSource';
+import type {
+  IActorRdfJoinMultiBindSourceTestSideData,
+} from '../lib/ActorRdfJoinMultiBindSource';
+import {
+  ActorRdfJoinMultiBindSource,
+} from '../lib/ActorRdfJoinMultiBindSource';
 import '@comunica/utils-jest';
 
 const AF = new AlgebraFactory();

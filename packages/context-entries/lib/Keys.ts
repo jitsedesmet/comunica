@@ -2,24 +2,24 @@ import { ActionContextKey, CONTEXT_KEY_LOGGER } from '@comunica/core';
 import type {
   AsyncExtensionFunctionCreator,
   Bindings,
-  ComunicaDataFactory,
   FunctionArgumentsCache,
   IActionContext,
   ICliArgsHandler,
   IDataDestination,
-  IDiscoverEventData,
-  ILink,
   IPhysicalQueryPlanLogger,
   IProxyHandler,
   IQuerySourceWrapper,
-  IStatisticBase,
   ISuperTypeProvider,
   ITimeZoneRepresentation,
   MetadataBindings,
-  PartialResult,
   QueryExplainMode,
   QuerySourceReference,
   QuerySourceUnidentified,
+  ComunicaDataFactory,
+  IStatisticBase,
+  IDiscoverEventData,
+  PartialResult,
+  ILink,
 } from '@comunica/types';
 import type { Algebra } from '@comunica/utils-algebra';
 import type * as RDF from '@rdfjs/types';
@@ -327,6 +327,15 @@ export const KeysRdfParseHtmlScript = {
    * If all HTML script tags must be considered.
    */
   extractAllScripts: new ActionContextKey<boolean>('extractAllScripts'),
+};
+
+export const KeysRdfSerialize = {
+  /**
+   * Prefixes that will be used by RDF serializers.
+   */
+  rdfSerializationPrefixes: new ActionContextKey<Record<string, string>>(
+    '@comunica/bus-rdf-serialize:rdfSerializationPrefixes',
+  ),
 };
 
 export const KeysQuerySourceIdentify = {

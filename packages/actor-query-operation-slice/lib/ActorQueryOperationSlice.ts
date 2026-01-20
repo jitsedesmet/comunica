@@ -1,15 +1,17 @@
 import type { IActorQueryOperationTypedMediatedArgs } from '@comunica/bus-query-operation';
-import { ActorQueryOperationTypedMediated } from '@comunica/bus-query-operation';
+import {
+  ActorQueryOperationTypedMediated,
+} from '@comunica/bus-query-operation';
 import { KeysQueryOperation } from '@comunica/context-entries';
 import type { IActorTest, TestResult } from '@comunica/core';
 import { passTestVoid } from '@comunica/core';
 import type {
-  IActionContext,
-  IMetadata,
   IQueryOperationResult,
   IQueryOperationResultBindings,
   IQueryOperationResultQuads,
   IQueryOperationResultStream,
+  IMetadata,
+  IActionContext,
 } from '@comunica/types';
 import { Algebra } from '@comunica/utils-algebra';
 import type { AsyncIterator } from 'asynciterator';
@@ -82,7 +84,7 @@ export class ActorQueryOperationSlice extends ActorQueryOperationTypedMediated<A
         if (Number.isFinite(cardinality.value)) {
           cardinality.value = Math.max(0, cardinality.value - pattern.start);
           if (hasLength) {
-            cardinality.value = Math.min(cardinality.value, pattern.length);
+            cardinality.value = Math.min(cardinality.value, pattern.length!);
           }
         }
         return { ...subMetadata, cardinality };

@@ -6,7 +6,6 @@ import * as E from '../expressions';
 import { TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
 import { isExpressionError } from '../util/Errors';
-import * as P from '../util/Parsing';
 import {
   parseDate,
   parseDateTime,
@@ -15,6 +14,7 @@ import {
   parseTime,
   parseYearMonthDuration,
 } from '../util/Parsing';
+import * as P from '../util/Parsing';
 import { getSuperTypeDict } from '../util/TypeHandling';
 
 export interface ITermTransformer {
