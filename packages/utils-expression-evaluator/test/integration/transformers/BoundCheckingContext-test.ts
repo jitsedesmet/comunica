@@ -1,7 +1,7 @@
 import { KeysExpressionEvaluator } from '@comunica/context-entries';
 import { ActionContext } from '@comunica/core';
-import { DataFactory } from 'rdf-data-factory';
 import { getMockSuperTypeProvider } from '@comunica/utils-expression-evaluator/test/util/helpers';
+import { DataFactory } from 'rdf-data-factory';
 import { InvalidLiteralBoundBehavior, NonLexicalLiteral, TermTransformer, TypeURL } from '../../../lib';
 
 const DF = new DataFactory();
