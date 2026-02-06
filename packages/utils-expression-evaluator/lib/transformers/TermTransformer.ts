@@ -23,6 +23,13 @@ export interface ITermTransformer {
 }
 
 export class TermTransformer implements ITermTransformer {
+  /**
+   * @param superTypeProvider Provider for type hierarchy information
+   * @param invalidLiteralBoundBehavior Specifies how to handle literals that don't fit the bounds
+   *        of their declared type (e.g., "200"^^xsd:byte where xsd:byte range is -128 to 127).
+   *        - IGNORE: Accept the value as-is (default, maintains backward compatibility)
+   *        - ERROR: Create a NonLexicalLiteral, which will cause type errors in operations
+   */
   public constructor(
     protected readonly superTypeProvider: ISuperTypeProvider,
     protected readonly invalidLiteralBoundBehavior: InvalidLiteralBoundBehavior = InvalidLiteralBoundBehavior.IGNORE,
@@ -32,12 +39,13 @@ export class TermTransformer implements ITermTransformer {
    * Checks if a number is within the bounds for a given datatype.
    * @param value The numeric value to check
    * @param dataType The datatype to check bounds for
-   * @returns true if the value is within bounds, false otherwise
+   * @returns true if the value is within bounds or if no bounds are defined for the type,
+   *          false if the value is outside the defined bounds or not an integer for integer types
    */
   protected isWithinBounds(value: number, dataType: string): boolean {
     const bounds = XSD_TYPE_BOUNDS[dataType];
     if (!bounds) {
-      // No bounds defined for this type
+      // No bounds defined for this type - accept the value
       return true;
     }
 
