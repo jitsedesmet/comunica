@@ -84,6 +84,56 @@ export enum TypeURL {
 }
 
 // ----------------------------------------------------------------------------
+// Invalid Literal Bound Behavior
+// ----------------------------------------------------------------------------
+
+/**
+ * Enum to specify how invalid literal bounds should be handled.
+ * For example, when parsing a number that doesn't fit the bounds of xsd:short.
+ */
+export enum InvalidLiteralBoundBehavior {
+  /**
+   * Ignore invalid bounds and parse the value anyway.
+   */
+  IGNORE = 'ignore',
+  /**
+   * Throw a non-lexical error when bounds are invalid.
+   * This will result in a NonLexicalLiteral being created.
+   */
+  ERROR = 'error',
+}
+
+// ----------------------------------------------------------------------------
+// XSD Type Bounds
+// ----------------------------------------------------------------------------
+
+/**
+ * Bounds for XSD integer types as defined in the XML Schema specification.
+ * @see https://www.w3.org/TR/xmlschema11-2/
+ */
+export const XSD_TYPE_BOUNDS: Record<string, { min: number; max: number }> = {
+  // Signed integer types
+  [TypeURL.XSD_BYTE]: { min: -128, max: 127 },
+  [TypeURL.XSD_SHORT]: { min: -32_768, max: 32_767 },
+  [TypeURL.XSD_INT]: { min: -2_147_483_648, max: 2_147_483_647 },
+  // Note: JavaScript cannot accurately represent the full range of xsd:long
+  // We use Number.MIN_SAFE_INTEGER and Number.MAX_SAFE_INTEGER as approximations
+  [TypeURL.XSD_LONG]: { min: Number.MIN_SAFE_INTEGER, max: Number.MAX_SAFE_INTEGER },
+
+  // Unsigned integer types
+  [TypeURL.XSD_UNSIGNED_BYTE]: { min: 0, max: 255 },
+  [TypeURL.XSD_UNSIGNED_SHORT]: { min: 0, max: 65_535 },
+  [TypeURL.XSD_UNSIGNED_INT]: { min: 0, max: 4_294_967_295 },
+  [TypeURL.XSD_UNSIGNED_LONG]: { min: 0, max: Number.MAX_SAFE_INTEGER },
+
+  // Constrained integer types
+  [TypeURL.XSD_NON_POSITIVE_INTEGER]: { min: Number.MIN_SAFE_INTEGER, max: 0 },
+  [TypeURL.XSD_NEGATIVE_INTEGER]: { min: Number.MIN_SAFE_INTEGER, max: -1 },
+  [TypeURL.XSD_NON_NEGATIVE_INTEGER]: { min: 0, max: Number.MAX_SAFE_INTEGER },
+  [TypeURL.XSD_POSITIVE_INTEGER]: { min: 1, max: Number.MAX_SAFE_INTEGER },
+};
+
+// ----------------------------------------------------------------------------
 // Operators
 // ----------------------------------------------------------------------------
 

@@ -42,6 +42,8 @@ export {
   GeneralOperator,
   KnownOperator,
   KnownLiteralTypes,
+  InvalidLiteralBoundBehavior,
+  XSD_TYPE_BOUNDS,
 } from './util/Consts';
 export { isSubTypeOf } from './util/TypeHandling';
 export {

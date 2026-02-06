@@ -1,7 +1,11 @@
 import { ExpressionFunctionBase } from '@comunica/bus-function-factory/lib/implementation/Core';
 import { KeysExpressionEvaluator, KeysInitQuery } from '@comunica/context-entries';
 import type { AsyncExtensionFunction, IEvalContext, TermExpression } from '@comunica/types';
-import { ExtensionFunctionError, TermTransformer } from '@comunica/utils-expression-evaluator';
+import {
+  ExtensionFunctionError,
+  InvalidLiteralBoundBehavior,
+  TermTransformer,
+} from '@comunica/utils-expression-evaluator';
 
 interface NamedExtensionArgs {
   operator: string;
@@ -17,7 +21,13 @@ export class NamedExtension extends ExpressionFunctionBase {
         const evaluatedArgs: TermExpression[] = await Promise.all(args.map(arg =>
           exprEval.evaluatorExpressionEvaluation(arg, mapping)));
         try {
-          return new TermTransformer(exprEval.context.getSafe(KeysExpressionEvaluator.superTypeProvider))
+          const boundBehavior = exprEval.context.get(KeysExpressionEvaluator.invalidLiteralBoundBehavior) === 'error' ?
+            InvalidLiteralBoundBehavior.ERROR :
+            InvalidLiteralBoundBehavior.IGNORE;
+          return new TermTransformer(
+            exprEval.context.getSafe(KeysExpressionEvaluator.superTypeProvider),
+            boundBehavior,
+          )
             .transformRDFTermUnsafe(
               await functionDefinition(evaluatedArgs.map(term =>
                 term.toRDF(exprEval.context.getSafe(KeysInitQuery.dataFactory)))),
