@@ -39,5 +39,7 @@ export function prepareEvaluatorActionContext(orgContext: IActionContext): IActi
     discoverer: () => 'term',
   });
 
+  context = context.setDefault(KeysExpressionEvaluator.invalidLiteralBoundBehavior, 'ignore');
+
   return context;
 }

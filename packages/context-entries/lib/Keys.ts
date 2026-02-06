@@ -254,6 +254,9 @@ export const KeysExpressionEvaluator = {
     '@comunica/utils-expression-evaluator:defaultTimeZone',
   ),
   actionContext: new ActionContextKey<IActionContext>('@comunica/utils-expression-evaluator:actionContext'),
+  invalidLiteralBoundBehavior: new ActionContextKey<string>(
+    '@comunica/utils-expression-evaluator:invalidLiteralBoundBehavior',
+  ),
 };
 
 export const KeysQueryOperation = {

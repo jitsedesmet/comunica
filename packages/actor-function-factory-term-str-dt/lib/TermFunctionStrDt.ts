@@ -8,6 +8,7 @@ import type {
 } from '@comunica/utils-expression-evaluator';
 import {
   declare,
+  InvalidLiteralBoundBehavior,
   SparqlOperator,
   TermTransformer,
   TypeURL,
@@ -26,7 +27,13 @@ export class TermFunctionStrDt extends TermFunctionBase {
         exprEval => ([ str, iri ]: [StringLiteral, NamedNode]) => {
           const dataFactory: ComunicaDataFactory = exprEval.context.getSafe(KeysInitQuery.dataFactory);
           const lit = dataFactory.literal(str.typedValue, dataFactory.namedNode(iri.value));
-          return new TermTransformer(exprEval.context.getSafe(KeysExpressionEvaluator.superTypeProvider))
+          const boundBehavior = exprEval.context.get(KeysExpressionEvaluator.invalidLiteralBoundBehavior) === 'error' ?
+            InvalidLiteralBoundBehavior.ERROR :
+            InvalidLiteralBoundBehavior.IGNORE;
+          return new TermTransformer(
+            exprEval.context.getSafe(KeysExpressionEvaluator.superTypeProvider),
+            boundBehavior,
+          )
             .transformLiteral(lit);
         },
       ).collect(),
