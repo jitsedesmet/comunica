@@ -97,8 +97,8 @@ export enum InvalidLiteralBoundBehavior {
    */
   IGNORE = 'ignore',
   /**
-   * Throw a non-lexical error when bounds are invalid.
-   * This will result in a NonLexicalLiteral being created.
+   * Create a NonLexicalLiteral when bounds are invalid.
+   * This will result in a NonLexicalLiteral being created, which causes type errors in operations.
    */
   ERROR = 'error',
 }
