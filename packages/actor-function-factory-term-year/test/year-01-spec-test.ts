@@ -1,7 +1,5 @@
-import { runFuncTestTable } from '@comunica/bus-function-factory/test/util';
 import * as Data from '@comunica/utils-expression-evaluator/test/spec/_data';
-import { int } from '@comunica/utils-expression-evaluator/test/util/Aliases';
-import { Notation } from '@comunica/utils-expression-evaluator/test/util/TestTable';
+import { runFuncTestTable, int, Notation } from '@comunica/utils-jest';
 import { ActorFunctionFactoryTermYear } from '../lib';
 
 describe('Year', () => {

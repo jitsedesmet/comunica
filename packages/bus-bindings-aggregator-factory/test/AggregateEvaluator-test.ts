@@ -1,11 +1,6 @@
 import type { ComunicaDataFactory, IExpressionEvaluator } from '@comunica/types';
 import { BindingsFactory } from '@comunica/utils-bindings-factory';
-import {
-  getMockEEActionContext,
-  getMockEEFactory,
-  int,
-  makeAggregate,
-} from '@comunica/utils-expression-evaluator/test/util/helpers';
+import { getMockEEActionContext, getMockEEFactory, intLiteral, makeAggregate } from '@comunica/utils-jest';
 import type * as RDF from '@rdfjs/types';
 import { DataFactory } from 'rdf-data-factory';
 import { AggregateEvaluator } from '../lib';
@@ -39,7 +34,7 @@ describe('aggregate evaluator', () => {
         first = false;
         throw new Error('We only want the first to succeed');
       }
-      return int('1');
+      return intLiteral('1');
     };
     const evaluator: AggregateEvaluator = new EmptyEvaluator(temp, false);
     await Promise.all([ evaluator.putBindings(BF.bindings()), evaluator.putBindings(BF.bindings()) ]);
