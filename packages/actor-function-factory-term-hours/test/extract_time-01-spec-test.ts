@@ -1,11 +1,6 @@
 import { ActorFunctionFactoryTermMinutes } from '@comunica/actor-function-factory-term-minutes';
 import { ActorFunctionFactoryTermSeconds } from '@comunica/actor-function-factory-term-seconds';
-import { runFuncTestTable } from '@comunica/bus-function-factory/test/util';
-import {
-  int,
-  timeTyped,
-} from '@comunica/utils-expression-evaluator/test/util/Aliases';
-import { Notation } from '@comunica/utils-expression-evaluator/test/util/TestTable';
+import { runFuncTestTable, int, timeTyped, Notation } from '@comunica/utils-jest';
 import { ActorFunctionFactoryTermHours } from '../lib';
 
 describe('Extract time', () => {

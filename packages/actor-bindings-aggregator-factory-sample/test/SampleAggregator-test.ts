@@ -1,14 +1,7 @@
 import type { IBindingsAggregator } from '@comunica/bus-bindings-aggregator-factory';
 import type { ActorExpressionEvaluatorFactory } from '@comunica/bus-expression-evaluator-factory';
 import type { IActionContext } from '@comunica/types';
-import {
-  BF,
-  DF,
-  getMockEEActionContext,
-  getMockEEFactory,
-  int,
-  makeAggregate,
-} from '@comunica/utils-expression-evaluator/test/util/helpers';
+import { BF, DF, getMockEEActionContext, getMockEEFactory, intLiteral, makeAggregate } from '@comunica/utils-jest';
 import type * as RDF from '@rdfjs/types';
 import { SampleAggregator } from '../lib';
 
@@ -51,13 +44,13 @@ describe('SampleAggregator', () => {
 
     it('a list of bindings', async() => {
       const input = [
-        BF.bindings([[ DF.variable('x'), int('1') ]]),
-        BF.bindings([[ DF.variable('x'), int('2') ]]),
-        BF.bindings([[ DF.variable('x'), int('3') ]]),
-        BF.bindings([[ DF.variable('x'), int('4') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('1') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('2') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('3') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('4') ]]),
       ];
 
-      await expect(runAggregator(aggregator, input)).resolves.toEqual(int('1'));
+      await expect(runAggregator(aggregator, input)).resolves.toEqual(intLiteral('1'));
     });
 
     it('with respect to empty input', async() => {
@@ -74,13 +67,13 @@ describe('SampleAggregator', () => {
 
     it('a list of bindings', async() => {
       const input = [
-        BF.bindings([[ DF.variable('x'), int('1') ]]),
-        BF.bindings([[ DF.variable('x'), int('2') ]]),
-        BF.bindings([[ DF.variable('x'), int('1') ]]),
-        BF.bindings([[ DF.variable('x'), int('1') ], [ DF.variable('y'), int('1') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('1') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('2') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('1') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('1') ], [ DF.variable('y'), intLiteral('1') ]]),
       ];
 
-      await expect(runAggregator(aggregator, input)).resolves.toEqual(int('1'));
+      await expect(runAggregator(aggregator, input)).resolves.toEqual(intLiteral('1'));
     });
 
     it('with respect to empty input', async() => {

@@ -4,13 +4,8 @@ import type {
 import { Bus } from '@comunica/core';
 import type { IActionContext } from '@comunica/types';
 import { AlgebraFactory } from '@comunica/utils-algebra';
-import {
-  getMockEEActionContext,
-  getMockMediatorExpressionEvaluatorFactory,
-  makeAggregate,
-} from '@comunica/utils-expression-evaluator/test/util/helpers';
+import { getMockEEActionContext, getMockMediatorExpressionEvaluatorFactory, makeAggregate } from '@comunica/utils-jest';
 import { ActorBindingsAggregatorFactoryCount } from '../lib';
-import '@comunica/utils-jest';
 
 describe('ActorExpressionEvaluatorAggregateCount', () => {
   let bus: any;
