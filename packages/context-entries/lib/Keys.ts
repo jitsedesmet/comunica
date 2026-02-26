@@ -243,11 +243,6 @@ export const KeysInitQuery = {
    * A boolean value denoting whether results should be deduplicated or not.
    */
   distinctConstruct: new ActionContextKey<boolean>('@comunica/actor-init-query:distinctConstruct'),
-  /**
-   * If true, actors may disable clear error messages for performance reasons.
-   * By default, clear error messages are enabled.
-   */
-  disableClearErrorMessages: new ActionContextKey<boolean>('@comunica/actor-init-query:disable-clear-error-messages'),
 };
 
 export const KeysExpressionEvaluator = {
