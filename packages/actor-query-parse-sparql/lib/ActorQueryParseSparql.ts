@@ -14,11 +14,15 @@ import { AstFactory } from '@traqula/rules-sparql-1-2';
 export class ActorQueryParseSparql extends ActorQueryParse {
   public readonly prefixes: Record<string, string> | undefined;
   private readonly parser: SparqlParser;
+  private readonly parserOptimized: SparqlParser;
 
   public constructor(args: IActorQueryParseSparqlArgs) {
     super(args);
     this.prefixes = Object.freeze(args.prefixes);
     this.parser = new SparqlParser({ lexerConfig: {
+      positionTracking: 'full',
+    }});
+    this.parserOptimized = new SparqlParser({ lexerConfig: {
       positionTracking: 'onlyOffset',
     }});
   }
@@ -32,8 +36,9 @@ export class ActorQueryParseSparql extends ActorQueryParse {
 
   public async run(action: IActionQueryParse): Promise<IActorQueryParseOutput> {
     const dataFactory: ComunicaDataFactory = action.context.getSafe(KeysInitQuery.dataFactory);
+    const parser = action.context.get(KeysInitQuery.disableClearErrorMessages) ? this.parserOptimized : this.parser;
     const astFactory = new AstFactory();
-    const parsedSyntax = this.parser.parse(action.query, {
+    const parsedSyntax = parser.parse(action.query, {
       prefixes: this.prefixes,
       baseIRI: action.baseIRI,
       astFactory,
