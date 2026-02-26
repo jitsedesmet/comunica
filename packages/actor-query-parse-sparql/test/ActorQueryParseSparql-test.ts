@@ -128,9 +128,10 @@ describe('ActorQueryParseSparql', () => {
     });
 
     it('should provide a less detailed error message when disableClearErrorMessages is set', async() => {
-      const contextOptimized = new ActionContext({
-        [KeysInitQuery.dataFactory.name]: DF,
-        [KeysInitQuery.disableClearErrorMessages.name]: true,
+      const actorOptimized = new ActorQueryParseSparql({
+        name: 'actor',
+        bus,
+        disableClearErrorMessages: true,
       });
       const invalidQuery = [
         'SELECT ?movie ?title ?name',
@@ -139,18 +140,19 @@ describe('ActorQueryParseSparql', () => {
         '  FILTER LANGMATCHES(LANG(?name),  "EN")',
         '}',
       ].join('\n');
-      await expect(actor.run({
+      await expect(actorOptimized.run({
         query: invalidQuery,
-        context: contextOptimized,
+        context,
       })).rejects.not.toThrow(/on line \d+/u);
     });
 
     it('should run with disableClearErrorMessages flag', async() => {
-      const contextOptimized = new ActionContext({
-        [KeysInitQuery.dataFactory.name]: DF,
-        [KeysInitQuery.disableClearErrorMessages.name]: true,
+      const actorOptimized = new ActorQueryParseSparql({
+        name: 'actor',
+        bus,
+        disableClearErrorMessages: true,
       });
-      const result = await actor.run({ query: 'SELECT * WHERE { ?a a ?b }', context: contextOptimized });
+      const result = await actorOptimized.run({ query: 'SELECT * WHERE { ?a a ?b }', context });
       expect(result).toMatchObject({
         operation: AF.createProject(AF.createBgp([ AF.createPattern(
           DF.variable('a'),

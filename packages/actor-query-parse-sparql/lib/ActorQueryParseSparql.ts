@@ -13,17 +13,15 @@ import { AstFactory } from '@traqula/rules-sparql-1-2';
  */
 export class ActorQueryParseSparql extends ActorQueryParse {
   public readonly prefixes: Record<string, string> | undefined;
+  public readonly disableClearErrorMessages: boolean;
   private readonly parser: SparqlParser;
-  private readonly parserOptimized: SparqlParser;
 
   public constructor(args: IActorQueryParseSparqlArgs) {
     super(args);
     this.prefixes = Object.freeze(args.prefixes);
+    this.disableClearErrorMessages = args.disableClearErrorMessages ?? false;
     this.parser = new SparqlParser({ lexerConfig: {
-      positionTracking: 'full',
-    }});
-    this.parserOptimized = new SparqlParser({ lexerConfig: {
-      positionTracking: 'onlyOffset',
+      positionTracking: this.disableClearErrorMessages ? 'onlyOffset' : 'full',
     }});
   }
 
@@ -36,9 +34,8 @@ export class ActorQueryParseSparql extends ActorQueryParse {
 
   public async run(action: IActionQueryParse): Promise<IActorQueryParseOutput> {
     const dataFactory: ComunicaDataFactory = action.context.getSafe(KeysInitQuery.dataFactory);
-    const parser = action.context.get(KeysInitQuery.disableClearErrorMessages) ? this.parserOptimized : this.parser;
     const astFactory = new AstFactory();
-    const parsedSyntax = parser.parse(action.query, {
+    const parsedSyntax = this.parser.parse(action.query, {
       prefixes: this.prefixes,
       baseIRI: action.baseIRI,
       astFactory,
@@ -86,4 +83,10 @@ export interface IActorQueryParseSparqlArgs extends IActorQueryParseArgs {
    * }}
    */
   prefixes?: Record<string, string>;
+  /**
+   * If true, the parser will use an optimized lexer config that disables clear error messages.
+   * Enabling this can improve performance at the cost of less informative parse error messages.
+   * @default {false}
+   */
+  disableClearErrorMessages?: boolean;
 }
