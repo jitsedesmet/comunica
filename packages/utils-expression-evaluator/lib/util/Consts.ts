@@ -84,6 +84,68 @@ export enum TypeURL {
 }
 
 // ----------------------------------------------------------------------------
+// Invalid Literal Bound Behavior
+// ----------------------------------------------------------------------------
+
+/**
+ * Enum to specify how invalid literal bounds should be handled.
+ * For example, when parsing a number that doesn't fit the bounds of xsd:short.
+ */
+export enum InvalidLiteralBoundBehavior {
+  /**
+   * Ignore invalid bounds and parse the value anyway.
+   */
+  IGNORE = 'ignore',
+  /**
+   * Create a NonLexicalLiteral when bounds are invalid.
+   * This will result in a NonLexicalLiteral being created, which causes type errors in operations.
+   */
+  ERROR = 'error',
+}
+
+// ----------------------------------------------------------------------------
+// XSD Type Bounds
+// ----------------------------------------------------------------------------
+
+/**
+ * Bounds for XSD integer types as defined in the XML Schema specification.
+ * @see https://www.w3.org/TR/xmlschema11-2/
+ */
+export const XSD_TYPE_BOUNDS: Record<string, { min: number; max: number }> = {
+  // Signed integer types
+  // https://www.w3.org/TR/xmlschema11-2/#byte
+  [TypeURL.XSD_BYTE]: { min: -128, max: 127 },
+  // https://www.w3.org/TR/xmlschema11-2/#short
+  [TypeURL.XSD_SHORT]: { min: -32_768, max: 32_767 },
+  // https://www.w3.org/TR/xmlschema11-2/#int
+  [TypeURL.XSD_INT]: { min: -2_147_483_648, max: 2_147_483_647 },
+  // https://www.w3.org/TR/xmlschema11-2/#long
+  // Note: JavaScript cannot accurately represent the full range of xsd:long
+  // We use Number.MIN_SAFE_INTEGER and Number.MAX_SAFE_INTEGER as approximations
+  [TypeURL.XSD_LONG]: { min: Number.MIN_SAFE_INTEGER, max: Number.MAX_SAFE_INTEGER },
+
+  // Unsigned integer types
+  // https://www.w3.org/TR/xmlschema11-2/#unsignedByte
+  [TypeURL.XSD_UNSIGNED_BYTE]: { min: 0, max: 255 },
+  // https://www.w3.org/TR/xmlschema11-2/#unsignedShort
+  [TypeURL.XSD_UNSIGNED_SHORT]: { min: 0, max: 65_535 },
+  // https://www.w3.org/TR/xmlschema11-2/#unsignedInt
+  [TypeURL.XSD_UNSIGNED_INT]: { min: 0, max: 4_294_967_295 },
+  // https://www.w3.org/TR/xmlschema11-2/#unsignedLong
+  [TypeURL.XSD_UNSIGNED_LONG]: { min: 0, max: Number.MAX_SAFE_INTEGER },
+
+  // Constrained integer types
+  // https://www.w3.org/TR/xmlschema11-2/#nonPositiveInteger
+  [TypeURL.XSD_NON_POSITIVE_INTEGER]: { min: Number.MIN_SAFE_INTEGER, max: 0 },
+  // https://www.w3.org/TR/xmlschema11-2/#negativeInteger
+  [TypeURL.XSD_NEGATIVE_INTEGER]: { min: Number.MIN_SAFE_INTEGER, max: -1 },
+  // https://www.w3.org/TR/xmlschema11-2/#nonNegativeInteger
+  [TypeURL.XSD_NON_NEGATIVE_INTEGER]: { min: 0, max: Number.MAX_SAFE_INTEGER },
+  // https://www.w3.org/TR/xmlschema11-2/#positiveInteger
+  [TypeURL.XSD_POSITIVE_INTEGER]: { min: 1, max: Number.MAX_SAFE_INTEGER },
+};
+
+// ----------------------------------------------------------------------------
 // Operators
 // ----------------------------------------------------------------------------
 
