@@ -5,17 +5,17 @@ import type { MediatorTermComparatorFactory } from '@comunica/bus-term-comparato
 import type { IActionContext } from '@comunica/types';
 import {
   BF,
-  date,
+  dateLiteral,
   DF,
-  double,
-  float,
+  doubleLiteral,
+  floatLiteral,
   getMockEEActionContext,
   getMockEEFactory,
-  int,
+  intLiteral,
   makeAggregate,
   nonLiteral,
-  string,
-} from '@comunica/utils-expression-evaluator/test/util/helpers';
+  stringLiteral,
+} from '@comunica/utils-jest';
 import type * as RDF from '@rdfjs/types';
 import { MinAggregator } from '../lib/MinAggregator';
 
@@ -75,61 +75,61 @@ describe('MinAggregator', () => {
 
     it('a list of bindings', async() => {
       const input = [
-        BF.bindings([[ DF.variable('x'), int('2') ]]),
-        BF.bindings([[ DF.variable('x'), int('1') ]]),
-        BF.bindings([[ DF.variable('x'), int('3') ]]),
-        BF.bindings([[ DF.variable('x'), int('4') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('2') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('1') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('3') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('4') ]]),
       ];
 
-      await expect(runAggregator(aggregator, input)).resolves.toEqual(int('1'));
+      await expect(runAggregator(aggregator, input)).resolves.toEqual(intLiteral('1'));
     });
 
     it('a list of string bindings', async() => {
       const input = [
-        BF.bindings([[ DF.variable('x'), string('11') ]]),
-        BF.bindings([[ DF.variable('x'), string('2') ]]),
-        BF.bindings([[ DF.variable('x'), string('1') ]]),
-        BF.bindings([[ DF.variable('x'), string('3') ]]),
+        BF.bindings([[ DF.variable('x'), stringLiteral('11') ]]),
+        BF.bindings([[ DF.variable('x'), stringLiteral('2') ]]),
+        BF.bindings([[ DF.variable('x'), stringLiteral('1') ]]),
+        BF.bindings([[ DF.variable('x'), stringLiteral('3') ]]),
       ];
 
-      await expect(runAggregator(aggregator, input)).resolves.toEqual(string('1'));
+      await expect(runAggregator(aggregator, input)).resolves.toEqual(stringLiteral('1'));
     });
 
     it('a list of date bindings', async() => {
       const input = [
-        BF.bindings([[ DF.variable('x'), date('2010-06-21Z') ]]),
-        BF.bindings([[ DF.variable('x'), date('2010-06-21-08:00') ]]),
-        BF.bindings([[ DF.variable('x'), date('2001-07-23') ]]),
-        BF.bindings([[ DF.variable('x'), date('2010-06-21+09:00') ]]),
+        BF.bindings([[ DF.variable('x'), dateLiteral('2010-06-21Z') ]]),
+        BF.bindings([[ DF.variable('x'), dateLiteral('2010-06-21-08:00') ]]),
+        BF.bindings([[ DF.variable('x'), dateLiteral('2001-07-23') ]]),
+        BF.bindings([[ DF.variable('x'), dateLiteral('2010-06-21+09:00') ]]),
       ];
 
-      await expect(runAggregator(aggregator, input)).resolves.toEqual(date('2001-07-23'));
+      await expect(runAggregator(aggregator, input)).resolves.toEqual(dateLiteral('2001-07-23'));
     });
 
     it('should work with different types', async() => {
       const input = [
-        BF.bindings([[ DF.variable('x'), double('11.0') ]]),
-        BF.bindings([[ DF.variable('x'), int('2') ]]),
-        BF.bindings([[ DF.variable('x'), float('3') ]]),
+        BF.bindings([[ DF.variable('x'), doubleLiteral('11.0') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('2') ]]),
+        BF.bindings([[ DF.variable('x'), floatLiteral('3') ]]),
       ];
 
-      await expect(runAggregator(aggregator, input)).resolves.toEqual(int('2'));
+      await expect(runAggregator(aggregator, input)).resolves.toEqual(intLiteral('2'));
     });
 
     it('passing a non-literal should not be accepted', async() => {
       const input = [
         BF.bindings([[ DF.variable('x'), nonLiteral() ]]),
-        BF.bindings([[ DF.variable('x'), int('2') ]]),
-        BF.bindings([[ DF.variable('x'), int('3') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('2') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('3') ]]),
       ];
       await expect(runAggregator(aggregator, input)).resolves.toBeUndefined();
     });
 
     it('passing a non-literal should not be accepted even in non-first place', async() => {
       const input = [
-        BF.bindings([[ DF.variable('x'), int('2') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('2') ]]),
         BF.bindings([[ DF.variable('x'), nonLiteral() ]]),
-        BF.bindings([[ DF.variable('x'), int('3') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('3') ]]),
       ];
       await expect(runAggregator(aggregator, input)).resolves.toBeUndefined();
     });
@@ -153,13 +153,13 @@ describe('MinAggregator', () => {
 
     it('a list of bindings', async() => {
       const input = [
-        BF.bindings([[ DF.variable('x'), int('1') ]]),
-        BF.bindings([[ DF.variable('x'), int('2') ]]),
-        BF.bindings([[ DF.variable('x'), int('1') ]]),
-        BF.bindings([[ DF.variable('x'), int('1') ], [ DF.variable('y'), int('1') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('1') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('2') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('1') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('1') ], [ DF.variable('y'), intLiteral('1') ]]),
       ];
 
-      await expect(runAggregator(aggregator, input)).resolves.toEqual(int('1'));
+      await expect(runAggregator(aggregator, input)).resolves.toEqual(intLiteral('1'));
     });
 
     it('with respect to empty input', async() => {

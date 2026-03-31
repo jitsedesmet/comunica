@@ -2,14 +2,7 @@ import type { IBindingsAggregator } from '@comunica/bus-bindings-aggregator-fact
 import type { ActorExpressionEvaluatorFactory } from '@comunica/bus-expression-evaluator-factory';
 import { KeysInitQuery } from '@comunica/context-entries';
 import type { IActionContext } from '@comunica/types';
-import {
-  BF,
-  DF,
-  getMockEEActionContext,
-  getMockEEFactory,
-  int,
-  makeAggregate,
-} from '@comunica/utils-expression-evaluator/test/util/helpers';
+import { BF, DF, getMockEEActionContext, getMockEEFactory, intLiteral, makeAggregate } from '@comunica/utils-jest';
 import type * as RDF from '@rdfjs/types';
 import { GroupConcatAggregator } from '../lib/GroupConcatAggregator';
 
@@ -55,10 +48,10 @@ describe('CountAggregator', () => {
 
     it('a list of bindings', async() => {
       const input = [
-        BF.bindings([[ DF.variable('x'), int('1') ]]),
-        BF.bindings([[ DF.variable('x'), int('2') ]]),
-        BF.bindings([[ DF.variable('x'), int('3') ]]),
-        BF.bindings([[ DF.variable('x'), int('4') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('1') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('2') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('3') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('4') ]]),
       ];
 
       await expect(runAggregator(aggregator, input)).resolves.toEqual(DF.literal('1 2 3 4'));
@@ -67,10 +60,10 @@ describe('CountAggregator', () => {
     it('a list of mixed bindings', async() => {
       const input = [
         BF.bindings([[ DF.variable('x'), DF.namedNode('ex:iri') ]]),
-        BF.bindings([[ DF.variable('x'), int('1') ]]),
-        BF.bindings([[ DF.variable('x'), int('2') ]]),
-        BF.bindings([[ DF.variable('x'), int('3') ]]),
-        BF.bindings([[ DF.variable('x'), int('4') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('1') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('2') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('3') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('4') ]]),
       ];
 
       await expect(runAggregator(aggregator, input)).resolves.toEqual(DF.literal('ex:iri 1 2 3 4'));
@@ -112,10 +105,10 @@ describe('CountAggregator', () => {
 
     it('uses separator', async() => {
       const input = [
-        BF.bindings([[ DF.variable('x'), int('1') ]]),
-        BF.bindings([[ DF.variable('x'), int('2') ]]),
-        BF.bindings([[ DF.variable('x'), int('3') ]]),
-        BF.bindings([[ DF.variable('x'), int('4') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('1') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('2') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('3') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('4') ]]),
       ];
 
       await expect(runAggregator(aggregator, input)).resolves.toEqual(DF.literal('1;2;3;4'));
@@ -131,10 +124,10 @@ describe('CountAggregator', () => {
 
     it('a list of bindings', async() => {
       const input = [
-        BF.bindings([[ DF.variable('x'), int('1') ]]),
-        BF.bindings([[ DF.variable('x'), int('2') ]]),
-        BF.bindings([[ DF.variable('x'), int('1') ]]),
-        BF.bindings([[ DF.variable('x'), int('1') ], [ DF.variable('y'), int('1') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('1') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('2') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('1') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('1') ], [ DF.variable('y'), intLiteral('1') ]]),
       ];
 
       await expect(runAggregator(aggregator, input)).resolves.toEqual(DF.literal('1 2'));

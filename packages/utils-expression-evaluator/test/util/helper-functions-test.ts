@@ -2,16 +2,16 @@ import type { IActionQueryOperation } from '@comunica/bus-query-operation';
 import { AlgebraFactory } from '@comunica/utils-algebra';
 import type * as RDF from '@rdfjs/types';
 import {
-  date,
-  decimal,
+  dateLiteral,
+  decimalLiteral,
   DF,
-  double,
-  float,
+  doubleLiteral,
+  floatLiteral,
   getMockEEFactory,
-  int,
+  intLiteral,
   makeAggregate,
   nonLiteral,
-  string,
+  stringLiteral,
 } from './helpers';
 
 const AF = new AlgebraFactory();
@@ -46,54 +46,54 @@ describe('The Expression evaluator util function', () => {
     });
   });
 
-  describe('int', () => {
+  describe('intLiteral', () => {
     it('returns the int as literal', () => {
-      const value = int('5');
+      const value = intLiteral('5');
       expect(value.termType === 'Literal').toBeTruthy();
       expect((<RDF.Literal> value).datatype.value).toBe('http://www.w3.org/2001/XMLSchema#integer');
       expect((<RDF.Literal> value).value).toBe('5');
     });
   });
 
-  describe('float', () => {
+  describe('floatLiteral', () => {
     it('returns the float as literal', () => {
-      const value = float('5');
+      const value = floatLiteral('5');
       expect(value.termType === 'Literal').toBeTruthy();
       expect((<RDF.Literal> value).datatype.value).toBe('http://www.w3.org/2001/XMLSchema#float');
       expect((<RDF.Literal> value).value).toBe('5');
     });
   });
 
-  describe('decimal', () => {
+  describe('decimalLiteral', () => {
     it('returns the decimal as literal', () => {
-      const value = decimal('5');
+      const value = decimalLiteral('5');
       expect(value.termType === 'Literal').toBeTruthy();
       expect((<RDF.Literal> value).datatype.value).toBe('http://www.w3.org/2001/XMLSchema#decimal');
       expect((<RDF.Literal> value).value).toBe('5');
     });
   });
 
-  describe('date', () => {
+  describe('dateLiteral', () => {
     it('returns the date as literal', () => {
-      const value = date('5');
+      const value = dateLiteral('5');
       expect(value.termType === 'Literal').toBeTruthy();
       expect((<RDF.Literal> value).datatype.value).toBe('http://www.w3.org/2001/XMLSchema#date');
       expect((<RDF.Literal> value).value).toBe('5');
     });
   });
 
-  describe('string', () => {
+  describe('stringLiteral', () => {
     it('returns the string as literal', () => {
-      const value = string('5');
+      const value = stringLiteral('5');
       expect(value.termType === 'Literal').toBeTruthy();
       expect((<RDF.Literal> value).datatype.value).toBe('http://www.w3.org/2001/XMLSchema#string');
       expect((<RDF.Literal> value).value).toBe('5');
     });
   });
 
-  describe('double', () => {
+  describe('doubleLiteral', () => {
     it('returns the double as literal', () => {
-      const value = double('5');
+      const value = doubleLiteral('5');
       expect(value.termType === 'Literal').toBeTruthy();
       expect((<RDF.Literal> value).datatype.value).toBe('http://www.w3.org/2001/XMLSchema#double');
       expect((<RDF.Literal> value).value).toBe('5');

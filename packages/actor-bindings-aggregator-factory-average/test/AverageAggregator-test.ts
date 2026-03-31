@@ -3,21 +3,21 @@ import { ActorFunctionFactoryTermDivision } from '@comunica/actor-function-facto
 import type { IBindingsAggregator } from '@comunica/bus-bindings-aggregator-factory';
 import type { ActorExpressionEvaluatorFactory } from '@comunica/bus-expression-evaluator-factory';
 import type { MediatorFunctionFactory } from '@comunica/bus-function-factory';
-import { createFuncMediator } from '@comunica/bus-function-factory/test/util';
 import { KeysInitQuery } from '@comunica/context-entries';
 import type { IActionContext } from '@comunica/types';
 import { SparqlOperator } from '@comunica/utils-expression-evaluator';
 import {
+  createFuncMediator,
   BF,
-  decimal,
+  decimalLiteral,
   DF,
-  double,
-  float,
+  doubleLiteral,
+  floatLiteral,
   getMockEEActionContext,
   getMockEEFactory,
-  int,
+  intLiteral,
   makeAggregate,
-} from '@comunica/utils-expression-evaluator/test/util/helpers';
+} from '@comunica/utils-jest';
 import type * as RDF from '@rdfjs/types';
 import { AverageAggregator } from '../lib/AverageAggregator';
 
@@ -85,47 +85,47 @@ describe('AverageAggregator', () => {
 
     it('a list of bindings', async() => {
       const input = [
-        BF.bindings([[ DF.variable('x'), float('1') ]]),
-        BF.bindings([[ DF.variable('x'), int('2') ]]),
-        BF.bindings([[ DF.variable('x'), int('3') ]]),
-        BF.bindings([[ DF.variable('x'), int('4') ]]),
+        BF.bindings([[ DF.variable('x'), floatLiteral('1') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('2') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('3') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('4') ]]),
       ];
 
-      await expect(runAggregator(aggregator, input)).resolves.toEqual(float('2.5'));
+      await expect(runAggregator(aggregator, input)).resolves.toEqual(floatLiteral('2.5'));
     });
 
     it('with respect to empty input', async() => {
-      await expect(runAggregator(aggregator, [])).resolves.toEqual(int('0'));
+      await expect(runAggregator(aggregator, [])).resolves.toEqual(intLiteral('0'));
     });
 
     it('with respect to type promotion and subtype substitution', async() => {
       const input = [
         BF.bindings([[ DF.variable('x'), DF.literal('1', DF.namedNode('http://www.w3.org/2001/XMLSchema#byte')) ]]),
-        BF.bindings([[ DF.variable('x'), int('2') ]]),
-        BF.bindings([[ DF.variable('x'), float('3') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('2') ]]),
+        BF.bindings([[ DF.variable('x'), floatLiteral('3') ]]),
         BF.bindings([[ DF.variable('x'), DF.literal('4', DF.namedNode('http://www.w3.org/2001/XMLSchema#nonNegativeInteger')) ]]),
       ];
-      await expect(runAggregator(aggregator, input)).resolves.toEqual(float('2.5'));
+      await expect(runAggregator(aggregator, input)).resolves.toEqual(floatLiteral('2.5'));
     });
 
     it('with respect to type preservation', async() => {
       const input = [
-        BF.bindings([[ DF.variable('x'), int('1') ]]),
-        BF.bindings([[ DF.variable('x'), int('2') ]]),
-        BF.bindings([[ DF.variable('x'), int('3') ]]),
-        BF.bindings([[ DF.variable('x'), int('4') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('1') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('2') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('3') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('4') ]]),
       ];
-      await expect(runAggregator(aggregator, input)).resolves.toEqual(decimal('2.5'));
+      await expect(runAggregator(aggregator, input)).resolves.toEqual(decimalLiteral('2.5'));
     });
 
     it('with respect to type promotion 2', async() => {
       const input = [
-        BF.bindings([[ DF.variable('x'), double('1000') ]]),
-        BF.bindings([[ DF.variable('x'), int('2000') ]]),
-        BF.bindings([[ DF.variable('x'), float('3000') ]]),
-        BF.bindings([[ DF.variable('x'), double('4000') ]]),
+        BF.bindings([[ DF.variable('x'), doubleLiteral('1000') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('2000') ]]),
+        BF.bindings([[ DF.variable('x'), floatLiteral('3000') ]]),
+        BF.bindings([[ DF.variable('x'), doubleLiteral('4000') ]]),
       ];
-      await expect(runAggregator(aggregator, input)).resolves.toEqual(double('2.5E3'));
+      await expect(runAggregator(aggregator, input)).resolves.toEqual(doubleLiteral('2.5E3'));
     });
   });
 
@@ -143,17 +143,17 @@ describe('AverageAggregator', () => {
 
     it('a list of bindings', async() => {
       const input = [
-        BF.bindings([[ DF.variable('x'), int('1') ]]),
-        BF.bindings([[ DF.variable('x'), int('2') ]]),
-        BF.bindings([[ DF.variable('x'), int('1') ]]),
-        BF.bindings([[ DF.variable('x'), int('1') ], [ DF.variable('y'), int('1') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('1') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('2') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('1') ]]),
+        BF.bindings([[ DF.variable('x'), intLiteral('1') ], [ DF.variable('y'), intLiteral('1') ]]),
       ];
 
-      await expect(runAggregator(aggregator, input)).resolves.toEqual(decimal('1.5'));
+      await expect(runAggregator(aggregator, input)).resolves.toEqual(decimalLiteral('1.5'));
     });
 
     it('with respect to empty input', async() => {
-      await expect(runAggregator(aggregator, [])).resolves.toEqual(int('0'));
+      await expect(runAggregator(aggregator, [])).resolves.toEqual(intLiteral('0'));
     });
   });
 });

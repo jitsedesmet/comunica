@@ -1,11 +1,6 @@
 import { ActorFunctionFactoryTermDay } from '@comunica/actor-function-factory-term-day';
 import { ActorFunctionFactoryTermMonth } from '@comunica/actor-function-factory-term-month';
-import { runFuncTestTable } from '@comunica/bus-function-factory/test/util';
-import {
-  int,
-  dateTyped,
-} from '@comunica/utils-expression-evaluator/test/util/Aliases';
-import { Notation } from '@comunica/utils-expression-evaluator/test/util/TestTable';
+import { runFuncTestTable, int, dateTyped, Notation } from '@comunica/utils-jest';
 import { ActorFunctionFactoryTermYear } from '../lib';
 
 describe('Extract date', () => {

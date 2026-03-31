@@ -4,7 +4,7 @@ import { TermFunctionSubStr } from '@comunica/actor-function-factory-term-sub-st
 import type { TermFunctionBase } from '@comunica/bus-function-factory';
 import { KeysExpressionEvaluator, KeysInitQuery } from '@comunica/context-entries';
 import type { FunctionArgumentsCache, ISuperTypeProvider } from '@comunica/types';
-import { getMockEEActionContext, getMockEEFactory } from '@comunica/utils-expression-evaluator/test/util/helpers';
+import { getMockEEActionContext, getMockEEFactory } from '@comunica/utils-jest';
 import { TypeURL, OverloadTree } from '../../../lib';
 import type { KnownLiteralTypes } from '../../../lib';
 import {

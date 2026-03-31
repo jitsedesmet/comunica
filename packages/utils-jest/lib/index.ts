@@ -1,6 +1,13 @@
 import type * as RDF from '@rdfjs/types';
 import matchers from './matchers';
 
+export * from './Aliases';
+export * from './FuncTestTable';
+export * from './generalEvaluation';
+export * from './helpers';
+export * from './TestTable';
+export * from './utils';
+
 declare global {
   // eslint-disable-next-line ts/no-namespace
   namespace jest {

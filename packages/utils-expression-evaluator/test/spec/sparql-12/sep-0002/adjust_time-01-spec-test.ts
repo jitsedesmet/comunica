@@ -1,7 +1,6 @@
+import { runFuncTestTable, dayTimeDurationTyped, timeTyped, Notation } from '@comunica/utils-jest';
+
 /* eslint max-len: 0 */
-import { runFuncTestTable } from '@comunica/bus-function-factory/test/util';
-import { dayTimeDurationTyped, timeTyped } from '@comunica/utils-expression-evaluator/test/util/Aliases';
-import { Notation } from '@comunica/utils-expression-evaluator/test/util/TestTable';
 
 describe('adjust time duration', () => {
   /**
