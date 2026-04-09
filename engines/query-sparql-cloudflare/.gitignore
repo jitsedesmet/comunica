@@ -1,0 +1,14 @@
+# Build outputs
+dist/
+
+# Node modules
+node_modules/
+
+# TypeScript build outputs
+lib/**/*.js
+lib/**/*.js.map
+lib/**/*.d.ts
+
+# Cloudflare
+.wrangler/
+

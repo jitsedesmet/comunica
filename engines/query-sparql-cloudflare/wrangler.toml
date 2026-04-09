@@ -1,0 +1,17 @@
+name = "comunica-sparql-endpoint"
+main = "src/worker.ts"
+compatibility_date = "2024-01-01"
+compatibility_flags = [ "nodejs_compat" ]
+tsconfig = "tsconfig.worker.json"
+
+[vars]
+# Default data sources can be configured here as a JSON array
+# DEFAULT_SOURCES = '["https://dbpedia.org/sparql"]'
+
+# Development settings
+[env.development]
+vars = { ENVIRONMENT = "development" }
+
+# Production settings
+[env.production]
+vars = { ENVIRONMENT = "production" }
