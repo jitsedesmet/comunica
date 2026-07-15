@@ -1,9 +1,11 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { Plugin } from 'vite';
+import { normalizePath } from 'vite';
 import { defineConfig } from 'vitest/config';
 
-const workspaceRoots = [ 'engines', 'packages', 'performance' ];
+const workspaceRoots = [ 'engines', 'packages', 'performance' ]
+  .map(root => `${normalizePath(path.resolve(__dirname, root))}/`);
 
 /**
  * Redirects any import that resolves to a pre-built `lib/**\/*.js` file inside a workspace
@@ -32,8 +34,7 @@ function comunicaSourceResolver(): Plugin {
       if (!resolved || !resolved.id.endsWith('.js')) {
         return resolved;
       }
-      const isWorkspaceFile = workspaceRoots.some(root =>
-        resolved.id.startsWith(path.resolve(__dirname, root, path.sep)));
+      const isWorkspaceFile = workspaceRoots.some(root => normalizePath(resolved.id).startsWith(root));
       if (!isWorkspaceFile) {
         return resolved;
       }
