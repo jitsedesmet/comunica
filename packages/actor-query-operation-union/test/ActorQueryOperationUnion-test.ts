@@ -477,7 +477,7 @@ describe('ActorQueryOperationUnion', () => {
 
       const metadata = await ActorQueryOperationUnion
         .unionMetadata(metadatas, false, context, mediatorRdfMetadataAccumulate);
-      const invalidListener = jest.fn();
+      const invalidListener = vi.fn();
       metadata.state.addInvalidateListener(invalidListener);
       expect(metadata.state.valid).toBeTruthy();
 

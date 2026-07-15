@@ -40,7 +40,7 @@ describe('ActorQueryOperationUpdateDeleteInsert', () => {
       }),
     };
     mediatorUpdateQuads = {
-      mediate: jest.fn(() => Promise.resolve({
+      mediate: vi.fn(() => Promise.resolve({
         execute: () => Promise.resolve(),
       })),
     };
@@ -239,7 +239,7 @@ describe('ActorQueryOperationUpdateDeleteInsert', () => {
 
     it('should return a rejecting updateResult when the update actor\'s result rejects', async() => {
       const error = new Error('DeleteInsert error');
-      jest.spyOn(mediatorUpdateQuads, 'mediate').mockResolvedValue({
+      vi.spyOn(mediatorUpdateQuads, 'mediate').mockResolvedValue({
         execute: () => Promise.reject(error),
       });
 

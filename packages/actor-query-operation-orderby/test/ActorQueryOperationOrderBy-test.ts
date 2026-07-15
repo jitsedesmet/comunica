@@ -344,8 +344,8 @@ describe('ActorQueryOperationOrderBySparqlee', () => {
       // Mock the expression error test so we can force 'a programming error' and test the branch
 
       Object.defineProperty(sparqlee, 'isExpressionError', { writable: true });
-      // eslint-disable-next-line jest/prefer-spy-on
-      (<any>sparqlee).isExpressionError = jest.fn(() => false);
+
+      (<any>sparqlee).isExpressionError = vi.fn(() => false);
       const op: any = {
         operation: { type: 'orderby', input: {}, expressions: [ orderB ]},
         context,

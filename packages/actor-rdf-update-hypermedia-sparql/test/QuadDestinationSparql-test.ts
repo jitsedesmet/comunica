@@ -1,4 +1,3 @@
-/* eslint-disable jest/prefer-spy-on */
 import { Readable } from 'node:stream';
 import { KeysRdfUpdateQuads } from '@comunica/context-entries';
 import { ActionContext } from '@comunica/core';
@@ -18,9 +17,9 @@ describe('QuadDestinationSparql', () => {
 
   beforeEach(() => {
     mediatorHttp = {
-      mediate: jest.fn(() => {
+      mediate: vi.fn(() => {
         const body = Readable.from([ `RESPONSE` ]);
-        (<any>body).cancel = jest.fn();
+        (<any>body).cancel = vi.fn();
         return {
           status: 200,
           body,
@@ -93,7 +92,7 @@ describe('QuadDestinationSparql', () => {
         headers: new Headers({ 'Content-Type': 'application/sparql-results+json' }),
         ok: false,
       });
-      (<any>body).cancel = jest.fn();
+      (<any>body).cancel = vi.fn();
       await expect(destination.update({ insert: new ArrayIterator<RDF.Quad>([], { autoStart: false }) })).rejects
         .toThrow(`Invalid SPARQL endpoint response from abc (HTTP status 400):\nempty response`);
     });

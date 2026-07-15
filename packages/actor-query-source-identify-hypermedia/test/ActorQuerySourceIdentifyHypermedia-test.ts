@@ -34,7 +34,7 @@ describe('ActorQuerySourceIdentifyHypermedia', () => {
     mediatorQuerySourceDereferenceLink = utilMediators.mediatorQuerySourceDereferenceLink;
     mediatorRdfResolveHypermediaLinks = utilMediators.mediatorRdfResolveHypermediaLinks;
     mediatorRdfResolveHypermediaLinksQueue = utilMediators.mediatorRdfResolveHypermediaLinksQueue;
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('The ActorQuerySourceIdentifyHypermedia module', () => {

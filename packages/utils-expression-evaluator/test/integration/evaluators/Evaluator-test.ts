@@ -10,6 +10,7 @@ import {
   getMockExpression,
 } from '@comunica/utils-jest';
 import { DataFactory } from 'rdf-data-factory';
+import type { Mock } from 'vitest';
 import { IntegerLiteral, SparqlOperator } from '../../../lib';
 import { TypeURL as DT } from '../../../lib/util/Consts';
 import * as Err from '../../../lib/util/Errors';
@@ -21,7 +22,7 @@ const two = DF.literal('2', DF.namedNode(DT.XSD_INTEGER));
 describe('evaluators', () => {
   let factory: ActorExpressionEvaluatorFactory;
   let actionContext: IActionContext;
-  let mediate: jest.Mock<ITermFunction, []>;
+  let mediate: Mock<() => ITermFunction>;
 
   beforeEach(async() => {
     actionContext = getMockEEActionContext();
@@ -36,7 +37,7 @@ describe('evaluators', () => {
         requireTermExpression: true,
       }));
 
-    mediate = jest.fn((): ITermFunction => {
+    mediate = vi.fn((): ITermFunction => {
       return additionFunction;
     });
     const resolveAsTwoFuncMediator = <MediatorFunctionFactory> {

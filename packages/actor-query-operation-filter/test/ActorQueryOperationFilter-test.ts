@@ -181,7 +181,7 @@ describe('ActorQueryOperationFilter', () => {
 
     it('Should log warning for an expressionError', async() => {
       // The order is very important. This item requires isExpressionError to still have it's right definition.
-      const logWarnSpy = jest.spyOn(<any> actor, 'logWarn');
+      const logWarnSpy = vi.spyOn(<any> actor, 'logWarn');
       const op = {
         operation: AF.createFilter(AF.createBgp([]), erroringExpression),
         context,
@@ -208,8 +208,8 @@ describe('ActorQueryOperationFilter', () => {
 
     it('should emit an error for a hard erroring filter', async() => {
       Object.defineProperty(sparqlee, 'isExpressionError', { writable: true });
-      // eslint-disable-next-line jest/prefer-spy-on
-      (<any> sparqlee).isExpressionError = jest.fn(() => false);
+
+      (<any> sparqlee).isExpressionError = vi.fn(() => false);
       const op = {
         operation: AF.createFilter(AF.createBgp([]), erroringExpression),
         context,

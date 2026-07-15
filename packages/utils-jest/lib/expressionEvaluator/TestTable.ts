@@ -56,9 +56,19 @@ abstract class Table<RowType extends Row> {
       toAlgebraParse: this.def.toAlgebraParse,
     });
     expect(result).toBeDefined();
-    expect(() => {
-      throw result?.asyncError;
-    }).toThrow(error);
+    // An empty `error` string means "any error message is acceptable" (matching Jest's
+    // substring-check behavior, where an empty substring matches anything). Vitest's `toThrow`
+    // instead treats an empty string as the regex `/^$/` (message must be empty), so we have to
+    // call `toThrow()` without arguments to get the same "just check it throws" behavior.
+    if (error) {
+      expect(() => {
+        throw result?.asyncError;
+      }).toThrow(error);
+    } else {
+      expect(() => {
+        throw result?.asyncError;
+      }).toThrow();
+    }
   }
 
   protected abstract format(operation: string, row: RowType): string;

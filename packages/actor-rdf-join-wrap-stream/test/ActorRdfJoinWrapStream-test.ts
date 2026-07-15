@@ -229,7 +229,7 @@ describe('ActorRdfJoinWrapStream', () => {
     });
 
     it('should handle undefined context from mediatorJoin', async() => {
-      const mockedMediatorTransformIterator = jest.spyOn(
+      const mockedMediatorTransformIterator = vi.spyOn(
         mediatorIteratorTransform,
         'mediate',
       ).mockResolvedValue(
@@ -242,7 +242,7 @@ describe('ActorRdfJoinWrapStream', () => {
           originalAction: action,
         },
       );
-      const _mockedMediatorJoin = jest.spyOn(mediatorJoin, 'mediate').mockResolvedValue(
+      const _mockedMediatorJoin = vi.spyOn(mediatorJoin, 'mediate').mockResolvedValue(
         {
           type: 'bindings',
           bindingsStream: new ArrayIterator<RDF.Bindings>([
@@ -284,7 +284,7 @@ describe('ActorRdfJoinWrapStream', () => {
       );
     });
     it('should handle join result context', async() => {
-      const mockedMediatorTransformIterator = jest.spyOn(
+      const mockedMediatorTransformIterator = vi.spyOn(
         mediatorIteratorTransform,
         'mediate',
       ).mockResolvedValue(
@@ -297,7 +297,7 @@ describe('ActorRdfJoinWrapStream', () => {
           originalAction: action,
         },
       );
-      const _mockedMediatorJoin = jest.spyOn(mediatorJoin, 'mediate').mockResolvedValue(
+      const _mockedMediatorJoin = vi.spyOn(mediatorJoin, 'mediate').mockResolvedValue(
         {
           type: 'bindings',
           bindingsStream: new ArrayIterator<RDF.Bindings>([
@@ -338,7 +338,7 @@ describe('ActorRdfJoinWrapStream', () => {
       );
     });
     it('should correctly pass through metadata from mediatorJoin', async() => {
-      const mockedMediatorTransformIterator = jest.spyOn(
+      const mockedMediatorTransformIterator = vi.spyOn(
         mediatorIteratorTransform,
         'mediate',
       ).mockResolvedValue(
@@ -351,7 +351,7 @@ describe('ActorRdfJoinWrapStream', () => {
           originalAction: action,
         },
       );
-      const _mockedMediatorJoin = jest.spyOn(mediatorJoin, 'mediate').mockResolvedValue(
+      const _mockedMediatorJoin = vi.spyOn(mediatorJoin, 'mediate').mockResolvedValue(
         {
           type: 'bindings',
           bindingsStream: new ArrayIterator<RDF.Bindings>([

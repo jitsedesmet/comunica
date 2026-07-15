@@ -29,6 +29,12 @@ module.exports = config([
       'unicorn/consistent-destructuring': 'off',
       'unicorn/no-array-callback-reference': 'off',
 
+      // The project now uses Vitest instead of Jest (though the API is jest-compatible via
+      // globals). `eslint-plugin-jest`'s `no-deprecated-functions` rule requires detecting an
+      // actually-installed `jest` package version to know which functions are deprecated, which
+      // fails now that `jest` is no longer a dependency.
+      'jest/no-deprecated-functions': 'off',
+
       // TODO: check if these can be enabled
       'ts/naming-convention': 'off',
       'ts/no-unsafe-return': 'off',
@@ -141,10 +147,11 @@ module.exports = config([
     },
   },
   {
-    // Vite configurations
+    // Vite/Vitest configurations
     files: [
       '**/vite.config.ts',
       '**/vite.config.base.ts',
+      'vitest.config.ts',
     ],
     rules: {
       'import/extensions': 'off',
@@ -152,6 +159,8 @@ module.exports = config([
       'import/no-nodejs-modules': 'off',
       'import/no-default-export': 'off',
       'import/no-anonymous-default-export': 'off',
+      // Synchronous fs checks are fine in build-time config code (a synchronous Vite plugin hook).
+      'no-sync': 'off',
     },
   },
   {

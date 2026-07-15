@@ -25,7 +25,7 @@ describe('ActorQueryProcessExplainPhysical', () => {
         async optimize(query: string, context: any) {
           return { operation: `${query}OPT`, context };
         },
-        evaluate: jest.fn(async() => {
+        evaluate: vi.fn(async() => {
           return {
             type: 'bindings',
             bindingsStream: new ArrayIterator([], { autoStart: false }),
@@ -120,7 +120,7 @@ describe('ActorQueryProcessExplainPhysical', () => {
         (<any> queryProcessor).evaluate = async() => {
           return {
             type: 'boolean',
-            execute: jest.fn(),
+            execute: vi.fn(),
           };
         };
 
@@ -141,7 +141,7 @@ describe('ActorQueryProcessExplainPhysical', () => {
         (<any> queryProcessor).evaluate = async() => {
           return {
             type: 'void',
-            execute: jest.fn(),
+            execute: vi.fn(),
           };
         };
 

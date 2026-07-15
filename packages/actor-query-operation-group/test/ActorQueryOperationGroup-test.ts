@@ -764,7 +764,7 @@ describe('ActorQueryOperationGroup', () => {
 
     it('should reject in case something unexpected happens when collecting results', async() => {
       const temp = GroupsState.prototype.collectResults;
-      jest.spyOn(GroupsState.prototype, 'collectResults').mockImplementation()
+      vi.spyOn(GroupsState.prototype, 'collectResults').mockImplementation()
         .mockImplementationOnce(async() => {
           throw new Error('test error');
         });
@@ -790,7 +790,7 @@ describe('ActorQueryOperationGroup', () => {
 
     it('should reject in case something unexpected happens when consuming the stream', async() => {
       const temp = GroupsState.prototype.consumeBindings;
-      jest.spyOn(GroupsState.prototype, 'consumeBindings')
+      vi.spyOn(GroupsState.prototype, 'consumeBindings')
         .mockImplementation(async() => {
           throw new Error('test error');
         });
@@ -1291,7 +1291,7 @@ describe('ActorQueryOperationGroup', () => {
     });
 
     it('should return before executing the grouping', async() => {
-      const spy = jest.spyOn(GroupsState.prototype, 'collectResults');
+      const spy = vi.spyOn(GroupsState.prototype, 'collectResults');
 
       const { op, actor } = constructCase({
         inputBindings: [

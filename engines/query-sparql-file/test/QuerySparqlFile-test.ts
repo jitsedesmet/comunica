@@ -1,5 +1,3 @@
-/** @jest-environment setup-polly-jest/jest-environment-node */
-
 import * as path from 'node:path';
 import type { QueryStringContext } from '@comunica/types';
 import 'jest-rdf';

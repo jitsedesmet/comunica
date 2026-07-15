@@ -55,17 +55,17 @@ describe('ActorQueryOperationTyped', () => {
     it('should run and invoke the physicalQueryPlanLogger', async() => {
       const parentNode = '';
       const logger: IPhysicalQueryPlanLogger = {
-        logOperation: jest.fn(),
-        toJson: jest.fn(),
-        stashChildren: jest.fn(),
-        unstashChild: jest.fn(),
-        appendMetadata: jest.fn(),
+        logOperation: vi.fn(),
+        toJson: vi.fn(),
+        stashChildren: vi.fn(),
+        unstashChild: vi.fn(),
+        appendMetadata: vi.fn(),
       };
       const context = new ActionContext({
         [KeysInitQuery.physicalQueryPlanLogger.name]: logger,
         [KeysInitQuery.physicalQueryPlanNode.name]: parentNode,
       });
-      jest.spyOn(actor, 'runOperation');
+      vi.spyOn(actor, 'runOperation');
 
       const operation = { type: 'op' };
       const action = { operation, context };

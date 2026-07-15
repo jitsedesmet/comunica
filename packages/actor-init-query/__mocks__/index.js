@@ -54,7 +54,7 @@ class QueryEngineFactoryBase {
 
   create(options) {
     let mock = new EngineMock();
-    mock.invalidateHttpCache = jest.fn();
+    mock.invalidateHttpCache = vi.fn();
 
     if (options && options.mainModulePath === "rejecting_engine_promise") {
       return Promise.reject("REASON");

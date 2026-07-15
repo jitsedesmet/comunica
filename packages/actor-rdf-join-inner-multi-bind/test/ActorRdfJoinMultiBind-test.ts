@@ -13,6 +13,7 @@ import { MetadataValidationState } from '@comunica/utils-metadata';
 import type * as RDF from '@rdfjs/types';
 import { ArrayIterator } from 'asynciterator';
 import { DataFactory } from 'rdf-data-factory';
+import type { MockInstance } from 'vitest';
 import type { IActorRdfJoinMultiBindTestSideData } from '../lib/ActorRdfJoinMultiBind';
 import { ActorRdfJoinMultiBind } from '../lib/ActorRdfJoinMultiBind';
 import '@comunica/utils-jest';
@@ -47,7 +48,7 @@ IActorTest,
 IQueryOperationResultBindings
 >;
     let actor: ActorRdfJoinMultiBind;
-    let logSpy: jest.SpyInstance;
+    let logSpy: MockInstance;
 
     beforeEach(() => {
       mediatorJoinSelectivity = <any> {
@@ -62,7 +63,7 @@ IQueryOperationResultBindings
       };
       context = new ActionContext({ a: 'b', [KeysInitQuery.dataFactory.name]: DF });
       mediatorQueryOperation = <any> {
-        mediate: jest.fn(async(): Promise<IQueryOperationResultBindings> => {
+        mediate: vi.fn(async(): Promise<IQueryOperationResultBindings> => {
           return {
             bindingsStream: new ArrayIterator<RDF.Bindings>([
               BF.bindings([
@@ -98,7 +99,7 @@ IQueryOperationResultBindings
         mediatorMergeBindingsContext,
         minMaxCardinalityRatio: 100,
       });
-      logSpy = jest.spyOn((<any> actor), 'logDebug').mockImplementation();
+      logSpy = vi.spyOn((<any> actor), 'logDebug').mockImplementation();
     });
 
     async function getSideData(action: IActionRdfJoin): Promise<IActorRdfJoinMultiBindTestSideData> {
@@ -1212,8 +1213,8 @@ IQueryOperationResultBindings
             },
           ],
         };
-        const destroy0 = jest.spyOn(action.entries[0].output.bindingsStream, 'destroy');
-        const destroy1 = jest.spyOn(action.entries[1].output.bindingsStream, 'destroy');
+        const destroy0 = vi.spyOn(action.entries[0].output.bindingsStream, 'destroy');
+        const destroy1 = vi.spyOn(action.entries[1].output.bindingsStream, 'destroy');
         const { result } = await actor.getOutput(action, await getSideData(action));
 
         // Validate output

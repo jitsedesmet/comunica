@@ -1,24 +1,33 @@
 import { LoggerBunyan } from '../lib/LoggerBunyan';
 import { BunyanStreamProviderStderr } from '../lib/stream/BunyanStreamProviderStderr';
 
-jest.mock<typeof import('bunyan')>('bunyan', () => {
-  return <any>{
-    createLogger: (args: any) => ({
-      ...args,
-      trace: jest.fn(() => null),
-      debug: jest.fn(() => null),
-      info: jest.fn(() => null),
-      warn: jest.fn(() => null),
-      error: jest.fn(() => null),
-      fatal: jest.fn(() => null),
-    }),
+// `LoggerBunyan.ts` loads `bunyan` via TypeScript's `import X = require('bunyan')` syntax, which
+// compiles to a raw `require()` call. This bypasses Vite/Vitest's SSR module graph and mock
+// registry entirely, so `vi.mock('bunyan', ...)` has no effect. Instead, directly monkey-patch the
+// real `require('bunyan')` module (Node's `require` cache is shared process-wide, so this affects
+// the same object `LoggerBunyan.ts` uses).
+
+const bunyan = require('bunyan');
+
+const mockLoggers: any[] = [];
+bunyan.createLogger = vi.fn((args: any) => {
+  const mockLogger = {
+    ...args,
+    trace: vi.fn(() => null),
+    debug: vi.fn(() => null),
+    info: vi.fn(() => null),
+    warn: vi.fn(() => null),
+    error: vi.fn(() => null),
+    fatal: vi.fn(() => null),
   };
+  mockLoggers.push(mockLogger);
+  return mockLogger;
 });
 
 describe('LoggerBunyan', () => {
   it('should create streams from providers during construction', () => {
     const myProvider = new BunyanStreamProviderStderr({ name: 'def', level: 'warn' });
-    jest.spyOn(myProvider, 'createStream');
+    vi.spyOn(myProvider, 'createStream');
     const myLogger = new LoggerBunyan({ name: 'abc', streamProviders: [ myProvider ]});
     expect(myProvider.createStream).toHaveBeenCalledTimes(1);
     expect((<any> myLogger).bunyanLogger.streams).toEqual([ myProvider.createStream() ]);

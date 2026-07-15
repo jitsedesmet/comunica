@@ -1,5 +1,3 @@
-/** @jest-environment setup-polly-jest/jest-environment-node */
-
 import { KeysHttpWayback, KeysInitQuery, KeysQuerySourceIdentify } from '@comunica/context-entries';
 import { Logger } from '@comunica/types';
 import type { QueryBindings, QueryStringContext } from '@comunica/types';
@@ -2842,7 +2840,7 @@ CONSTRUCT {
         DF.namedNode('ex:g2'),
       ));
 
-      const matchDistinctTermsSpy = jest.spyOn(store, 'matchDistinctTerms');
+      const matchDistinctTermsSpy = vi.spyOn(store, 'matchDistinctTerms');
 
       const bindingsStream = await engine.queryBindings(`
         PREFIX ex: <ex:>
@@ -2875,7 +2873,7 @@ CONSTRUCT {
       store.addQuad(DF.quad(DF.namedNode('ex:s1'), DF.namedNode('ex:p2'), DF.namedNode('ex:o2')));
       store.addQuad(DF.quad(DF.namedNode('ex:s2'), DF.namedNode('ex:p1'), DF.namedNode('ex:o1')));
 
-      const matchDistinctTermsSpy = jest.spyOn(store, 'matchDistinctTerms');
+      const matchDistinctTermsSpy = vi.spyOn(store, 'matchDistinctTerms');
 
       const bindingsStream = await engine.queryBindings(`
         PREFIX ex: <ex:>
@@ -2902,7 +2900,7 @@ CONSTRUCT {
       store.addQuad(DF.quad(DF.namedNode('ex:s1'), DF.namedNode('ex:p1'), DF.namedNode('ex:o2')));
       store.addQuad(DF.quad(DF.namedNode('ex:s2'), DF.namedNode('ex:p2'), DF.namedNode('ex:o1')));
 
-      const matchDistinctTermsSpy = jest.spyOn(store, 'matchDistinctTerms');
+      const matchDistinctTermsSpy = vi.spyOn(store, 'matchDistinctTerms');
 
       const bindingsStream = await engine.queryBindings(`
         PREFIX ex: <ex:>
@@ -2969,7 +2967,7 @@ CONSTRUCT {
         DF.namedNode('ex:g1'),
       ));
 
-      const matchDistinctTermsSpy = jest.spyOn(store, 'matchDistinctTerms');
+      const matchDistinctTermsSpy = vi.spyOn(store, 'matchDistinctTerms');
 
       const bindingsStream = await engine.queryBindings(`
         PREFIX ex: <ex:>
@@ -2997,7 +2995,7 @@ CONSTRUCT {
       store.addQuad(DF.quad(DF.namedNode('ex:s2'), DF.namedNode('ex:p1'), DF.namedNode('ex:o3')));
       store.addQuad(DF.quad(DF.namedNode('ex:s2'), DF.namedNode('ex:p2'), DF.namedNode('ex:o4')));
 
-      const matchDistinctTermsSpy = jest.spyOn(store, 'matchDistinctTerms');
+      const matchDistinctTermsSpy = vi.spyOn(store, 'matchDistinctTerms');
 
       const bindingsStream = await engine.queryBindings(`
         PREFIX ex: <ex:>

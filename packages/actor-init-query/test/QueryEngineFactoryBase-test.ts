@@ -2,8 +2,6 @@ import * as Path from 'node:path';
 import { QueryEngineBase } from '../lib/QueryEngineBase';
 import { QueryEngineFactoryBase } from '../lib/QueryEngineFactoryBase';
 
-jest.setTimeout(30_000);
-
 describe('QueryEngineFactoryBase', () => {
   let factory: QueryEngineFactoryBase<any>;
 

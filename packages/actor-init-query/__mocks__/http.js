@@ -5,8 +5,8 @@ class ServerResponseMock extends PassThrough {
   // eslint-disable-next-line ts/explicit-member-accessibility
   constructor() {
     super();
-    this.writeHead = jest.fn();
-    this.end = jest.fn(message => this.onEnd && this.onEnd(message));
+    this.writeHead = vi.fn();
+    this.end = vi.fn(message => this.onEnd && this.onEnd(message));
   }
 }
 
@@ -19,16 +19,16 @@ class ServerMock extends EventEmitter {
   // eslint-disable-next-line ts/explicit-member-accessibility
   constructor() {
     super();
-    this.listen = jest.fn();
-    this.setTimeout = jest.fn();
-    this.close = jest.fn();
+    this.listen = vi.fn();
+    this.setTimeout = vi.fn();
+    this.close = vi.fn();
   }
 }
 
 const http = {
-  ...jest.requireActual('http'),
+  ...require('node:http'),
 };
-http.createServer = jest.fn(() => new ServerMock());
+http.createServer = vi.fn(() => new ServerMock());
 
 module.exports = {
   ServerResponseMock,

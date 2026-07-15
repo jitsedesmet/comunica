@@ -11,7 +11,7 @@ function mockSetup(mock) {
 
 function request(settings, func) {
   let body = new IncomingMessage();
-  body.destroy = jest.fn();
+  body.destroy = vi.fn();
   Object.assign(settings.headers, options.headers || {});
   Object.assign(body, options.body || {}, {
     input: settings,

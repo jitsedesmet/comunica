@@ -63,7 +63,7 @@ describe('QuerySourceQpf', () => {
       }),
     };
     mediatorDereferenceRdf = {
-      mediate: jest.fn((args: any) => Promise.resolve({
+      mediate: vi.fn((args: any) => Promise.resolve({
         url: args.url,
         data: streamifyArray([
           quad('s1', 'p1', 'o1'),

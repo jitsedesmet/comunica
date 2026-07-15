@@ -32,12 +32,12 @@ describe('ActorQueryOperationSource', () => {
     source1 = <any> {
       source: {
         referenceValue: 'source1',
-        queryBindings: jest.fn(() => {
+        queryBindings: vi.fn(() => {
           const bindingsStream = new ArrayIterator([], { autoStart: false });
           bindingsStream.setProperty('metadata', { cardinality: { value: 10 }, variables: []});
           return bindingsStream;
         }),
-        queryQuads: jest.fn(() => {
+        queryQuads: vi.fn(() => {
           const quadStream = new ArrayIterator([], { autoStart: false });
           quadStream.setProperty('metadata', { cardinality: { value: 10 }});
           return quadStream;
@@ -238,11 +238,11 @@ describe('ActorQueryOperationSource', () => {
       it('should handle bindings operations and invokes the logger', async() => {
         const parentNode = '';
         const logger: IPhysicalQueryPlanLogger = {
-          logOperation: jest.fn(),
-          toJson: jest.fn(),
-          stashChildren: jest.fn(),
-          unstashChild: jest.fn(),
-          appendMetadata: jest.fn(),
+          logOperation: vi.fn(),
+          toJson: vi.fn(),
+          stashChildren: vi.fn(),
+          unstashChild: vi.fn(),
+          appendMetadata: vi.fn(),
         };
         ctx = new ActionContext({
           [KeysInitQuery.physicalQueryPlanLogger.name]: logger,
