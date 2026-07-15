@@ -216,6 +216,85 @@ describe('QuerySourceSparql', () => {
       expect(mediatorHttp.mediate).toHaveBeenCalledTimes(1);
     });
 
+    it('should emit metadata with local cardinality estimation', async() => {
+      vi.spyOn(source, 'estimateOperationCardinality').mockResolvedValue({
+        type: 'estimate',
+        value: 123,
+        dataset: url,
+      });
+      const stream = source.queryBindings(AF.createPattern(
+        iriS,
+        DF.variable('p'),
+        iriO,
+        DF.defaultGraph(),
+      ), ctx);
+      await expect(new Promise(resolve => stream.getProperty('metadata', resolve))).resolves
+        .toEqual({
+          state: expect.any(MetadataValidationState),
+          cardinality: { type: 'estimate', value: 123, dataset: url },
+          variables: [
+            { variable: DF.variable('p'), canBeUndef: false },
+          ],
+        });
+      await expect(stream).toEqualBindingsStream([
+        BF.fromRecord({
+          p: DF.namedNode('p1'),
+        }),
+        BF.fromRecord({
+          p: DF.namedNode('p2'),
+        }),
+        BF.fromRecord({
+          p: DF.namedNode('p3'),
+        }),
+      ]);
+
+      expect(source.estimateOperationCardinality).toHaveBeenCalledTimes(1);
+      expect(mediatorHttp.mediate).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return data without local cardinality estimation when disabled', async() => {
+      source = new QuerySourceSparql(
+        url,
+        url,
+        ctx,
+        mediatorHttp,
+        mediatorQuerySerialize,
+        'values',
+        DF,
+        AF,
+        BF,
+        false,
+        64,
+        10000,
+        true,
+        false,
+        0,
+        false,
+
+        {},
+      );
+      vi.spyOn(source, 'estimateOperationCardinality');
+      await expect(source.queryBindings(AF.createPattern(
+        iriS,
+        DF.variable('p'),
+        iriO,
+      ), ctx))
+        .toEqualBindingsStream([
+          BF.fromRecord({
+            p: DF.namedNode('p1'),
+          }),
+          BF.fromRecord({
+            p: DF.namedNode('p2'),
+          }),
+          BF.fromRecord({
+            p: DF.namedNode('p3'),
+          }),
+        ]);
+
+      expect(source.estimateOperationCardinality).not.toHaveBeenCalled();
+      expect(mediatorHttp.mediate).toHaveBeenCalledTimes(2);
+    });
+
     it('should return data with quoted triples', async() => {
       const thisMediator: any = {
         mediate: vi.fn((action: any) => {
@@ -1410,7 +1489,7 @@ describe('QuerySourceSparql', () => {
     });
 
     it('ignores queryString for joinBindings', async() => {
-      await expect(source.queryBindings(
+      const stream = source.queryBindings(
         AF.createPattern(iriS, DF.variable('p'), iriO),
         ctx.set(KeysInitQuery.queryString, 'abc'), // This must be ignored
         {
@@ -1419,7 +1498,16 @@ describe('QuerySourceSparql', () => {
             metadata: <any> { variables: []},
           },
         },
-      ))
+      );
+      await expect(new Promise(resolve => stream.getProperty('metadata', resolve))).resolves
+        .toEqual(expect.objectContaining({
+          state: expect.any(MetadataValidationState),
+          cardinality: { type: 'exact', value: 3, dataset: url },
+          variables: [
+            { variable: DF.variable('p'), canBeUndef: false },
+          ],
+        }));
+      await expect(stream)
         .toEqualBindingsStream([
           BF.fromRecord({
             p: DF.namedNode('p1'),
@@ -1431,7 +1519,6 @@ describe('QuerySourceSparql', () => {
             p: DF.namedNode('p3'),
           }),
         ]);
-      expect(lastQuery).toBe(`query=SELECT+%28+COUNT%28+*+%29+AS+%3Fcount+%29+WHERE+%7B+VALUES%28+%29%7B+%7D+%3Chttps%3A%2F%2Fex%2Fs%3E+%3Fp+%3Chttps%3A%2F%2Fex%2Fo%3E+.+%7D`);
 
       expect(mediatorHttp.mediate).toHaveBeenCalledWith({
         context: ctx.set(KeysInitQuery.queryString, 'abc'),

@@ -1,5 +1,6 @@
 /* eslint-disable jest/no-mocks-import */
 import type { Cluster } from 'node:cluster';
+import * as path from 'node:path';
 import { PassThrough } from 'node:stream';
 import { KeysInitQuery, KeysQueryOperation } from '@comunica/context-entries';
 import { ActionContext } from '@comunica/core';
@@ -2424,6 +2425,21 @@ INSERT DATA {
           value: testRequestBody,
         });
       });
+    });
+  });
+
+  describe('the fs mock', () => {
+    it('readFileSync returns the real HTML file contents for the sparql-endpoint.html path', () => {
+      const contents = fs.readFileSync(path.join(__dirname, '..', 'lib', 'sparql-endpoint.html'));
+      expect(contents).toContain('<html');
+    });
+
+    it('readFileSync returns the stringified test file content dict for other paths', () => {
+      expect(fs.readFileSync('other-file.json')).toEqual(JSON.stringify(testFileContentDict));
+    });
+
+    it('promises.readFile returns the stringified test file content dict for non-HTML paths', async() => {
+      await expect(fs.promises.readFile('other-file.json')).resolves.toEqual(JSON.stringify(testFileContentDict));
     });
   });
 });

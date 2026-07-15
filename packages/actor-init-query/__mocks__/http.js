@@ -10,11 +10,6 @@ class ServerResponseMock extends PassThrough {
   }
 }
 
-// eslint-disable-next-line unused-imports/no-unused-vars
-function getServerResponseMock() {
-  return new ServerResponseMock();
-}
-
 class ServerMock extends EventEmitter {
   // eslint-disable-next-line ts/explicit-member-accessibility
   constructor() {

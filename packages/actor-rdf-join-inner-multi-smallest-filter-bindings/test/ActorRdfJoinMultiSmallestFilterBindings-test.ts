@@ -613,6 +613,47 @@ describe('ActorRdfJoinMultiSmallestFilterBindings', () => {
     });
 
     describe('getJoinCoefficients', () => {
+      it('should reject when entries have no overlapping variables', async() => {
+        await expect(actor.getJoinCoefficients(
+          {
+            type: 'inner',
+            entries: [
+              {
+                output: <any>{},
+                operation: assignOperationSource(AF.createNop(), source1),
+              },
+              {
+                output: <any>{},
+                operation: AF.createNop(),
+              },
+            ],
+            context: new ActionContext(),
+          },
+          {
+            metadatas: [
+              {
+                state: new MetadataValidationState(),
+                cardinality: { type: 'estimate', value: 3 },
+                pageSize: 100,
+                requestTime: 10,
+                variables: [
+                  { variable: DF.variable('a'), canBeUndef: false },
+                ],
+              },
+              {
+                state: new MetadataValidationState(),
+                cardinality: { type: 'estimate', value: 2 },
+                pageSize: 100,
+                requestTime: 20,
+                variables: [
+                  { variable: DF.variable('b'), canBeUndef: false },
+                ],
+              },
+            ],
+          },
+        )).resolves.toFailTest('Actor actor can only join with common variables');
+      });
+
       it('should handle three entries', async() => {
         await expect(actor.getJoinCoefficients(
           {

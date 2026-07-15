@@ -141,6 +141,11 @@ describe('ActorQueryResultSerializeStats', () => {
           .resolves.toFailTest(`This actor can only handle bindings streams or quad streams.`);
       });
 
+      it('should not count unobserved http requests', () => {
+        (<any> httpObserver).onRun({ name: 'urn:comunica:default:http/actors#unobserved' }, null, null);
+        expect(httpObserver.requests).toBe(0);
+      });
+
       it('should run on a bindings stream', async() => {
         await expect(stringifyStream((<any> (await actor.run(
           {

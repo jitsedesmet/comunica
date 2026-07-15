@@ -134,6 +134,27 @@ describe('ActorOptimizeQueryOperationGroupFileSources', () => {
         expect(mediatorQuerySourceIdentify.mediate).not.toHaveBeenCalled();
       });
 
+      it('should only call getFilterFactor on non-file sources with a firstLink', async() => {
+        const fileSource1 = createFileMockSource('http://example.org/file1.ttl');
+        const fileSource2 = createFileMockSource('http://example.org/file2.ttl');
+        const hypermediaSource = createMockSource('http://example.org/source', 'hypermedia');
+        hypermediaSource.source.getFilterFactor.mockResolvedValue(1);
+        const context = ctx.set(KeysQueryOperation.querySources, [ fileSource1, hypermediaSource, fileSource2 ]);
+
+        await actor.run({ operation: <any> { type: 'nop' }, context });
+
+        expect(fileSource1.source.getFilterFactor).not.toHaveBeenCalled();
+        expect(fileSource2.source.getFilterFactor).not.toHaveBeenCalled();
+        expect(hypermediaSource.source.getFilterFactor).toHaveBeenCalledWith(context);
+        expect(mediatorQuerySourceIdentify.mediate).toHaveBeenCalledWith({
+          querySourceUnidentified: {
+            type: 'compositefile',
+            value: [ fileSource1, fileSource2 ],
+          },
+          context,
+        });
+      });
+
       it('should group 2 file sources into a single compositefile source', async() => {
         const fileSource1 = createFileMockSource('http://example.org/file1.ttl');
         const fileSource2 = createFileMockSource('http://example.org/file2.ttl');

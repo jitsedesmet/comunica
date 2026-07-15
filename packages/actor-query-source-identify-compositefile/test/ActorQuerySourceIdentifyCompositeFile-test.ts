@@ -223,6 +223,41 @@ describe('ActorQuerySourceIdentifyCompositeFile', () => {
         ]);
       });
 
+      it('should combine quads from file sources and identified sources', async() => {
+        const context = new ActionContext({
+          '@comunica/actor-init-query:dataFactory': DF,
+        });
+        const mediateSpy = vi.spyOn(mediatorQuerySourceIdentify, 'mediate');
+        const store = createStoreWithQuads([
+          DF.quad(DF.namedNode('ex:s2'), DF.namedNode('ex:p2'), DF.namedNode('ex:o2')),
+        ]);
+        const source = new QuerySourceRdfJs(store, DF, BF);
+        source.referenceValue = 'http://example.org/file2.ttl';
+
+        const result = await actor.run({
+          querySourceUnidentified: {
+            type: 'compositefile',
+            value: [
+              'http://example.org/file1.ttl',
+              { source },
+            ],
+          },
+          context,
+        });
+
+        expect(mediateSpy).toHaveBeenCalledTimes(1);
+        const { source: compositeSource } = result.querySource;
+        expect(compositeSource.referenceValue).toBe('http://example.org/file1.ttl\nhttp://example.org/file2.ttl');
+        expect(compositeSource.toString())
+          .toBe('QuerySourceRdfJs(composite: http://example.org/file1.ttl,http://example.org/file2.ttl)');
+
+        const stream = compositeSource.queryBindings(AF.createPattern(v1, v2, v3), context);
+        await expect(stream).toEqualBindingsStream([
+          BF.fromRecord({ v1: DF.namedNode('ex:s1'), v2: DF.namedNode('ex:p1'), v3: DF.namedNode('ex:o1') }),
+          BF.fromRecord({ v1: DF.namedNode('ex:s2'), v2: DF.namedNode('ex:p2'), v3: DF.namedNode('ex:o2') }),
+        ]);
+      });
+
       it('should handle an empty file list', async() => {
         const context = new ActionContext({
           '@comunica/actor-init-query:dataFactory': DF,

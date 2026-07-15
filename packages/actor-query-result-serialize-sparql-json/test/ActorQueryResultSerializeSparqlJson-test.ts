@@ -222,6 +222,11 @@ describe('ActorQueryResultSerializeSparqlJson', () => {
           .resolves.toPassTest({ handle: true });
       });
 
+      it('should not count unobserved http requests', () => {
+        (<any> httpObserver).onRun({ name: 'urn:comunica:default:http/actors#unobserved' }, null, null);
+        expect(httpObserver.requests).toBe(0);
+      });
+
       it('should not test on N-Triples', async() => {
         const stream = bindingsStream();
         await expect(actor.test({

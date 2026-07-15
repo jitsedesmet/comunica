@@ -97,14 +97,10 @@ export default defineConfig({
         '**/index.ts',
       ],
       thresholds: {
-        // TODO: These were 100% under Jest. After migrating to Vitest's istanbul coverage
-        // provider, a handful of files show small branch-coverage gaps (~0.1-0.6%) likely due to
-        // differences between TypeScript-based and Babel-based instrumentation. Temporarily
-        // lowered so CI/pre-commit can pass; follow-up needed to investigate and restore 100%.
-        branches: 99,
-        functions: 99.5,
-        lines: 99.5,
-        statements: 99.5,
+        branches: 100,
+        functions: 100,
+        lines: 100,
+        statements: 100,
       },
     },
     // The default test timeout is not enough for engine tests, but is enough for packages.

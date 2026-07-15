@@ -131,6 +131,26 @@ describe('ActorRdfMetadataExtractVoid', () => {
         await expect(actor.run(<any>{ metadata, url: sparqlEndpoint.value })).resolves.toEqual({ metadata: {}});
       });
 
+      it('should ignore unrelated rdf:type and sd:feature quads', async() => {
+        const metadata = streamifyArray([
+          DF.quad(sparqlEndpoint, DF.namedNode(RDF_TYPE), DF.namedNode(typeUri)),
+          DF.quad(sparqlEndpoint, DF.namedNode(VOID_TRIPLES), DF.literal('1234')),
+          DF.quad(sparqlEndpoint, DF.namedNode(RDF_TYPE), DF.namedNode('ex:OtherType')),
+          DF.quad(sparqlEndpoint, DF.namedNode(SD_FEATURE), DF.namedNode('ex:OtherFeature')),
+        ]);
+        await expect(actor.run(<any>{ metadata, url: sparqlEndpoint.value })).resolves.toEqual({
+          metadata: {
+            datasets: [
+              {
+                getCardinality: expect.any(Function),
+                source: sparqlEndpoint.value,
+                uri: sparqlEndpoint.value,
+              },
+            ],
+          },
+        });
+      });
+
       it('should drop intermediate sd:defaultDataset and propagate its vocabularies to sd:defaultGraph', async() => {
         const defaultDataset = DF.namedNode('ex:defaultDataset');
         const defaultGraph = DF.namedNode('ex:defaultGraph');

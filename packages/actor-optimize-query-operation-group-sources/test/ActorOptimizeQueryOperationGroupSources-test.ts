@@ -158,6 +158,45 @@ describe('ActorOptimizeQueryOperationGroupSources', () => {
             ),
           );
         });
+
+        it(
+          'should group a singular sub-input for OrderBy after recursively grouping it if the source accepts it',
+          async() => {
+            const opIn = AF.createOrderBy(
+              AF.createJoin([
+                assignOperationSource(
+                  AF.createPattern(DF.namedNode('s1'), DF.namedNode('s'), DF.namedNode('s')),
+                  source1,
+                ),
+                assignOperationSource(
+                  AF.createPattern(DF.namedNode('s2'), DF.namedNode('s'), DF.namedNode('s')),
+                  source1,
+                ),
+              ]),
+              [],
+            );
+            const opOut = await actor.groupOperation(opIn, ctx);
+            expect(opOut).toEqual(assignOperationSource(
+              AF.createOrderBy(
+                AF.createJoin([
+                  AF.createPattern(DF.namedNode('s1'), DF.namedNode('s'), DF.namedNode('s')),
+                  AF.createPattern(DF.namedNode('s2'), DF.namedNode('s'), DF.namedNode('s')),
+                ]),
+                [],
+              ),
+              source1,
+            ));
+          },
+        );
+
+        it('should keep a singular sub-input for OrderBy without a source annotation unchanged', async() => {
+          const opIn = AF.createOrderBy(
+            AF.createNop(),
+            [],
+          );
+          const opOut = await actor.groupOperation(opIn, ctx);
+          expect(opOut).toEqual(opIn);
+        });
       });
 
       describe('for a join operation', () => {
@@ -436,6 +475,93 @@ describe('ActorOptimizeQueryOperationGroupSources', () => {
             ),
           ], false));
         });
+      });
+
+      it('should not flatten nested merges that keep their source annotation', async() => {
+        const opOut = await (<any> actor).groupOperationMulti([
+          [
+            assignOperationSource(
+              AF.createPattern(DF.namedNode('s1'), DF.namedNode('s'), DF.namedNode('s')),
+              source1,
+            ),
+            assignOperationSource(
+              AF.createPattern(DF.namedNode('s2'), DF.namedNode('s'), DF.namedNode('s')),
+              source1,
+            ),
+          ],
+          [
+            assignOperationSource(
+              AF.createPattern(DF.namedNode('s3'), DF.namedNode('s'), DF.namedNode('s')),
+              source2,
+            ),
+          ],
+        ], AF.createJoin.bind(AF), ctx);
+        expect(opOut).toEqual(AF.createJoin([
+          assignOperationSource(
+            AF.createJoin([
+              AF.createPattern(DF.namedNode('s1'), DF.namedNode('s'), DF.namedNode('s')),
+              AF.createPattern(DF.namedNode('s2'), DF.namedNode('s'), DF.namedNode('s')),
+            ]),
+            source1,
+          ),
+          assignOperationSource(
+            AF.createJoin([
+              AF.createPattern(DF.namedNode('s3'), DF.namedNode('s'), DF.namedNode('s')),
+            ]),
+            source2,
+          ),
+        ], false));
+      });
+
+      it('should keep flattening nested merges without a source annotation', async() => {
+        const sourcePattern2: IQuerySourceWrapper = <any> {
+          source: {
+            referenceValue: 'source2',
+            getSelectorShape: () => ({
+              type: 'operation',
+              operation: {
+                operationType: 'type',
+                type: Algebra.Types.PATTERN,
+              },
+            }),
+          },
+        };
+        const opOut = await (<any> actor).groupOperationMulti([
+          [
+            assignOperationSource(
+              AF.createPattern(DF.namedNode('s1'), DF.namedNode('s'), DF.namedNode('s')),
+              sourcePattern,
+            ),
+            assignOperationSource(
+              AF.createPattern(DF.namedNode('s2'), DF.namedNode('s'), DF.namedNode('s')),
+              sourcePattern,
+            ),
+          ],
+          [
+            assignOperationSource(
+              AF.createPattern(DF.namedNode('s3'), DF.namedNode('s'), DF.namedNode('s')),
+              sourcePattern2,
+            ),
+          ],
+        ], AF.createJoin.bind(AF), ctx);
+        expect(opOut).toEqual(AF.createJoin([
+          AF.createJoin([
+            assignOperationSource(
+              AF.createPattern(DF.namedNode('s1'), DF.namedNode('s'), DF.namedNode('s')),
+              sourcePattern,
+            ),
+            assignOperationSource(
+              AF.createPattern(DF.namedNode('s2'), DF.namedNode('s'), DF.namedNode('s')),
+              sourcePattern,
+            ),
+          ]),
+          AF.createJoin([
+            assignOperationSource(
+              AF.createPattern(DF.namedNode('s3'), DF.namedNode('s'), DF.namedNode('s')),
+              sourcePattern2,
+            ),
+          ]),
+        ]));
       });
 
       it('throws for unknown operations', async() => {

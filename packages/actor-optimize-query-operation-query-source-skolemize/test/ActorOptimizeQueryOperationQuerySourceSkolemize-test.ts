@@ -132,6 +132,66 @@ describe('ActorOptimizeQueryOperationQuerySourceSkolemize', () => {
           },
         }));
       });
+
+      it('with sources and service sources without source ids', async() => {
+        const source1: any = {
+          source: { referenceValue: 'S0' },
+        };
+        const source2: any = {
+          source: { referenceValue: 'S1' },
+        };
+        const contextIn = new ActionContext({
+          [KeysQueryOperation.querySources.name]: [ source1 ],
+          [KeysQueryOperation.serviceSources.name]: {
+            service1: source1,
+            service2: source2,
+          },
+        });
+        const { context: contextOut } = await actor.run({ context: contextIn, operation });
+
+        expect(contextOut).toEqual(new ActionContext({
+          [KeysQuerySourceIdentify.sourceIds.name]: new Map([
+            [ 'S0', '0' ],
+            [ 'S1', '1' ],
+          ]),
+          [KeysQueryOperation.querySources.name]: [
+            {
+              source: new QuerySourceSkolemized(source1.source, '0'),
+            },
+          ],
+          [KeysQueryOperation.serviceSources.name]: {
+            service1: {
+              source: new QuerySourceSkolemized(source1.source, '0'),
+            },
+            service2: {
+              source: new QuerySourceSkolemized(source2.source, '1'),
+            },
+          },
+        }));
+      });
+
+      it('with existing source ids', async() => {
+        const sourceIds = new Map([
+          [ 'S0', '0' ],
+        ]);
+        const source1: any = {
+          source: { referenceValue: 'S0' },
+        };
+        const contextIn = new ActionContext({
+          [KeysQuerySourceIdentify.sourceIds.name]: sourceIds,
+          [KeysQueryOperation.querySources.name]: [ source1 ],
+        });
+        const { context: contextOut } = await actor.run({ context: contextIn, operation });
+
+        expect(contextOut).toEqual(new ActionContext({
+          [KeysQuerySourceIdentify.sourceIds.name]: sourceIds,
+          [KeysQueryOperation.querySources.name]: [
+            {
+              source: new QuerySourceSkolemized(source1.source, '0'),
+            },
+          ],
+        }));
+      });
     });
   });
 });

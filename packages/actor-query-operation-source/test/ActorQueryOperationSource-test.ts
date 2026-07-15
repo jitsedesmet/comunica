@@ -235,6 +235,24 @@ describe('ActorQueryOperationSource', () => {
         await expect(result.bindingsStream).toEqualBindingsStream([]);
       });
 
+      it('should handle bindings operations with a source context', async() => {
+        const sourceContext = new ActionContext().setRaw('source', 'context');
+        ctx = new ActionContext().setRaw('action', 'context');
+        const opIn = assignOperationSource(AF.createNop(), {
+          ...source1,
+          context: sourceContext,
+        });
+        const result: IQueryOperationResultBindings = <any> await actor.run({ operation: opIn, context: ctx });
+        expect(result.type).toBe('bindings');
+        await expect(result.metadata()).resolves.toEqual({
+          cardinality: { value: 10 },
+
+          variables: [],
+        });
+        await expect(result.bindingsStream).toEqualBindingsStream([]);
+        expect(source1.source.queryBindings).toHaveBeenCalledWith(opIn, ctx.merge(sourceContext));
+      });
+
       it('should handle bindings operations and invokes the logger', async() => {
         const parentNode = '';
         const logger: IPhysicalQueryPlanLogger = {

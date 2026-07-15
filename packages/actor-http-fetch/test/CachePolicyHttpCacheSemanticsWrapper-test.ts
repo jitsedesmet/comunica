@@ -1,3 +1,4 @@
+import { KeysInitQuery } from '@comunica/context-entries';
 import { ActionContext } from '@comunica/core';
 import CachePolicy = require('http-cache-semantics');
 import { CachePolicyHttpCacheSemanticsWrapper } from '../lib/CachePolicyHttpCacheSemanticsWrapper';
@@ -102,6 +103,17 @@ describe('CachePolicyHttpCacheSemanticsWrapper', () => {
         method: 'GET',
         headers: { a: 'b', 'accept-encoding': 'br,gzip,deflate' },
       });
+    });
+
+    it('returns true without delegating when the query timestamp matches', async() => {
+      vi.spyOn(cachePolicy, 'satisfiesWithoutRevalidation');
+      await expect(wrapper.satisfiesWithoutRevalidation({
+        input: 'http://localhost:8080/',
+        init: { headers: new Headers({ a: 'b' }) },
+        context: new ActionContext()
+          .set(KeysInitQuery.queryTimestampHighResolution, 123),
+      })).resolves.toBeTruthy();
+      expect(cachePolicy.satisfiesWithoutRevalidation).not.toHaveBeenCalled();
     });
   });
 
