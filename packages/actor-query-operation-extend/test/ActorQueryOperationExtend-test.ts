@@ -177,6 +177,7 @@ describe('ActorQueryOperationExtend', () => {
 
       Object.defineProperty(sparqlee, 'isExpressionError', { writable: true });
 
+      // eslint-disable-next-line vitest/prefer-spy-on
       (<any> sparqlee).isExpressionError = vi.fn(() => false);
 
       const op: any = { operation: example(faultyExpression), context };

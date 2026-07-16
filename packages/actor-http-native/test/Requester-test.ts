@@ -6,7 +6,7 @@ import Requester from '../lib/Requester';
 // the manual mock implementation directly.
 
 const followRedirects = require('follow-redirects');
-// eslint-disable-next-line jest/no-mocks-import
+// eslint-disable-next-line vitest/no-mocks-import
 const mockImpl = require('./__mocks__/follow-redirects');
 
 followRedirects.http.request = mockImpl.http.request;

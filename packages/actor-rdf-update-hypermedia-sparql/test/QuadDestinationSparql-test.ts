@@ -1,3 +1,4 @@
+/* eslint-disable vitest/prefer-spy-on */
 import { Readable } from 'node:stream';
 import { KeysRdfUpdateQuads } from '@comunica/context-entries';
 import { ActionContext } from '@comunica/core';

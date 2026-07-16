@@ -17,7 +17,7 @@ import '@comunica/utils-jest';
 // members directly, replicating what the old Jest `__mocks__/follow-redirects` manual mock did.
 
 const followRedirects = require('follow-redirects');
-// eslint-disable-next-line jest/no-mocks-import
+// eslint-disable-next-line vitest/no-mocks-import
 const mockImpl = require('./__mocks__/follow-redirects');
 
 followRedirects.http.request = mockImpl.http.request;

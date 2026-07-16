@@ -79,7 +79,7 @@ describe('ActorHttpRetry', () => {
         <any> { ok: false, status: 504, statusText: 'Gateway Timeout', headers: new Map() },
         <any> { ok: true },
       ];
-      // eslint-disable-next-line jest/prefer-mock-promise-shorthand
+      // eslint-disable-next-line vitest/prefer-mock-promise-shorthand
       vi.spyOn(mediatorHttp, 'mediate').mockImplementation(() => Promise.resolve(mediatorResponseQueue.shift()!));
       expect(ActorHttpRetry.sleep).not.toHaveBeenCalled();
       expect(ActorHttpRetry.parseRetryAfterHeader).not.toHaveBeenCalled();

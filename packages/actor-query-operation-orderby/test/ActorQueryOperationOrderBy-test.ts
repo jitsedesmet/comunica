@@ -345,6 +345,7 @@ describe('ActorQueryOperationOrderBySparqlee', () => {
 
       Object.defineProperty(sparqlee, 'isExpressionError', { writable: true });
 
+      // eslint-disable-next-line vitest/prefer-spy-on
       (<any>sparqlee).isExpressionError = vi.fn(() => false);
       const op: any = {
         operation: { type: 'orderby', input: {}, expressions: [ orderB ]},

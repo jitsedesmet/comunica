@@ -1,4 +1,4 @@
-/* eslint-disable jest/no-mocks-import */
+/* eslint-disable vitest/no-mocks-import */
 import { PassThrough } from 'node:stream';
 import type { BindingsStream } from '@comunica/types';
 import { BindingsFactory } from '@comunica/utils-bindings-factory';

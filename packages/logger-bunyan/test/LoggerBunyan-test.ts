@@ -10,6 +10,7 @@ import { BunyanStreamProviderStderr } from '../lib/stream/BunyanStreamProviderSt
 const bunyan = require('bunyan');
 
 const mockLoggers: any[] = [];
+// eslint-disable-next-line vitest/prefer-spy-on
 bunyan.createLogger = vi.fn((args: any) => {
   const mockLogger = {
     ...args,

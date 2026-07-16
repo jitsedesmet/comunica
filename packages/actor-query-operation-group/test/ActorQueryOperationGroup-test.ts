@@ -777,10 +777,9 @@ describe('ActorQueryOperationGroup', () => {
       });
       try {
         await arrayifyStream((<any> await actor.run(op, undefined)).bindingsStream);
-        // eslint-disable-next-line jest/no-jasmine-globals
         fail();
       } catch (error: unknown) {
-        // eslint-disable-next-line jest/no-conditional-expect
+        // eslint-disable-next-line vitest/no-conditional-expect
         expect(() => {
           throw error;
         }).toThrow('test error');
@@ -803,10 +802,9 @@ describe('ActorQueryOperationGroup', () => {
       });
       try {
         await arrayifyStream((<any> await actor.run(op, undefined)).bindingsStream);
-        // eslint-disable-next-line jest/no-jasmine-globals
         fail('BindingStream did not error when it should');
       } catch (error: unknown) {
-        // eslint-disable-next-line jest/no-conditional-expect
+        // eslint-disable-next-line vitest/no-conditional-expect
         expect(() => {
           throw error;
         }).toThrow('test error');

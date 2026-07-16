@@ -196,9 +196,9 @@ describe('ActorQueryOperationFilter', () => {
         if (index === 0) {
           const dataCB = <() => { error: any; bindings: Bindings }>call[2];
           const { error, bindings } = dataCB();
-          // eslint-disable-next-line jest/no-conditional-expect
+          // eslint-disable-next-line vitest/no-conditional-expect
           expect(isExpressionError(error)).toBeTruthy();
-          // eslint-disable-next-line jest/no-conditional-expect
+          // eslint-disable-next-line vitest/no-conditional-expect
           expect(bindings).toBe(`{
   "a": "\\"1\\""
 }`);
@@ -209,6 +209,7 @@ describe('ActorQueryOperationFilter', () => {
     it('should emit an error for a hard erroring filter', async() => {
       Object.defineProperty(sparqlee, 'isExpressionError', { writable: true });
 
+      // eslint-disable-next-line vitest/prefer-spy-on
       (<any> sparqlee).isExpressionError = vi.fn(() => false);
       const op = {
         operation: AF.createFilter(AF.createBgp([]), erroringExpression),

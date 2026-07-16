@@ -43,7 +43,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
-    "@rubensworks/eslint-config": "^3.0.0",
+    "@rubensworks/eslint-config": "^3.1.0",
     "@rubensworks/process-sparql-benchmark-results": "^1.2.2",
     "@types/benchmark": "^2.0.0",
     "@types/node": "^24.10.0",
@@ -51,6 +51,7 @@
     "@types/readable-stream": "^4.0.18",
     "@vitest/coverage-istanbul": "^4.1.10",
     "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/eslint-plugin": "^1.6.23",
     "arrayify-stream": "^2.0.1",
     "asynciterator": "^3.9.0",
     "benchmark": "^2.1.4",

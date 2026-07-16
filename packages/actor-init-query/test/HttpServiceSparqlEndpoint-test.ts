@@ -1,4 +1,4 @@
-/* eslint-disable jest/no-mocks-import */
+/* eslint-disable vitest/no-mocks-import, vitest/prefer-spy-on */
 import type { Cluster } from 'node:cluster';
 import * as path from 'node:path';
 import { PassThrough } from 'node:stream';

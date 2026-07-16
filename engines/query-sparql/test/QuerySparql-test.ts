@@ -999,7 +999,7 @@ WHERE {
       });
 
       // TODO: re-enable this test once https://api.community.hubl.world/skills/ is back up (also performance/benchmark-web/input/queries/hubl...)
-      // eslint-disable-next-line multiline-comment-style, style/spaced-comment, jest/no-commented-out-tests
+      // eslint-disable-next-line multiline-comment-style, style/spaced-comment, vitest/no-commented-out-tests
       /*it('with join over union', async() => {
         const bindingsStream = await engine.queryBindings(`
 SELECT * WHERE {

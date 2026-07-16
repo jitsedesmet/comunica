@@ -109,6 +109,7 @@ describe('ActorDereferenceHttp', () => {
           require('readable-stream-node-to-web')(dummyBodyStream) :
           dummyBodyStream;
 
+        // eslint-disable-next-line vitest/prefer-spy-on
         body.cancel = vi.fn();
         if (action.input.includes('nobody')) {
           body = undefined;
