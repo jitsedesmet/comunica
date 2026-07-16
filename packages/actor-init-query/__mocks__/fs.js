@@ -32,13 +32,18 @@ const testFileContentDict = {
 
 const testArgumentDict = { sources: [{ type: 'file', value: 'example' }]};
 
-const fs = jest.createMockFromModule('fs');
-const actualFs = jest.requireActual('fs');
+// Vitest has no equivalent of `jest.createMockFromModule`, so build the same kind of auto-mock
+// manually: replace every function on the real module with a no-op `vi.fn()`.
+const actualFs = require('node:fs');
+
+const fs = Object.fromEntries(
+  Object.entries(actualFs).map(([ key, value ]) => [ key, typeof value === 'function' ? vi.fn() : value ]),
+);
 
 // eslint-disable-next-line no-sync
-fs.existsSync = jest.fn(() => true);
+fs.existsSync = vi.fn(() => true);
 // eslint-disable-next-line no-sync
-fs.readFileSync = jest.fn((path) => {
+fs.readFileSync = vi.fn((path) => {
   if (path.includes('sparql-endpoint.html')) {
     // Use actual fs to read the real HTML file
     // eslint-disable-next-line no-sync
@@ -49,7 +54,7 @@ fs.readFileSync = jest.fn((path) => {
 
 // Add promises support for async file reading
 fs.promises = {
-  readFile: jest.fn((path, _encoding) => {
+  readFile: vi.fn((path, _encoding) => {
     if (path.includes('sparql-endpoint.html')) {
       // Use actual fs to read the real HTML file
       return actualFs.promises.readFile(path, 'utf8');

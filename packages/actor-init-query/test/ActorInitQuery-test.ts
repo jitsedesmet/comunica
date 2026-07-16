@@ -40,7 +40,7 @@ describe('ActorInitQuery', () => {
   beforeEach(() => {
     bus = new Bus({ name: 'bus' });
     mediatorQueryProcess = <any>{
-      mediate: jest.fn((action: any) => {
+      mediate: vi.fn((action: any) => {
         if (action.context.has(KeysInitQuery.explain)) {
           return Promise.resolve({
             result: {
@@ -138,8 +138,8 @@ describe('ActorInitQuery', () => {
         context: contextString,
       });
 
-      spyResultToString = jest.spyOn(QueryEngineBase.prototype, 'resultToString');
-      spyQueryOrExplain = jest.spyOn(QueryEngineBase.prototype, 'queryOrExplain');
+      spyResultToString = vi.spyOn(QueryEngineBase.prototype, 'resultToString');
+      spyQueryOrExplain = vi.spyOn(QueryEngineBase.prototype, 'queryOrExplain');
     });
 
     describe('test', () => {
@@ -183,7 +183,7 @@ describe('ActorInitQuery', () => {
       });
 
       it('handles the -v option when not in a dev environment', async() => {
-        jest.spyOn(CliArgsHandlerBase, 'isDevelopmentEnvironment').mockReturnValue(false);
+        vi.spyOn(CliArgsHandlerBase, 'isDevelopmentEnvironment').mockReturnValue(false);
         const stderr = await stringifyStream(<any> (await actor.run({
           argv: [ '-v' ],
           env: {},

@@ -112,5 +112,19 @@ describe('ActorQueryParseSparql', () => {
         ) ]), [ DF.variable('a'), DF.variable('b') ]),
       });
     });
+
+    it('should run with a prefix declaration', async() => {
+      const result = await actor.run({
+        query: 'PREFIX ex: <http://example.org/> SELECT * WHERE { ?a ex:p ?b }',
+        context,
+      });
+      expect(result).toMatchObject({
+        operation: AF.createProject(AF.createBgp([ AF.createPattern(
+          DF.variable('a'),
+          DF.namedNode('http://example.org/p'),
+          DF.variable('b'),
+        ) ]), [ DF.variable('a'), DF.variable('b') ]),
+      });
+    });
   });
 });

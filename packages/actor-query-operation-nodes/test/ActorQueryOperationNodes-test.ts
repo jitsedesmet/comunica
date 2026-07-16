@@ -61,7 +61,7 @@ describe('ActorQueryOperationNodes', () => {
 
     describe('run', () => {
       it('should rewrite operations into distinct-union-pattern', async() => {
-        jest.spyOn(mediatorQueryOperation, 'mediate');
+        vi.spyOn(mediatorQueryOperation, 'mediate');
         const source1 = <any>{};
         const opIn = assignOperationSource(
           AF.createNodes(DF.defaultGraph(), DF.variable('x')),

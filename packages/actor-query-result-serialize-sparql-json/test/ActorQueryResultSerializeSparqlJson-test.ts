@@ -119,7 +119,7 @@ describe('ActorQueryResultSerializeSparqlJson', () => {
     beforeEach(() => {
       observedActors = [ 'urn:comunica:default:http/actors#fetch' ];
       httpInvalidator = <any> {
-        addInvalidateListener: jest.fn((listener: IInvalidateListener) => {
+        addInvalidateListener: vi.fn((listener: IInvalidateListener) => {
           lastListener = listener;
         }),
       };
@@ -220,6 +220,11 @@ describe('ActorQueryResultSerializeSparqlJson', () => {
           handleMediaType: 'sparql-results+json',
         }))
           .resolves.toPassTest({ handle: true });
+      });
+
+      it('should not count unobserved http requests', () => {
+        (<any> httpObserver).onRun({ name: 'urn:comunica:default:http/actors#unobserved' }, null, null);
+        expect(httpObserver.requests).toBe(0);
       });
 
       it('should not test on N-Triples', async() => {

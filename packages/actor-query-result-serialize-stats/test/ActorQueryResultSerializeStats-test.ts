@@ -55,7 +55,7 @@ describe('ActorQueryResultSerializeStats', () => {
     beforeEach(() => {
       observedActors = [ 'urn:comunica:default:http/actors#fetch' ];
       httpInvalidator = <any> {
-        addInvalidateListener: jest.fn((listener: IInvalidateListener) => {
+        addInvalidateListener: vi.fn((listener: IInvalidateListener) => {
           lastListener = listener;
         }),
       };
@@ -139,6 +139,11 @@ describe('ActorQueryResultSerializeStats', () => {
           { handle: <any> { type: 'unknown' }, handleMediaType: 'debug', context },
         ))
           .resolves.toFailTest(`This actor can only handle bindings streams or quad streams.`);
+      });
+
+      it('should not count unobserved http requests', () => {
+        (<any> httpObserver).onRun({ name: 'urn:comunica:default:http/actors#unobserved' }, null, null);
+        expect(httpObserver.requests).toBe(0);
       });
 
       it('should run on a bindings stream', async() => {

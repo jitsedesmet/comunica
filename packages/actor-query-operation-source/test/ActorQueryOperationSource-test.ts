@@ -32,12 +32,12 @@ describe('ActorQueryOperationSource', () => {
     source1 = <any> {
       source: {
         referenceValue: 'source1',
-        queryBindings: jest.fn(() => {
+        queryBindings: vi.fn(() => {
           const bindingsStream = new ArrayIterator([], { autoStart: false });
           bindingsStream.setProperty('metadata', { cardinality: { value: 10 }, variables: []});
           return bindingsStream;
         }),
-        queryQuads: jest.fn(() => {
+        queryQuads: vi.fn(() => {
           const quadStream = new ArrayIterator([], { autoStart: false });
           quadStream.setProperty('metadata', { cardinality: { value: 10 }});
           return quadStream;
@@ -235,14 +235,32 @@ describe('ActorQueryOperationSource', () => {
         await expect(result.bindingsStream).toEqualBindingsStream([]);
       });
 
+      it('should handle bindings operations with a source context', async() => {
+        const sourceContext = new ActionContext().setRaw('source', 'context');
+        ctx = new ActionContext().setRaw('action', 'context');
+        const opIn = assignOperationSource(AF.createNop(), {
+          ...source1,
+          context: sourceContext,
+        });
+        const result: IQueryOperationResultBindings = <any> await actor.run({ operation: opIn, context: ctx });
+        expect(result.type).toBe('bindings');
+        await expect(result.metadata()).resolves.toEqual({
+          cardinality: { value: 10 },
+
+          variables: [],
+        });
+        await expect(result.bindingsStream).toEqualBindingsStream([]);
+        expect(source1.source.queryBindings).toHaveBeenCalledWith(opIn, ctx.merge(sourceContext));
+      });
+
       it('should handle bindings operations and invokes the logger', async() => {
         const parentNode = '';
         const logger: IPhysicalQueryPlanLogger = {
-          logOperation: jest.fn(),
-          toJson: jest.fn(),
-          stashChildren: jest.fn(),
-          unstashChild: jest.fn(),
-          appendMetadata: jest.fn(),
+          logOperation: vi.fn(),
+          toJson: vi.fn(),
+          stashChildren: vi.fn(),
+          unstashChild: vi.fn(),
+          appendMetadata: vi.fn(),
         };
         ctx = new ActionContext({
           [KeysInitQuery.physicalQueryPlanLogger.name]: logger,

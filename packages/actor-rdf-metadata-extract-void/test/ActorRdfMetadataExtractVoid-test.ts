@@ -27,8 +27,8 @@ import {
   VOID_VOCABULARY,
 } from '../lib/Definitions';
 
-jest.mock('@comunica/actor-init-query');
-jest.mock('@comunica/bus-rdf-metadata-extract');
+vi.mock('@comunica/actor-init-query');
+vi.mock('@comunica/bus-rdf-metadata-extract');
 
 const DF = new DataFactory();
 const AF = new AlgebraFactory(DF);
@@ -40,7 +40,7 @@ describe('ActorRdfMetadataExtractVoid', () => {
   const sparqlEndpoint = DF.namedNode('http://localhost:3000/sparql');
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
     bus = new Bus({ name: 'bus' });
     actor = new ActorRdfMetadataExtractVoid({
       bus,
@@ -129,6 +129,26 @@ describe('ActorRdfMetadataExtractVoid', () => {
           DF.quad(defaultGraph, DF.namedNode(VOID_TRIPLES), DF.literal('1234')),
         ]);
         await expect(actor.run(<any>{ metadata, url: sparqlEndpoint.value })).resolves.toEqual({ metadata: {}});
+      });
+
+      it('should ignore unrelated rdf:type and sd:feature quads', async() => {
+        const metadata = streamifyArray([
+          DF.quad(sparqlEndpoint, DF.namedNode(RDF_TYPE), DF.namedNode(typeUri)),
+          DF.quad(sparqlEndpoint, DF.namedNode(VOID_TRIPLES), DF.literal('1234')),
+          DF.quad(sparqlEndpoint, DF.namedNode(RDF_TYPE), DF.namedNode('ex:OtherType')),
+          DF.quad(sparqlEndpoint, DF.namedNode(SD_FEATURE), DF.namedNode('ex:OtherFeature')),
+        ]);
+        await expect(actor.run(<any>{ metadata, url: sparqlEndpoint.value })).resolves.toEqual({
+          metadata: {
+            datasets: [
+              {
+                getCardinality: expect.any(Function),
+                source: sparqlEndpoint.value,
+                uri: sparqlEndpoint.value,
+              },
+            ],
+          },
+        });
       });
 
       it('should drop intermediate sd:defaultDataset and propagate its vocabularies to sd:defaultGraph', async() => {

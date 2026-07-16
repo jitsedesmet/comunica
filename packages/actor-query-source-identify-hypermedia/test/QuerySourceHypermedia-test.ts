@@ -369,7 +369,7 @@ describe('QuerySourceHypermedia', () => {
 
     describe('getSource', () => {
       it('should get urls based on mediatorQuerySourceDereferenceLink', async() => {
-        jest.spyOn(utilMediators.mediatorQuerySourceDereferenceLink, 'mediate');
+        vi.spyOn(utilMediators.mediatorQuerySourceDereferenceLink, 'mediate');
         await expect(source.getSource({ url: 'startUrl' }, {}, context)).resolves.toMatchObject({
           link: { url: 'startUrl' },
           handledDatasets: { MYDATASET: true },
@@ -384,7 +384,7 @@ describe('QuerySourceHypermedia', () => {
       });
 
       it('should not merge the link context yet', async() => {
-        jest.spyOn(utilMediators.mediatorQuerySourceDereferenceLink, 'mediate');
+        vi.spyOn(utilMediators.mediatorQuerySourceDereferenceLink, 'mediate');
         const linkContext = new ActionContext({ link: 1 });
         await expect(source.getSource({ url: 'startUrl', context: linkContext }, {}, context)).resolves.toMatchObject({
           link: { url: 'startUrl' },
@@ -408,7 +408,7 @@ describe('QuerySourceHypermedia', () => {
           }),
         };
         mediatorsThis.mediatorMetadata = {
-          mediate: jest.fn(({ quads }: any) => {
+          mediate: vi.fn(({ quads }: any) => {
             const data = new Readable();
             data._read = () => null;
             data.on('newListener', (name: string) => {
@@ -440,7 +440,7 @@ describe('QuerySourceHypermedia', () => {
       it('should skip metadata extraction for single forced SPARQL endpoints', async() => {
         const mediatorsThis = { ...mediators };
         mediatorsThis.mediatorMetadata = {
-          mediate: jest.fn(),
+          mediate: vi.fn(),
         };
         source = new QuerySourceHypermedia(
           10,
@@ -473,7 +473,7 @@ describe('QuerySourceHypermedia', () => {
       });
 
       it('should cache sources asynchronously', async() => {
-        const spy = jest.spyOn(utilMediators.mediatorQuerySourceDereferenceLink, 'mediate');
+        const spy = vi.spyOn(utilMediators.mediatorQuerySourceDereferenceLink, 'mediate');
         spy.mockClear();
         const src1 = await source.getSourceCached({ url: 'startUrl' }, {}, context);
         const src2 = await source.getSourceCached({ url: 'startUrl' }, {}, context);
@@ -482,7 +482,7 @@ describe('QuerySourceHypermedia', () => {
       });
 
       it('should cache sources synchronously', async() => {
-        const spy = jest.spyOn(utilMediators.mediatorQuerySourceDereferenceLink, 'mediate');
+        const spy = vi.spyOn(utilMediators.mediatorQuerySourceDereferenceLink, 'mediate');
         spy.mockClear();
         const src1 = source.getSourceCached({ url: 'startUrl' }, {}, context);
         const src2 = source.getSourceCached({ url: 'startUrl' }, {}, context);

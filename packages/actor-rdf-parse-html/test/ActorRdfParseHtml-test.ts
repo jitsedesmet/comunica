@@ -34,7 +34,7 @@ describe('ActorRdfParseHtml', () => {
         mediaTypeFormats: {},
         name: 'jsonldParser',
         mediatorHttp,
-        httpInvalidator: <any> { addInvalidateListener: jest.fn() },
+        httpInvalidator: <any> { addInvalidateListener: vi.fn() },
         cacheSize: 10,
       },
     );
@@ -213,7 +213,7 @@ describe('ActorRdfParseHtml', () => {
             handleMediaType: 'text/html',
           })))
           .handle.data))
-          .rejects.toThrow(new Error('Unexpected COMMA(",") in state KEY'));
+          .rejects.toThrow('Unexpected COMMA(",") in state KEY');
       });
 
       it('should delegate error events (with no metadata provided in input handle)', async() => {
@@ -224,7 +224,7 @@ describe('ActorRdfParseHtml', () => {
             handleMediaType: 'text/html',
           })))
           .handle.data))
-          .rejects.toThrow(new Error('Unexpected COMMA(",") in state KEY'));
+          .rejects.toThrow('Unexpected COMMA(",") in state KEY');
       });
 
       it('should produce an error in the stream if there is an error getting html parsers', async() => {
@@ -240,7 +240,7 @@ describe('ActorRdfParseHtml', () => {
             handleMediaType: 'text/html',
           })))
           .handle.data))
-          .rejects.toThrow(new Error('boo'));
+          .rejects.toThrow('boo');
       });
 
       it('should allow multiple reads', async() => {
@@ -342,7 +342,7 @@ describe('ActorRdfParseHtml', () => {
             handleMediaType: 'text/html',
           },
         )))
-          .handle.data)).rejects.toThrow(new Error('ERROR END'));
+          .handle.data)).rejects.toThrow('ERROR END');
       });
     });
 
@@ -377,7 +377,7 @@ describe('ActorRdfParseHtml', () => {
             handleMediaType: 'text/html',
           },
         )))
-          .handle.data)).rejects.toThrow(new Error('ERROR CLOSE'));
+          .handle.data)).rejects.toThrow('ERROR CLOSE');
       });
     });
 
@@ -410,7 +410,7 @@ describe('ActorRdfParseHtml', () => {
           handle: { data: inputSimple, metadata: { baseIRI: 'http://ex.org/' }, context },
           handleMediaType: 'text/html',
         })))
-          .handle.data)).rejects.toThrow(new Error('ERROR OPEN'));
+          .handle.data)).rejects.toThrow('ERROR OPEN');
       });
     });
 
@@ -439,7 +439,7 @@ describe('ActorRdfParseHtml', () => {
 
       it('should emit an error in the quad stream', async() => {
         await expect(arrayifyStream((<any> (await actor.run({ context, handle: { data: inputSimple, metadata: { baseIRI: 'http://ex.org/' }, context }, handleMediaType: 'text/html' })))
-          .handle.data)).rejects.toThrow(new Error('ERROR TEXT'));
+          .handle.data)).rejects.toThrow('ERROR TEXT');
       });
     });
   });

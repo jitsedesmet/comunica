@@ -9,8 +9,22 @@ import arrayifyStream from 'arrayify-stream';
 import { ActorHttpNative } from '../lib/ActorHttpNative';
 import '@comunica/utils-jest';
 
-// eslint-disable-next-line jest/no-mocks-import
-const mockSetup = require('./__mocks__/follow-redirects').mockSetup;
+// `Requester` (the actual code under test, transitively) loads `follow-redirects` via a plain
+// Node `require`, which bypasses Vite/Vitest's module graph and mocking (`vi.mock` only intercepts
+// modules resolved through Vitest's own module runner). Since Node's `require` cache is shared
+// process-wide, we can still control its behavior by grabbing the real module object here (which
+// is the exact same object instance `Requester` will get) and stubbing its `request`/`Agent`
+// members directly, replicating what the old Jest `__mocks__/follow-redirects` manual mock did.
+
+const followRedirects = require('follow-redirects');
+// eslint-disable-next-line vitest/no-mocks-import
+const mockImpl = require('./__mocks__/follow-redirects');
+
+followRedirects.http.request = mockImpl.http.request;
+followRedirects.http.Agent = mockImpl.http.Agent;
+followRedirects.https.request = mockImpl.https.request;
+followRedirects.https.Agent = mockImpl.https.Agent;
+const mockSetup = mockImpl.mockSetup;
 
 describe('ActorHttpNative', () => {
   let bus: any;
@@ -205,7 +219,7 @@ describe('ActorHttpNative', () => {
 
     it('should run with a logger', async() => {
       const logger = new LoggerVoid();
-      const spy = jest.spyOn(logger, 'info');
+      const spy = vi.spyOn(logger, 'info');
       mockSetup({ statusCode: 200 });
       await actor.run({
         input: new Request('http://example.com', { headers: new Headers({ a: 'b' }) }),

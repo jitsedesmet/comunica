@@ -74,7 +74,7 @@ describe('ActorRdfJoinMultiSmallestFilterBindings', () => {
         mediatorJoinSelectivity,
         mediatorJoinEntriesSort,
       });
-      jest.spyOn((<any> actor), 'logDebug').mockImplementation();
+      vi.spyOn((<any> actor), 'logDebug').mockImplementation();
       source1 = <IQuerySourceWrapper> <any> {
         source: {
           getSelectorShape() {
@@ -84,7 +84,7 @@ describe('ActorRdfJoinMultiSmallestFilterBindings', () => {
               filterBindings: true,
             };
           },
-          queryBindings: jest.fn((operation: any, ctx: any, options: any) => {
+          queryBindings: vi.fn((operation: any, ctx: any, options: any) => {
             return options.filterBindings.bindings.transform({
               map(binding: RDF.Bindings): RDF.Bindings {
                 return binding.merge(BF.bindings([
@@ -104,7 +104,7 @@ describe('ActorRdfJoinMultiSmallestFilterBindings', () => {
               operation: { operationType: 'type', type: Algebra.Types.PROJECT },
             };
           },
-          queryBindings: jest.fn((operation: any, ctx: any, options: any) => {
+          queryBindings: vi.fn((operation: any, ctx: any, options: any) => {
             return options.joinBindings.bindings.transform({
               map(binding: RDF.Bindings): RDF.Bindings {
                 return binding.merge(BF.bindings([
@@ -125,7 +125,7 @@ describe('ActorRdfJoinMultiSmallestFilterBindings', () => {
               filterBindings: true,
             };
           },
-          queryBindings: jest.fn((operation: any, ctx: any, options: any) => {
+          queryBindings: vi.fn((operation: any, ctx: any, options: any) => {
             return options.filterBindings.bindings.transform({
               map(binding: RDF.Bindings): RDF.Bindings {
                 return binding.merge(BF.bindings([
@@ -613,6 +613,47 @@ describe('ActorRdfJoinMultiSmallestFilterBindings', () => {
     });
 
     describe('getJoinCoefficients', () => {
+      it('should reject when entries have no overlapping variables', async() => {
+        await expect(actor.getJoinCoefficients(
+          {
+            type: 'inner',
+            entries: [
+              {
+                output: <any>{},
+                operation: assignOperationSource(AF.createNop(), source1),
+              },
+              {
+                output: <any>{},
+                operation: AF.createNop(),
+              },
+            ],
+            context: new ActionContext(),
+          },
+          {
+            metadatas: [
+              {
+                state: new MetadataValidationState(),
+                cardinality: { type: 'estimate', value: 3 },
+                pageSize: 100,
+                requestTime: 10,
+                variables: [
+                  { variable: DF.variable('a'), canBeUndef: false },
+                ],
+              },
+              {
+                state: new MetadataValidationState(),
+                cardinality: { type: 'estimate', value: 2 },
+                pageSize: 100,
+                requestTime: 20,
+                variables: [
+                  { variable: DF.variable('b'), canBeUndef: false },
+                ],
+              },
+            ],
+          },
+        )).resolves.toFailTest('Actor actor can only join with common variables');
+      });
+
       it('should handle three entries', async() => {
         await expect(actor.getJoinCoefficients(
           {

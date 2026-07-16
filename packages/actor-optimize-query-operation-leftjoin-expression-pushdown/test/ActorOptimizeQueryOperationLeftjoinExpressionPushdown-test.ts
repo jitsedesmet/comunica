@@ -104,6 +104,61 @@ describe('ActorOptimizeQueryOperationLeftjoinExpressionPushdown', () => {
         });
         expect(operationOut).toEqual(operationIn);
       });
+
+      it('for an operation with leftjoin without expression', async() => {
+        const operationIn = AF.createLeftJoin(
+          AF.createProject(
+            AF.createBgp([]),
+            [ DF.variable('s1'), DF.variable('p1') ],
+          ),
+          AF.createProject(
+            AF.createBgp([]),
+            [ DF.variable('s2'), DF.variable('p2') ],
+          ),
+        );
+        const { operation: operationOut } = await actor.run({
+          context: new ActionContext({ [KeysInitQuery.dataFactory.name]: DF }),
+          operation: operationIn,
+        });
+        expect(operationOut).toEqual(operationIn);
+      });
+
+      it('for an operation with a nested leftjoin that overlaps only right', async() => {
+        const operationIn = AF.createProject(
+          AF.createLeftJoin(
+            AF.createProject(
+              AF.createBgp([]),
+              [ DF.variable('s1'), DF.variable('p1') ],
+            ),
+            AF.createProject(
+              AF.createBgp([]),
+              [ DF.variable('s2'), DF.variable('p2') ],
+            ),
+            AF.createTermExpression(DF.variable('s2')),
+          ),
+          [ DF.variable('s1'), DF.variable('s2') ],
+        );
+        const { operation: operationOut } = await actor.run({
+          context: new ActionContext({ [KeysInitQuery.dataFactory.name]: DF }),
+          operation: operationIn,
+        });
+        expect(operationOut).toEqual(AF.createProject(
+          AF.createLeftJoin(
+            AF.createProject(
+              AF.createBgp([]),
+              [ DF.variable('s1'), DF.variable('p1') ],
+            ),
+            AF.createFilter(
+              AF.createProject(
+                AF.createBgp([]),
+                [ DF.variable('s2'), DF.variable('p2') ],
+              ),
+              AF.createTermExpression(DF.variable('s2')),
+            ),
+          ),
+          [ DF.variable('s1'), DF.variable('s2') ],
+        ));
+      });
     });
   });
 });

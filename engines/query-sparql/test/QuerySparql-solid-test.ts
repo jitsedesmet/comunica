@@ -23,16 +23,10 @@ const config = [{
 const globalFetch = globalThis.fetch;
 
 // Use an increased timeout, since the CSS server takes too much setup time.
-jest.setTimeout(40_000);
+vi.setConfig({ testTimeout: 40_000 });
 
 function createApp() {
   return new AppRunner().create(
-    {
-      mainModulePath: resolveModulePath(''),
-      typeChecking: false,
-    },
-    resolveModulePath('config/default.json'),
-    {},
     {
       port: 3_001,
       loggingLevel: 'off',
@@ -106,7 +100,7 @@ describe('System test: QuerySparql over Solid Pods', () => {
 
     // Override global fetch with auth fetch
     // @ts-expect-error
-    jest.spyOn(globalThis, 'fetch').mockImplementation(authFetch);
+    vi.spyOn(globalThis, 'fetch').mockImplementation(authFetch);
   });
 
   afterAll(async() => {
