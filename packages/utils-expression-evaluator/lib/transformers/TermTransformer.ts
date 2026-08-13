@@ -3,7 +3,7 @@ import { Algebra } from '@comunica/utils-algebra';
 import type * as RDF from '@rdfjs/types';
 import * as RDFString from 'rdf-string';
 import * as E from '../expressions';
-import { TypeURL } from '../util/Consts';
+import { InvalidLiteralBoundBehavior, TypeURL, XSD_TYPE_BOUNDS } from '../util/Consts';
 import * as Err from '../util/Errors';
 import { isExpressionError } from '../util/Errors';
 import {
@@ -23,7 +23,39 @@ export interface ITermTransformer {
 }
 
 export class TermTransformer implements ITermTransformer {
-  public constructor(protected readonly superTypeProvider: ISuperTypeProvider) {}
+  /**
+   * @param superTypeProvider Provider for type hierarchy information
+   * @param invalidLiteralBoundBehavior Specifies how to handle literals that don't fit the bounds
+   *        of their declared type (e.g., "200"^^xsd:byte where xsd:byte range is -128 to 127).
+   *        - IGNORE: Accept the value as-is (default, maintains backward compatibility)
+   *        - ERROR: Create a NonLexicalLiteral, which will cause type errors in operations
+   */
+  public constructor(
+    protected readonly superTypeProvider: ISuperTypeProvider,
+    protected readonly invalidLiteralBoundBehavior: InvalidLiteralBoundBehavior = InvalidLiteralBoundBehavior.IGNORE,
+  ) {}
+
+  /**
+   * Checks if a number is within the bounds for a given datatype.
+   * @param value The numeric value to check
+   * @param dataType The datatype to check bounds for
+   * @returns true if the value is within bounds or if no bounds are defined for the type,
+   *          false if the value is outside the defined bounds or not an integer for integer types
+   */
+  protected isWithinBounds(value: number, dataType: string): boolean {
+    const bounds = XSD_TYPE_BOUNDS[dataType];
+    if (!bounds) {
+      // No bounds defined for this type - accept the value
+      return true;
+    }
+
+    // Check if value is an integer for integer types
+    if (!Number.isInteger(value)) {
+      return false;
+    }
+
+    return value >= bounds.min && value <= bounds.max;
+  }
 
   /**
    * Transforms an RDF term to the internal representation of a term,
@@ -126,6 +158,11 @@ export class TermTransformer implements ITermTransformer {
           return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
         }
         if (TypeURL.XSD_INTEGER in superTypeDict) {
+          // Check bounds for integer types when behavior is set to ERROR
+          if (this.invalidLiteralBoundBehavior === InvalidLiteralBoundBehavior.ERROR &&
+              !this.isWithinBounds(intVal, dataType)) {
+            return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
+          }
           return new E.IntegerLiteral(intVal, dataType, lit.value);
         }
         // If type is not an integer it's just a decimal.

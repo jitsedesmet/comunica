@@ -23,7 +23,10 @@ export abstract class AggregateEvaluator {
   ) {
     this.errorOccurred = false;
     this.superTypeProvider = evaluator.context.getSafe(KeysExpressionEvaluator.superTypeProvider);
-    this.termTransformer = new Eval.TermTransformer(this.superTypeProvider);
+    const boundBehavior = evaluator.context.get(KeysExpressionEvaluator.invalidLiteralBoundBehavior) === 'error' ?
+      Eval.InvalidLiteralBoundBehavior.ERROR :
+      Eval.InvalidLiteralBoundBehavior.IGNORE;
+    this.termTransformer = new Eval.TermTransformer(this.superTypeProvider, boundBehavior);
 
     this.variableValues = new Set();
   }
