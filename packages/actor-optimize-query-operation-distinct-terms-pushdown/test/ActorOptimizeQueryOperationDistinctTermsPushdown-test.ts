@@ -123,8 +123,9 @@ describe('ActorOptimizeQueryOperationDistinctTermsPushdown', () => {
 
         const { operation: operationOut } = await actor.run({ operation, context });
         expect(operationOut).toEqual(operation);
-        // GetSelectorShape is called during source collection, but optimization fails at variable mapping
-        expect(source.source.getSelectorShape).toHaveBeenCalledWith(expect.anything());
+        // The selector shape is only requested once the rewrite is known to be applicable,
+        // and the optimization already fails at variable mapping
+        expect(source.source.getSelectorShape).not.toHaveBeenCalled();
       });
 
       it('should optimize DISTINCT(PROJECT(PATTERN)) with supporting source', async() => {
@@ -319,100 +320,6 @@ describe('ActorOptimizeQueryOperationDistinctTermsPushdown', () => {
         // Should optimize the nested distinct
         expect(operationOut.type).toBe(Algebra.Types.SLICE);
         expect((<any>operationOut).input.type).toBe('distinctterms');
-      });
-    });
-
-    describe('getSources', () => {
-      it('should collect sources from a single pattern', () => {
-        const source: IQuerySourceWrapper = <any> {
-          source: {},
-        };
-        const pattern = assignOperationSource(
-          AF.createPattern(DF.variable('s'), DF.variable('p'), DF.variable('o')),
-          source,
-        );
-
-        const sources = actor.getSources(pattern);
-        expect(sources).toHaveLength(1);
-        expect(sources[0]).toBe(source);
-      });
-
-      it('should collect sources from multiple patterns', () => {
-        const source1: IQuerySourceWrapper = <any> {
-          source: { id: 1 },
-        };
-        const source2: IQuerySourceWrapper = <any> {
-          source: { id: 2 },
-        };
-
-        const pattern1 = assignOperationSource(
-          AF.createPattern(DF.variable('s'), DF.variable('p'), DF.variable('o')),
-          source1,
-        );
-        const pattern2 = assignOperationSource(
-          AF.createPattern(DF.variable('s'), DF.variable('p2'), DF.variable('o2')),
-          source2,
-        );
-
-        const operation = AF.createJoin([ pattern1, pattern2 ]);
-
-        const sources = actor.getSources(operation);
-        expect(sources).toHaveLength(2);
-        expect(sources).toContainEqual(source1);
-        expect(sources).toContainEqual(source2);
-      });
-
-      it('should deduplicate sources', () => {
-        const source: IQuerySourceWrapper = <any> {
-          source: {},
-        };
-
-        const pattern1 = assignOperationSource(
-          AF.createPattern(DF.variable('s'), DF.variable('p'), DF.variable('o')),
-          source,
-        );
-        const pattern2 = assignOperationSource(
-          AF.createPattern(DF.variable('s'), DF.variable('p2'), DF.variable('o2')),
-          source,
-        );
-
-        const operation = AF.createJoin([ pattern1, pattern2 ]);
-
-        const sources = actor.getSources(operation);
-        expect(sources).toHaveLength(1);
-        expect(sources[0]).toBe(source);
-      });
-
-      it('should return empty array when no sources are present', () => {
-        const operation = AF.createPattern(DF.variable('s'), DF.variable('p'), DF.variable('o'));
-
-        const sources = actor.getSources(operation);
-        expect(sources).toHaveLength(0);
-      });
-
-      it('should collect sources from nested operations', () => {
-        const source: IQuerySourceWrapper = <any> {
-          source: {},
-        };
-
-        const pattern = assignOperationSource(
-          AF.createPattern(DF.variable('s'), DF.variable('p'), DF.variable('o')),
-          source,
-        );
-
-        const operation = AF.createProject(
-          AF.createDistinct(
-            AF.createFilter(
-              pattern,
-              AF.createTermExpression(DF.variable('s')),
-            ),
-          ),
-          [ DF.variable('s') ],
-        );
-
-        const sources = actor.getSources(operation);
-        expect(sources).toHaveLength(1);
-        expect(sources[0]).toBe(source);
       });
     });
   });

@@ -6,7 +6,7 @@ import { ActorOptimizeQueryOperation } from '@comunica/bus-optimize-query-operat
 import { KeysInitQuery } from '@comunica/context-entries';
 import type { IActorTest, TestResult } from '@comunica/core';
 import { passTestVoid } from '@comunica/core';
-import type { FragmentSelectorShape, IQuerySourceWrapper } from '@comunica/types';
+import type { IQuerySourceWrapper } from '@comunica/types';
 import { Algebra, AlgebraFactory, algebraUtils, isKnownOperation } from '@comunica/utils-algebra';
 import { assignOperationSource, doesShapeAcceptOperation, getOperationSource } from '@comunica/utils-query-operation';
 import type * as RDF from '@rdfjs/types';
@@ -28,19 +28,10 @@ export class ActorOptimizeQueryOperationDistinctTermsPushdown extends ActorOptim
     const dataFactory = action.context.getSafe(KeysInitQuery.dataFactory);
     const algebraFactory = new AlgebraFactory(dataFactory);
 
-    // Collect selector shapes of all operations
-    const sources = this.getSources(action.operation);
-    // eslint-disable-next-line ts/no-unnecessary-type-assertion
-    const sourceShapes = new Map(<[IQuerySourceWrapper, FragmentSelectorShape][]> await Promise.all(sources
-      .map(async source => [
-        source,
-        await source.source.getSelectorShape(source.context ? action.context.merge(source.context) : action.context),
-      ])));
-
-    const operation = algebraUtils.mapOperation(action.operation, {
+    const operation = await algebraUtils.mapOperationAsync(action.operation, {
       [Algebra.Types.DISTINCT]: {
         preVisitor: () => ({ continue: false }),
-        transform: (operation: Algebra.Distinct) => {
+        transform: async(operation: Algebra.Distinct) => {
           // Check if the Project wraps a Distinct Pattern
           let source: IQuerySourceWrapper | undefined;
           // If we have a JOIN with only one input, rewrite it to bring the sole JOIN child upwards one level.
@@ -70,7 +61,10 @@ export class ActorOptimizeQueryOperationDistinctTermsPushdown extends ActorOptim
           );
 
           // Check if the source supports this operation
-          if (!doesShapeAcceptOperation(sourceShapes.get(source)!, distinctTermsOp)) {
+          const shape = await source.source.getSelectorShape(
+            source.context ? action.context.merge(source.context) : action.context,
+          );
+          if (!doesShapeAcceptOperation(shape, distinctTermsOp)) {
             return operation;
           }
 
@@ -80,25 +74,6 @@ export class ActorOptimizeQueryOperationDistinctTermsPushdown extends ActorOptim
     });
 
     return { operation, context: action.context };
-  }
-
-  /**
-   * Collected all sources that are defined within the given operation of children recursively.
-   * @param operation An operation.
-   */
-  public getSources(operation: Algebra.Operation): IQuerySourceWrapper[] {
-    const sources = new Set<IQuerySourceWrapper>();
-    const sourceAdder = (subOperation: Algebra.Operation): boolean => {
-      const src = getOperationSource(subOperation);
-      if (src) {
-        sources.add(src);
-      }
-      return false;
-    };
-    algebraUtils.visitOperation(operation, {
-      [Algebra.Types.PATTERN]: { visitor: sourceAdder },
-    });
-    return [ ...sources ];
   }
 
   /**
