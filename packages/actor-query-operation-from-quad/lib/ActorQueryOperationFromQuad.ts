@@ -48,7 +48,7 @@ export class ActorQueryOperationFromQuad extends ActorQueryOperationTypedMediate
       [Algebra.Types.BGP]: {
         // This callback rewrites the patterns itself, so they must not be rewritten as patterns first.
         preVisitor: () => ({ continue: false }),
-        transform: (_copy, bgp) => {
+        transform: (bgp) => {
           if (bgp.patterns.length === 0) {
             return bgp;
           }
@@ -70,53 +70,33 @@ export class ActorQueryOperationFromQuad extends ActorQueryOperationTypedMediate
       [Algebra.Types.PATH]: {
         // The predicate is re-used as-is, nothing below a path needs rewriting.
         preVisitor: () => ({ continue: false }),
-        transform: (_copy, path) => ActorQueryOperationFromQuad
-          .applyDefaultGraphToPattern(algebraFactory, path, defaultGraphs),
+        transform: (path) => {
+          if (path.graph.termType !== 'DefaultGraph') {
+            return path;
+          }
+          const paths = defaultGraphs.map(graph => ActorQueryOperationFromQuad.copyMetadata(
+            algebraFactory.createPath(path.subject, path.predicate, path.object, graph),
+            path,
+          ));
+          return ActorQueryOperationFromQuad.unionOperations(algebraFactory, paths);
+        },
       },
       [Algebra.Types.PATTERN]: {
-        transform: (_copy, pattern) => ActorQueryOperationFromQuad
-          .applyDefaultGraphToPattern(algebraFactory, pattern, defaultGraphs),
+        preVisitor: () => ({ continue: false }),
+        transform: (pattern) => {
+          if (pattern.graph.termType !== 'DefaultGraph') {
+            return operation;
+          }
+          const paths = defaultGraphs.map(graph => ActorQueryOperationFromQuad.copyMetadata(
+            algebraFactory.createPattern(pattern.subject, pattern.predicate, pattern.object, graph),
+            pattern,
+          ));
+          return ActorQueryOperationFromQuad.unionOperations(algebraFactory, paths);
+        },
       },
       // A construct template holds the quads to produce, it is never matched against the dataset.
       [Algebra.Types.CONSTRUCT]: { preVisitor: () => ({ ignoreKeys: new Set([ 'template', 'metadata' ]) }) },
     });
-  }
-
-  /**
-   * Transform a single quad pattern or property path to use the given graphs as default graph.
-   * @param algebraFactory The algebra factory.
-   * @param operation A quad pattern or property path operation.
-   * @param {RDF.Term[]} defaultGraphs Graph terms.
-   * @return {Operation} A new operation.
-   */
-  private static applyDefaultGraphToPattern(
-    algebraFactory: AlgebraFactory,
-    operation: Algebra.Path | Algebra.Pattern,
-    defaultGraphs: RDF.Term[],
-  ): Algebra.Operation {
-    if (operation.graph.termType !== 'DefaultGraph') {
-      return operation;
-    }
-    const paths = defaultGraphs.map(
-      (graph: RDF.Term) => {
-        if (isKnownOperation(operation, Algebra.Types.PATH)) {
-          return ActorQueryOperationFromQuad.copyMetadata(
-            algebraFactory.createPath(operation.subject, operation.predicate, operation.object, graph),
-            operation,
-          );
-        }
-        return ActorQueryOperationFromQuad.copyMetadata(
-          algebraFactory.createPattern(
-            operation.subject,
-            operation.predicate,
-            operation.object,
-            graph,
-          ),
-          operation,
-        );
-      },
-    );
-    return ActorQueryOperationFromQuad.unionOperations(algebraFactory, paths);
   }
 
   /**
@@ -137,23 +117,21 @@ export class ActorQueryOperationFromQuad extends ActorQueryOperationTypedMediate
   ): Algebra.Operation {
     return algebraUtils.mapOperation(operation, {
       [Algebra.Types.BGP]: {
-        // This callback rewrites the patterns itself, so they must not be rewritten as patterns first.
         preVisitor: () => ({ continue: false }),
-        transform: (_copy, bgp) => bgp.patterns.length === 0 ?
+        transform: bgp => bgp.patterns.length === 0 ?
           bgp :
           ActorQueryOperationFromQuad.applyNamedGraphToPattern(algebraFactory, bgp, namedGraphs, defaultGraphs),
       },
       [Algebra.Types.PATH]: {
-        // The predicate is re-used as-is, nothing below a path needs rewriting.
         preVisitor: () => ({ continue: false }),
-        transform: (_copy, path) => ActorQueryOperationFromQuad
+        transform: path => ActorQueryOperationFromQuad
           .applyNamedGraphToPattern(algebraFactory, path, namedGraphs, defaultGraphs),
       },
       [Algebra.Types.PATTERN]: {
+        preVisitor: () => ({ continue: false }),
         transform: (_copy, pattern) => ActorQueryOperationFromQuad
           .applyNamedGraphToPattern(algebraFactory, pattern, namedGraphs, defaultGraphs),
       },
-      // A construct template holds the quads to produce, it is never matched against the dataset.
       [Algebra.Types.CONSTRUCT]: { preVisitor: () => ({ ignoreKeys: new Set([ 'template', 'metadata' ]) }) },
     });
   }
@@ -172,7 +150,9 @@ export class ActorQueryOperationFromQuad extends ActorQueryOperationTypedMediate
     namedGraphs: RDF.NamedNode[],
     defaultGraphs: RDF.Term[],
   ): Algebra.Operation {
-    const patternGraph: RDF.Term = operation.type === 'bgp' ? operation.patterns[0].graph : operation.graph;
+    const patternGraph: RDF.Term = algebraUtils.isKnownOperation(operation, Algebra.Types.BGP) ?
+      operation.patterns[0].graph :
+      operation.graph;
     if (patternGraph.termType === 'DefaultGraph') {
       // Patterns over the default graph are not restricted by FROM NAMED.
       // They are handled afterwards by the default graph transformation.
@@ -196,13 +176,13 @@ export class ActorQueryOperationFromQuad extends ActorQueryOperationTypedMediate
           .createValues([ patternGraph ], [ bindings ]);
 
         let pattern: Algebra.Operation;
-        if (operation.type === 'bgp') {
+        if (isKnownOperation(operation, Algebra.Types.BGP)) {
           pattern = algebraFactory
             .createBgp(operation.patterns.map((pat: Algebra.Pattern) => ActorQueryOperationFromQuad.copyMetadata(
               algebraFactory.createPattern(pat.subject, pat.predicate, pat.object, graph),
               pat,
             )));
-        } else if (operation.type === 'path') {
+        } else if (isKnownOperation(operation, Algebra.Types.PATH)) {
           pattern = ActorQueryOperationFromQuad.copyMetadata(
             algebraFactory.createPath(operation.subject, operation.predicate, operation.object, graph),
             operation,

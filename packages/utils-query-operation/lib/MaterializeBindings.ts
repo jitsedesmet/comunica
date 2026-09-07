@@ -135,17 +135,17 @@ export function materializeOperation(
     } },
     [Algebra.Types.FILTER]: {
       preVisitor: (filterOp) => {
+        const originalBindings: Bindings = <Bindings> options.originalBindings;
         // A filter we leave untouched leaves its descendants untouched as well.
-        if ((<Bindings> options.originalBindings).size === 0 ||
-          (filterOp.expression.subType !== 'existence' && filterOp.expression.subType !== 'operator')) {
+        if (originalBindings.size === 0) {
           return { continue: false };
         }
-        return {};
+        return { continue: filterOp.expression.subType === 'existence' || filterOp.expression.subType === 'operator' };
       },
       transform: (filterOp, origFilterOp) => {
         const originalBindings: Bindings = <Bindings> options.originalBindings;
-        if (originalBindings.size === 0 || (origFilterOp.expression.subType !== 'existence' &&
-          origFilterOp.expression.subType !== 'operator')) {
+        // If we did not traverse
+        if (originalBindings.size === 0 || filterOp.input === origFilterOp.input) {
           return origFilterOp;
         }
 
@@ -154,6 +154,8 @@ export function materializeOperation(
           // without adding VALUES clauses, since existence evaluation handles bindings directly.
           return algebraFactory.createFilter(filterOp.input, filterOp.expression);
         }
+
+        // We KNOW it us an 'operator' subType
 
         // Make a values clause for the variables from originalBindings that are used by this filter operation:
         // the variables in scope of its input, and the variables its expression refers to.
@@ -164,10 +166,11 @@ export function materializeOperation(
           ...getExpressionVariables(origFilterOp.expression),
         ]);
 
-        return algebraFactory.createFilter(
-          values.length > 0 ? algebraFactory.createJoin([ ...values, filterOp.input ]) : filterOp.input,
-          filterOp.expression,
-        );
+        const subOperation = values.length > 0 ?
+          algebraFactory.createJoin([ ...values, filterOp.input ]) :
+          filterOp.input;
+
+        return algebraFactory.createFilter(subOperation, filterOp.expression);
       },
     },
     [Algebra.Types.PROJECT]: {
@@ -179,10 +182,11 @@ export function materializeOperation(
         const values: Algebra.Operation[] =
           createValuesFromBindings(algebraFactory, <Bindings> options.originalBindings, projectOp.variables);
 
-        return algebraFactory.createProject(
-          values.length > 0 ? algebraFactory.createJoin([ ...values, projectOp.input ]) : projectOp.input,
-          projectOp.variables,
-        );
+        const subOperation = values.length > 0 ?
+          algebraFactory.createJoin([ ...values, projectOp.input ]) :
+          projectOp.input;
+
+        return algebraFactory.createProject(subOperation, projectOp.variables);
       },
     },
     [Algebra.Types.VALUES]: {
