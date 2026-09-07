@@ -92,17 +92,14 @@ export function materializeOperation(
         ), { metadata: patternOp.metadata }),
     },
     [Algebra.Types.JOIN]: {
-      preVisitor: () => ({ continue: false }),
-      transform: op =>
+      transform: (op, origOp) =>
       // Materialize join operation, and ensure metadata is taken into account.
-      // Join entries with metadata should not be flattened.
-        Object.assign(algebraFactory.createJoin(op.input.map(input => materializeOperation(
-          input,
-          bindings,
-          algebraFactory,
-          bindingsFactory,
-          options,
-        )), op.input.every(input => !input.metadata)), { metadata: op.metadata }),
+      // Join entries with metadata should not be flattened, which is decided by the entries as they were
+      // before materialization, since materializing an entry may drop its metadata.
+        Object.assign(
+          algebraFactory.createJoin(op.input, origOp.input.every(input => !input.metadata)),
+          { metadata: op.metadata },
+        ),
     },
     [Algebra.Types.EXTEND]: { transform: (extendOp) => {
       // Materialize an extend operation.
@@ -112,7 +109,7 @@ export function materializeOperation(
         if (options.strictTargetVariables) {
           throw new Error(`Tried to bind variable ${termToString(extendOp.variable)} in a BIND operator.`);
         } else {
-          return materializeOperation(extendOp.input, bindings, algebraFactory, bindingsFactory, options);
+          return extendOp.input;
         }
       }
       return extendOp;
@@ -137,72 +134,43 @@ export function materializeOperation(
       );
     } },
     [Algebra.Types.FILTER]: {
-      preVisitor: () => ({ continue: false }),
-      transform: (filterOp) => {
+      preVisitor: (filterOp) => {
+        // A filter we leave untouched leaves its descendants untouched as well.
+        if ((<Bindings> options.originalBindings).size === 0 ||
+          (filterOp.expression.subType !== 'existence' && filterOp.expression.subType !== 'operator')) {
+          return { continue: false };
+        }
+        return {};
+      },
+      transform: (filterOp, origFilterOp) => {
         const originalBindings: Bindings = <Bindings> options.originalBindings;
-        if (originalBindings.size === 0) {
-          return filterOp;
+        if (originalBindings.size === 0 || (origFilterOp.expression.subType !== 'existence' &&
+          origFilterOp.expression.subType !== 'operator')) {
+          return origFilterOp;
         }
 
-        if (filterOp.expression.subType === 'existence') {
-          // For existence expressions (EXISTS/NOT EXISTS), materialize the filter input and expression
+        if (origFilterOp.expression.subType === 'existence') {
+          // For existence expressions (EXISTS/NOT EXISTS), the filter input and expression are materialized
           // without adding VALUES clauses, since existence evaluation handles bindings directly.
-          const recursionResultExpression: Algebra.Expression = <Algebra.Expression> materializeOperation(
-            filterOp.expression,
-            bindings,
-            algebraFactory,
-            bindingsFactory,
-            options,
-          );
-          const recursionResultInput: Algebra.Operation = materializeOperation(
-            filterOp.input,
-            bindings,
-            algebraFactory,
-            bindingsFactory,
-            options,
-          );
-          return algebraFactory.createFilter(recursionResultInput, recursionResultExpression);
-        }
-
-        if (filterOp.expression.subType !== 'operator') {
-          return filterOp;
+          return algebraFactory.createFilter(filterOp.input, filterOp.expression);
         }
 
         // Make a values clause for the variables from originalBindings that are used by this filter operation:
         // the variables in scope of its input, and the variables its expression refers to.
-        // Bound variables that are not used here don't have to be re-injected.
+        // Both are read from the operation as it was before materialization, since materializing replaces the
+        // bound variables with their terms, which would leave nothing to re-inject.
         const values: Algebra.Operation[] = createValuesFromBindings(algebraFactory, originalBindings, [
-          ...algebraUtils.inScopeVariables(filterOp.input),
-          ...getExpressionVariables(filterOp.expression),
+          ...algebraUtils.inScopeVariables(origFilterOp.input),
+          ...getExpressionVariables(origFilterOp.expression),
         ]);
 
-        // Recursively materialize the filter expression
-        const recursionResultExpression: Algebra.Expression = <Algebra.Expression> materializeOperation(
+        return algebraFactory.createFilter(
+          values.length > 0 ? algebraFactory.createJoin([ ...values, filterOp.input ]) : filterOp.input,
           filterOp.expression,
-          bindings,
-          algebraFactory,
-          bindingsFactory,
-          options,
         );
-
-        // Recursively materialize the filter input
-        let recursionResultInput: Algebra.Operation = materializeOperation(
-          filterOp.input,
-          bindings,
-          algebraFactory,
-          bindingsFactory,
-          options,
-        );
-
-        if (values.length > 0) {
-          recursionResultInput = algebraFactory.createJoin([ ...values, recursionResultInput ]);
-        }
-
-        return algebraFactory.createFilter(recursionResultInput, recursionResultExpression);
       },
     },
     [Algebra.Types.PROJECT]: {
-      preVisitor: () => ({ continue: false }),
       transform: (projectOp) => {
       // Materialize a project operation.
 
@@ -211,23 +179,13 @@ export function materializeOperation(
         const values: Algebra.Operation[] =
           createValuesFromBindings(algebraFactory, <Bindings> options.originalBindings, projectOp.variables);
 
-        let recursionResult: Algebra.Operation = materializeOperation(
-          projectOp.input,
-          bindings,
-          algebraFactory,
-          bindingsFactory,
-          options,
+        return algebraFactory.createProject(
+          values.length > 0 ? algebraFactory.createJoin([ ...values, projectOp.input ]) : projectOp.input,
+          projectOp.variables,
         );
-
-        if (values.length > 0) {
-          recursionResult = algebraFactory.createJoin([ ...values, recursionResult ]);
-        }
-
-        return algebraFactory.createProject(recursionResult, projectOp.variables);
       },
     },
     [Algebra.Types.VALUES]: {
-      preVisitor: () => ({ continue: !options.strictTargetVariables }),
       transform: (valuesOp) => {
         // Materialize a values operation.
         // If strictTargetVariables is true, we throw if the values target variable is attempted to be bound.
