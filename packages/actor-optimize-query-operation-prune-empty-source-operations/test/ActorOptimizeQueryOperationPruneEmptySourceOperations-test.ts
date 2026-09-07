@@ -128,14 +128,14 @@ describe('ActorOptimizeQueryOperationPruneEmptySourceOperations', () => {
       it('should not modify a nop', async() => {
         const opIn = AF.createNop();
         const { operation: opOut } = await actor.run({ operation: opIn, context: ctx });
-        expect(opOut).toEqual(opIn);
+        expect(opOut).toBe(opIn);
       });
 
       describe('with unions', () => {
         it('should not modify 0 children', async() => {
           const opIn = AF.createUnion([]);
           const { operation: opOut } = await actor.run({ operation: opIn, context: ctx });
-          expect(opOut).toEqual(opIn);
+          expect(opOut).toBe(opIn);
         });
 
         it('should prune empty children', async() => {
@@ -282,7 +282,7 @@ describe('ActorOptimizeQueryOperationPruneEmptySourceOperations', () => {
         it('should not modify 0 children', async() => {
           const opIn = AF.createAlt([]);
           const { operation: opOut } = await actor.run({ operation: opIn, context: ctx });
-          expect(opOut).toEqual(opIn);
+          expect(opOut).toBe(opIn);
         });
 
         it('should prune empty children', async() => {

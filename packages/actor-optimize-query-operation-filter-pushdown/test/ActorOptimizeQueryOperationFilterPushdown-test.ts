@@ -26,6 +26,7 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
         name: 'actor',
         bus,
         aggressivePushdown: true,
+        maxIterations: 10,
         splitConjunctive: true,
         mergeConjunctive: true,
         pushIntoLeftJoins: false,
@@ -73,6 +74,7 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
           name: 'actor',
           bus,
           aggressivePushdown: false,
+          maxIterations: 10,
           splitConjunctive: true,
           mergeConjunctive: true,
           pushIntoLeftJoins: false,
@@ -178,12 +180,12 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
         });
         expect(operationOut).toEqual(AF.createJoin([
           AF.createFilter(
-            AF.createPattern(DF.variable('s1'), DF.namedNode('p'), DF.namedNode('o')),
-            AF.createTermExpression(DF.variable('s1')),
-          ),
-          AF.createFilter(
             AF.createPattern(DF.variable('s2'), DF.namedNode('p'), DF.namedNode('o')),
             AF.createTermExpression(DF.variable('s2')),
+          ),
+          AF.createFilter(
+            AF.createPattern(DF.variable('s1'), DF.namedNode('p'), DF.namedNode('o')),
+            AF.createTermExpression(DF.variable('s1')),
           ),
         ]));
       });
@@ -193,6 +195,7 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
           name: 'actor',
           bus,
           aggressivePushdown: true,
+          maxIterations: 10,
           splitConjunctive: false,
           mergeConjunctive: true,
           pushIntoLeftJoins: false,
@@ -237,10 +240,10 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
         expect(operationOut).toEqual(AF.createFilter(
           AF.createPattern(DF.variable('s1'), DF.variable('s2'), DF.variable('s3')),
           AF.createOperatorExpression('&&', [
-            AF.createTermExpression(DF.variable('s2')),
+            AF.createTermExpression(DF.variable('s3')),
             AF.createOperatorExpression('&&', [
+              AF.createTermExpression(DF.variable('s2')),
               AF.createTermExpression(DF.variable('s1')),
-              AF.createTermExpression(DF.variable('s3')),
             ]),
           ]),
         ));
@@ -251,6 +254,7 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
           name: 'actor',
           bus,
           aggressivePushdown: true,
+          maxIterations: 10,
           splitConjunctive: true,
           mergeConjunctive: false,
           pushIntoLeftJoins: false,
@@ -275,11 +279,11 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
           AF.createFilter(
             AF.createFilter(
               AF.createPattern(DF.variable('s1'), DF.variable('s2'), DF.variable('s3')),
-              AF.createTermExpression(DF.variable('s3')),
+              AF.createTermExpression(DF.variable('s1')),
             ),
-            AF.createTermExpression(DF.variable('s1')),
+            AF.createTermExpression(DF.variable('s2')),
           ),
-          AF.createTermExpression(DF.variable('s2')),
+          AF.createTermExpression(DF.variable('s3')),
         ));
       });
     });
@@ -290,6 +294,7 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
           name: 'actor',
           bus,
           aggressivePushdown: false,
+          maxIterations: 10,
           splitConjunctive: true,
           mergeConjunctive: true,
           pushIntoLeftJoins: true,
@@ -302,6 +307,7 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
           name: 'actor',
           bus,
           aggressivePushdown: true,
+          maxIterations: 10,
           splitConjunctive: true,
           mergeConjunctive: true,
           pushIntoLeftJoins: true,
@@ -1091,6 +1097,7 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
               name: 'actor',
               bus,
               aggressivePushdown: true,
+              maxIterations: 10,
               splitConjunctive: true,
               mergeConjunctive: true,
               pushIntoLeftJoins: true,
@@ -1355,6 +1362,7 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
               name: 'actor',
               bus,
               aggressivePushdown: true,
+              maxIterations: 10,
               splitConjunctive: true,
               mergeConjunctive: true,
               pushIntoLeftJoins: true,
@@ -1469,6 +1477,7 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
               name: 'actor',
               bus,
               aggressivePushdown: true,
+              maxIterations: 10,
               splitConjunctive: true,
               mergeConjunctive: true,
               pushIntoLeftJoins: true,

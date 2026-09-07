@@ -77,6 +77,26 @@ export class ActorOptimizeQueryOperationDistinctTermsPushdown extends ActorOptim
   }
 
   /**
+   * Collected all sources that are defined within the given operation of children recursively.
+   * @param operation An operation.
+   */
+  public getSources(operation: Algebra.Operation): IQuerySourceWrapper[] {
+    // TODO (next-major): we no longer need this funstion
+    const sources = new Set<IQuerySourceWrapper>();
+    const sourceAdder = (subOperation: Algebra.Operation): boolean => {
+      const src = getOperationSource(subOperation);
+      if (src) {
+        sources.add(src);
+      }
+      return false;
+    };
+    algebraUtils.visitOperation(operation, {
+      [Algebra.Types.PATTERN]: { visitor: sourceAdder },
+    });
+    return [ ...sources ];
+  }
+
+  /**
    * Map projected variables to quad term positions
    */
   private mapVariablesToTerms(
