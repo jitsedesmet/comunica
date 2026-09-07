@@ -24,7 +24,6 @@ import { mapTermsNested } from 'rdf-terms';
  */
 export class ActorOptimizeQueryOperationFilterPushdown extends ActorOptimizeQueryOperation {
   private readonly aggressivePushdown: boolean;
-  private readonly maxIterations: number;
   private readonly splitConjunctive: boolean;
   private readonly mergeConjunctive: boolean;
   private readonly pushIntoLeftJoins: boolean;
@@ -33,7 +32,6 @@ export class ActorOptimizeQueryOperationFilterPushdown extends ActorOptimizeQuer
   public constructor(args: IActorOptimizeQueryOperationFilterPushdownArgs) {
     super(args);
     this.aggressivePushdown = args.aggressivePushdown;
-    this.maxIterations = args.maxIterations;
     this.splitConjunctive = args.splitConjunctive;
     this.mergeConjunctive = args.mergeConjunctive;
     this.pushIntoLeftJoins = args.pushIntoLeftJoins;
@@ -74,43 +72,42 @@ export class ActorOptimizeQueryOperationFilterPushdown extends ActorOptimizeQuer
         await source.source.getSelectorShape(source.context ? action.context.merge(source.context) : action.context),
       ])));
 
-    // Push down all filters
-    // We loop until no more filters can be pushed down.
-    let repeat = true;
-    let iterations = 0;
-    while (repeat && iterations < this.maxIterations) {
-      repeat = false;
-      operation = algebraUtils.mapOperation(operation, {
-        [Algebra.Types.FILTER]: { transform: (filterOp) => {
-          // Check if the filter must be pushed down
-          const extensionFunctions = action.context.get(KeysInitQuery.extensionFunctions);
-          const extensionFunctionsAlwaysPushdown = action.context.get(KeysInitQuery.extensionFunctionsAlwaysPushdown);
-          if (!this.shouldAttemptPushDown(
-            filterOp,
-            sources,
-            sourceShapes,
-            extensionFunctions,
-            extensionFunctionsAlwaysPushdown,
-          )) {
-            return filterOp;
-          }
+    // Push down all filters.
+    // A filter is mapped before its descendants, and the traversal iterates into the result of that
+    // mapping, so a filter that swapped places with the operation below it is met again at its new
+    // position, and one that ended up wrapping the operation it sank into is asked to sink again.
+    // The traversal is therefore the loop: a filter settles by reporting that it did not move.
+    let pushedDown = 0;
+    operation = algebraUtils.mapOperationPreOrder(operation, {
+      [Algebra.Types.FILTER]: (filterOp) => {
+        // Check if the filter must be pushed down
+        const extensionFunctions = action.context.get(KeysInitQuery.extensionFunctions);
+        const extensionFunctionsAlwaysPushdown = action.context.get(KeysInitQuery.extensionFunctionsAlwaysPushdown);
+        if (!this.shouldAttemptPushDown(
+          filterOp,
+          sources,
+          sourceShapes,
+          extensionFunctions,
+          extensionFunctionsAlwaysPushdown,
+        )) {
+          return { newValue: filterOp, reTransform: false };
+        }
 
-          // For all filter expressions in the operation,
-          // we attempt to push them down as deep as possible into the algebra.
-          const variables = getExpressionVariables(filterOp.expression);
-          const [ isModified, result ] = this
-            .filterPushdown(filterOp.expression, variables, filterOp.input, algebraFactory, action.context);
-          if (isModified) {
-            repeat = true;
-          }
-          return result;
-        } },
-      });
-      iterations++;
-    }
+        // For all filter expressions in the operation,
+        // we attempt to push them down as deep as possible into the algebra.
+        const variables = getExpressionVariables(filterOp.expression);
+        const [ isModified, result ] = this
+          .filterPushdown(filterOp.expression, variables, filterOp.input, algebraFactory, action.context);
+        if (isModified) {
+          pushedDown++;
+        }
+        // Only a filter that actually moved can move again from where it landed
+        return { newValue: result, reTransform: isModified };
+      },
+    });
 
-    if (iterations > 1) {
-      this.logDebug(action.context, `Pushed down filters in ${iterations} iterations`);
+    if (pushedDown > 0) {
+      this.logDebug(action.context, `Pushed down ${pushedDown} filters`);
     }
 
     // Merge nested filters into conjunctive filters
@@ -258,6 +255,8 @@ export class ActorOptimizeQueryOperationFilterPushdown extends ActorOptimizeQuer
    * @param factory An algebra factory.
    * @param context The action context.
    * @return A tuple indicating if the operation was modified and the modified operation.
+   *   The traversal re-maps a modified operation, so that a filter that moved can move again, and stops
+   *   at an unmodified one.
    */
   public filterPushdown(
     expression: Algebra.Expression,
@@ -577,11 +576,6 @@ export interface IActorOptimizeQueryOperationFilterPushdownArgs extends IActorOp
    * @default {false}
    */
   aggressivePushdown: boolean;
-  /**
-   * The maximum number of full iterations across the query can be done for attempting to push down filters.
-   * @default {10}
-   */
-  maxIterations: number;
   /**
    * If conjunctive filters should be split into nested filters before applying filter pushdown.
    * This can enable pushing down deeper.
