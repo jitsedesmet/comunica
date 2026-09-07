@@ -385,6 +385,12 @@ export const mapOperationSubStrict = transformer.transformNodeSpecific.bind(tran
  *     indicate the subType.
  * @return the result of transforming the requested descendant operations (based on the preVisitor)
  * using a transformer that works its way back up from the descendant to the startObject.
+ *
+ * NOTE: the `Sub` variants only dispatch on nodes that actually carry a `subType`, for the type-level
+ * `nodeCallBacks` just as much as for `nodeSpecificCallBacks`. In this algebra only EXPRESSION nodes have a
+ * subType, so a type-level callback registered here for any other type - PROJECT in the example above
+ * included - silently never fires. Use {@link mapOperation} whenever you dispatch on the type alone, and
+ * reach for a `Sub` variant only to reach a subType.
  */
 export const mapOperationSub: (typeof mapOperationSubStrict<'unsafe', Operation>) = <any> mapOperationSubStrict;
 
@@ -398,6 +404,7 @@ export const mapOperationSubAsyncStrict = transformer.transformNodeSpecificAsync
  * Both the preVisitor and the transform of every callback may return a promise, which is awaited before the
  * traversal continues. The traversal stays strictly sequential (depth-first): siblings are not visited
  * concurrently, so the callbacks observe the exact same order as the synchronous {@link mapOperationSub}.
+ * The subType dispatch caveat on {@link mapOperationSub} applies here too.
  * @param startObject the object from which we will start the transformation,
  *   potentially visiting and transforming its descendants along the way.
  * @param nodeCallBacks a dictionary mapping the various operation types to objects optionally
@@ -434,6 +441,7 @@ export const mapOperationSubPreOrderStrict = transformer.transformNodeSpecificPr
  * The same caveats as on {@link mapOperationPreOrder} apply: the callback returns the value taking the
  * place of the operation together with the {@link TransformContext} of that value, and the descendants
  * it is handed are those of the input tree.
+ * The subType dispatch caveat on {@link mapOperationSub} applies here too.
  * @param startObject the object from which we will start the transformation,
  *   potentially visiting and transforming its descendants along the way.
  * @param nodeCallBacks a dictionary mapping the various operation types to a mapper.
@@ -460,6 +468,7 @@ export const mapOperationSubPreOrderAsyncStrict =
  * iterate into the value it carries. The traversal stays strictly sequential (depth-first): siblings are not
  * visited concurrently, so the mappers observe the exact same order as the synchronous
  * {@link mapOperationSubPreOrder}.
+ * The subType dispatch caveat on {@link mapOperationSub} applies here too.
  * @param startObject the object from which we will start the transformation,
  *   potentially visiting and transforming its descendants along the way.
  * @param nodeCallBacks a dictionary mapping the various operation types to a possibly asynchronous mapper.
@@ -539,6 +548,7 @@ export const visitOperationAsync = transformer.visitNodeAsync.bind(transformer);
  * Will call the preVisitor on the outer distinct, then the visitor of the special distinct,
  * followed by the visiting the outer distinct, printing '231'.
  * The pre-visitor visits starting from the root, going deeper, while the actual visitor goes in reverse.
+ * The subType dispatch caveat on {@link mapOperationSub} applies here too.
  * @param startObject the object from which we will start visiting,
  *   potentially visiting its descendants along the way.
  * @param nodeCallBacks a dictionary mapping the various operation types to objects optionally
@@ -558,6 +568,7 @@ export const visitOperationSub = transformer.visitNodeSpecific.bind(transformer)
  * Both the preVisitor and the visitor of every callback may return a promise, which is awaited before the
  * traversal continues. The traversal stays strictly sequential (depth-first): siblings are not visited
  * concurrently, so the callbacks observe the exact same order as the synchronous {@link visitOperationSub}.
+ * The subType dispatch caveat on {@link mapOperationSub} applies here too.
  */
 export const visitOperationSubAsync = transformer.visitNodeSpecificAsync.bind(transformer);
 
