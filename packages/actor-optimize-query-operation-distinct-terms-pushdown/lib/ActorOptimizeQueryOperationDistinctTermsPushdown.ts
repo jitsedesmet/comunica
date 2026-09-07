@@ -6,7 +6,7 @@ import { ActorOptimizeQueryOperation } from '@comunica/bus-optimize-query-operat
 import { KeysInitQuery } from '@comunica/context-entries';
 import type { IActorTest, TestResult } from '@comunica/core';
 import { passTestVoid } from '@comunica/core';
-import type { IQuerySourceWrapper } from '@comunica/types';
+import type { FragmentSelectorShape, IQuerySourceWrapper } from '@comunica/types';
 import { Algebra, AlgebraFactory, algebraUtils, isKnownOperation } from '@comunica/utils-algebra';
 import { assignOperationSource, doesShapeAcceptOperation, getOperationSource } from '@comunica/utils-query-operation';
 import type * as RDF from '@rdfjs/types';
@@ -27,6 +27,21 @@ export class ActorOptimizeQueryOperationDistinctTermsPushdown extends ActorOptim
   public async run(action: IActionOptimizeQueryOperation): Promise<IActorOptimizeQueryOperationOutput> {
     const dataFactory = action.context.getSafe(KeysInitQuery.dataFactory);
     const algebraFactory = new AlgebraFactory(dataFactory);
+
+    // Selector shapes are requested lazily, so only sources that a rewrite candidate actually reaches
+    // are contacted, but at most once per source. The pending promise is memoized rather than the
+    // resolved shape, so simultaneous visits of the same source share a single request.
+    const sourceShapes = new Map<IQuerySourceWrapper, Promise<FragmentSelectorShape>>();
+    const getSelectorShape = (source: IQuerySourceWrapper): Promise<FragmentSelectorShape> => {
+      let shape = sourceShapes.get(source);
+      if (!shape) {
+        shape = source.source.getSelectorShape(
+          source.context ? action.context.merge(source.context) : action.context,
+        );
+        sourceShapes.set(source, shape);
+      }
+      return shape;
+    };
 
     const operation = await algebraUtils.mapOperationAsync(action.operation, {
       [Algebra.Types.DISTINCT]: {
@@ -61,10 +76,7 @@ export class ActorOptimizeQueryOperationDistinctTermsPushdown extends ActorOptim
           );
 
           // Check if the source supports this operation
-          const shape = await source.source.getSelectorShape(
-            source.context ? action.context.merge(source.context) : action.context,
-          );
-          if (!doesShapeAcceptOperation(shape, distinctTermsOp)) {
+          if (!doesShapeAcceptOperation(await getSelectorShape(source), distinctTermsOp)) {
             return operation;
           }
 

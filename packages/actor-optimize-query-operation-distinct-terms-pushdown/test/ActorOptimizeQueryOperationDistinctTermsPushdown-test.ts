@@ -159,6 +159,42 @@ describe('ActorOptimizeQueryOperationDistinctTermsPushdown', () => {
         expect(source.source.getSelectorShape).toHaveBeenCalledWith(expect.anything());
       });
 
+      it('should request the selector shape once for multiple distincts over the same source', async() => {
+        const source: IQuerySourceWrapper = <any> {
+          source: {
+            getSelectorShape: jest.fn(async() => ({
+              type: 'operation',
+              operation: {
+                operationType: 'type',
+                type: 'distinctterms',
+              },
+            })),
+          },
+        };
+
+        const createDistinct = (variable: string): Algebra.Distinct => AF.createDistinct(
+          AF.createProject(
+            assignOperationSource(
+              AF.createPattern(DF.variable(variable), DF.variable('p'), DF.variable('o')),
+              source,
+            ),
+            [ DF.variable(variable) ],
+          ),
+        );
+        const operation = AF.createJoin([ createDistinct('s1'), createDistinct('s2') ]);
+
+        const { operation: operationOut } = await actor.run({ operation, context });
+
+        expect(operationOut).toMatchObject({
+          type: 'join',
+          input: [
+            { type: 'distinctterms', variables: [ DF.variable('s1') ]},
+            { type: 'distinctterms', variables: [ DF.variable('s2') ]},
+          ],
+        });
+        expect(source.source.getSelectorShape).toHaveBeenCalledTimes(1);
+      });
+
       it('should optimize and map all quad positions', async() => {
         const source: IQuerySourceWrapper = <any> {
           source: {
