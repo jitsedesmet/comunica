@@ -2390,13 +2390,13 @@ INSERT DATA {
 
       it('should not modify updates without a where clause', () => {
         const clear = { type: Algebra.Types.CLEAR, source: 'ALL', silent: false };
-        expect(HttpServiceSparqlEndpoint.applyUpdateDataset(algebraFactory, clear, dataset)).toBe(clear);
+        expect(HttpServiceSparqlEndpoint.applyUpdateDataset(algebraFactory, clear, dataset)).toEqual(clear);
       });
 
       it('should not modify delete/insert operations without a where clause', () => {
         const deleteInsert = { type: Algebra.Types.DELETE_INSERT, insert: []};
         expect(HttpServiceSparqlEndpoint.applyUpdateDataset(algebraFactory, deleteInsert, dataset))
-          .toBe(deleteInsert);
+          .toEqual(deleteInsert);
       });
 
       it('should error on updates that define their own dataset', () => {

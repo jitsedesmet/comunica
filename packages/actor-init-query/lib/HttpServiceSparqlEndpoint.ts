@@ -12,7 +12,7 @@ import * as url from 'node:url';
 import { KeysInitQuery, KeysQueryOperation } from '@comunica/context-entries';
 import { ActionContext } from '@comunica/core';
 import type { ICliArgsHandler, QueryQuads, QueryType } from '@comunica/types';
-import { Algebra, AlgebraFactory } from '@comunica/utils-algebra';
+import { Algebra, AlgebraFactory, algebraUtils } from '@comunica/utils-algebra';
 import type * as RDF from '@rdfjs/types';
 import { ArrayIterator } from 'asynciterator';
 import { DataFactory } from 'rdf-data-factory';
@@ -554,25 +554,26 @@ export class HttpServiceSparqlEndpoint {
     operation: Algebra.Operation,
     dataset: { default: RDF.NamedNode[]; named: RDF.NamedNode[] },
   ): Algebra.Operation {
-    if (operation.type === Algebra.Types.COMPOSITE_UPDATE) {
-      return algebraFactory.createCompositeUpdate((<Algebra.CompositeUpdate> operation).updates
-        .map(update => HttpServiceSparqlEndpoint.applyUpdateDataset(algebraFactory, update, dataset)));
-    }
-    if (operation.type === Algebra.Types.DELETE_INSERT) {
-      const deleteInsert = <Algebra.DeleteInsert> operation;
-      if (deleteInsert.where) {
-        // The protocol does not allow a request to specify the dataset in more than one way
-        if (deleteInsert.where.type === Algebra.Types.FROM) {
-          throw new Error(`A request with a using-graph-uri or using-named-graph-uri parameter can not contain a USING, USING NAMED or WITH clause`);
-        }
-        return algebraFactory.createDeleteInsert(
-          deleteInsert.delete,
-          deleteInsert.insert,
-          algebraFactory.createFrom(deleteInsert.where, dataset.default, dataset.named),
-        );
-      }
-    }
-    return operation;
+    return algebraUtils.mapOperation(operation, {
+      [Algebra.Types.DELETE_INSERT]: {
+        // The delete and insert templates hold quad patterns to write, they carry no dataset of their own.
+        preVisitor: () => ({ ignoreKeys: new Set([ 'delete', 'insert', 'metadata' ]) }),
+        transform: (deleteInsert) => {
+          if (!deleteInsert.where) {
+            return deleteInsert;
+          }
+          // The protocol does not allow a request to specify the dataset in more than one way
+          if (deleteInsert.where.type === Algebra.Types.FROM) {
+            throw new Error(`A request with a using-graph-uri or using-named-graph-uri parameter can not contain a USING, USING NAMED or WITH clause`);
+          }
+          return algebraFactory.createDeleteInsert(
+            deleteInsert.delete,
+            deleteInsert.insert,
+            algebraFactory.createFrom(deleteInsert.where, dataset.default, dataset.named),
+          );
+        },
+      },
+    });
   }
 
   /**
