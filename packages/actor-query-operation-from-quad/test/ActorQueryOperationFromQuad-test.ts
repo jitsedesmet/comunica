@@ -244,6 +244,29 @@ describe('ActorQueryOperationFromQuad', () => {
       expect(quad('s', 'p', 'o', 'g').equals(result.stuff[0].input)).toBeTruthy();
       expect(result.stuff[1]).toEqual({ type: 'someunknownthing', variables: [ DF.variable('V') ]});
     });
+
+    it('should not modify a nested pattern that is not in the default graph', () => {
+      const operation = AF.createProject(
+        AF.createPattern(DF.variable('s'), DF.namedNode('p'), DF.namedNode('o'), DF.namedNode('g')),
+        [ DF.variable('s') ],
+      );
+      expect(ActorQueryOperationFromQuad.applyOperationDefaultGraph(AF, operation, [ DF.namedNode('gd') ]))
+        .toEqual(operation);
+    });
+
+    it('should not modify a nested path that is not in the default graph', () => {
+      const operation = AF.createProject(
+        AF.createPath(
+          DF.variable('s'),
+          AF.createLink(DF.namedNode('p')),
+          DF.namedNode('o'),
+          DF.namedNode('g'),
+        ),
+        [ DF.variable('s') ],
+      );
+      expect(ActorQueryOperationFromQuad.applyOperationDefaultGraph(AF, operation, [ DF.namedNode('gd') ]))
+        .toEqual(operation);
+    });
   });
 
   describe('#applyOperationNamedGraph', () => {

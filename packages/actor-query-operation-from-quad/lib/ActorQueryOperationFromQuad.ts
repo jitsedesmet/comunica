@@ -85,7 +85,7 @@ export class ActorQueryOperationFromQuad extends ActorQueryOperationTypedMediate
         preVisitor: () => ({ continue: false }),
         transform: (pattern) => {
           if (pattern.graph.termType !== 'DefaultGraph') {
-            return operation;
+            return pattern;
           }
           const paths = defaultGraphs.map(graph => ActorQueryOperationFromQuad.copyMetadata(
             algebraFactory.createPattern(pattern.subject, pattern.predicate, pattern.object, graph),
