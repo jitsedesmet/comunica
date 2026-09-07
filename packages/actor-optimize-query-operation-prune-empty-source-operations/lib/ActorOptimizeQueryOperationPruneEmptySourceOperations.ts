@@ -77,11 +77,15 @@ export class ActorOptimizeQueryOperationPruneEmptySourceOperations extends Actor
       // so emptiness checks against the source would be done on the wrong graphs here.
       [Algebra.Types.FROM]: { preVisitor: () => ({ continue: false }) },
 
-      // Remove operations that have become empty now due to missing variables
+      // Remove operations that have become empty now due to missing variables.
+      // Both rules look for an operation that pruning has emptied, and hasEmptyOperation walks a whole
+      // subtree to find one. The traversal maps an operation after its descendants, so nothing was
+      // pruned below one of these while the count is still zero, and there is nothing to look for.
       [Algebra.Types.PROJECT]: {
         transform: (subOperation) => {
           // Remove projections that have become empty now due to missing variables
-          if (ActorOptimizeQueryOperationPruneEmptySourceOperations.hasEmptyOperation(subOperation)) {
+          if (prunedOperations > 0 &&
+            ActorOptimizeQueryOperationPruneEmptySourceOperations.hasEmptyOperation(subOperation)) {
             return algebraFactory.createUnion([]);
           }
           return subOperation;
@@ -89,7 +93,8 @@ export class ActorOptimizeQueryOperationPruneEmptySourceOperations extends Actor
       },
       [Algebra.Types.LEFT_JOIN]: { transform: (subOperation) => {
         // Remove left joins with empty right operation
-        if (ActorOptimizeQueryOperationPruneEmptySourceOperations.hasEmptyOperation(subOperation.input[1])) {
+        if (prunedOperations > 0 &&
+          ActorOptimizeQueryOperationPruneEmptySourceOperations.hasEmptyOperation(subOperation.input[1])) {
           return subOperation.input[0];
         }
         return subOperation;
