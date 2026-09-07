@@ -67,6 +67,13 @@ export function materializeOperation(
     originalBindings: options.originalBindings ?? bindings,
   };
 
+  // A filter is only materialized when there are bindings to re-inject and its expression is one this
+  // function knows how to handle. When it is not, its descendants are left untouched as well, so this
+  // decides both whether to traverse into a filter and what to do with it afterwards.
+  const materializesFilter = (filterOp: Algebra.Filter): boolean =>
+    (<Bindings> options.originalBindings).size > 0 &&
+    (filterOp.expression.subType === 'existence' || filterOp.expression.subType === 'operator');
+
   return algebraUtils.mapOperation(operation, {
     [Algebra.Types.PATH]: {
       preVisitor: () => ({ continue: false }),
@@ -134,18 +141,9 @@ export function materializeOperation(
       );
     } },
     [Algebra.Types.FILTER]: {
-      preVisitor: (filterOp) => {
-        const originalBindings: Bindings = <Bindings> options.originalBindings;
-        // A filter we leave untouched leaves its descendants untouched as well.
-        if (originalBindings.size === 0) {
-          return { continue: false };
-        }
-        return { continue: filterOp.expression.subType === 'existence' || filterOp.expression.subType === 'operator' };
-      },
+      preVisitor: filterOp => ({ continue: materializesFilter(filterOp) }),
       transform: (filterOp, origFilterOp) => {
-        const originalBindings: Bindings = <Bindings> options.originalBindings;
-        // If we did not traverse
-        if (originalBindings.size === 0 || filterOp.input === origFilterOp.input) {
+        if (!materializesFilter(origFilterOp)) {
           return origFilterOp;
         }
 
@@ -155,16 +153,19 @@ export function materializeOperation(
           return algebraFactory.createFilter(filterOp.input, filterOp.expression);
         }
 
-        // We KNOW it us an 'operator' subType
-
+        // The expression is an operator one, the only other kind materializesFilter accepts.
         // Make a values clause for the variables from originalBindings that are used by this filter operation:
         // the variables in scope of its input, and the variables its expression refers to.
         // Both are read from the operation as it was before materialization, since materializing replaces the
         // bound variables with their terms, which would leave nothing to re-inject.
-        const values: Algebra.Operation[] = createValuesFromBindings(algebraFactory, originalBindings, [
-          ...algebraUtils.inScopeVariables(origFilterOp.input),
-          ...getExpressionVariables(origFilterOp.expression),
-        ]);
+        const values: Algebra.Operation[] = createValuesFromBindings(
+          algebraFactory,
+          <Bindings> options.originalBindings,
+          [
+            ...algebraUtils.inScopeVariables(origFilterOp.input),
+            ...getExpressionVariables(origFilterOp.expression),
+          ],
+        );
 
         const subOperation = values.length > 0 ?
           algebraFactory.createJoin([ ...values, filterOp.input ]) :
