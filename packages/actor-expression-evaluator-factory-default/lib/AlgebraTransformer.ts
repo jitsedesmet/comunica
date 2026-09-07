@@ -1,9 +1,8 @@
 import type { MediatorFunctionFactory } from '@comunica/bus-function-factory';
 import { KeysExpressionEvaluator } from '@comunica/context-entries';
 import type { Expression, IActionContext, OperatorExpression } from '@comunica/types';
-import { Algebra, AlgebraFactory, algebraUtils, isKnownSubType } from '@comunica/utils-algebra';
+import { Algebra, AlgebraFactory, algebraUtils } from '@comunica/utils-algebra';
 import * as ExprEval from '@comunica/utils-expression-evaluator';
-import type { Patch } from '@traqula/core';
 
 export class AlgebraTransformer extends ExprEval.TermTransformer {
   private readonly AF = new AlgebraFactory();
@@ -16,25 +15,31 @@ export class AlgebraTransformer extends ExprEval.TermTransformer {
 
   public async transformAlgebra(expr: Algebra.Expression): Promise<Expression> {
     return await algebraUtils.mapOperationSubAsyncStrict<'unsafe', Expression>(expr, {
-      // Operator and named expressions are handled per type rather than per subType, because only a
-      // type-level callback is handed the expression as it was before its arguments were converted,
-      // and the function factory resolves the function from those arguments as algebra.
+      // Reached by an expression whose subType has no callback below, which is one this cannot convert.
       [Algebra.Types.EXPRESSION]: {
-        transform: (copy, orig) => {
-          // The traversal already converted the arguments, in place on the copy.
-          const casted = <Patch<typeof copy, { args: Expression[] }>> copy;
-          if (isKnownSubType(casted, Algebra.ExpressionTypes.OPERATOR)) {
-            return this.buildOperator(casted.operator.toLowerCase(), <Algebra.OperatorExpression> orig, casted.args);
-          }
-          if (isKnownSubType(casted, Algebra.ExpressionTypes.NAMED)) {
-            return this.buildOperator(casted.name.value, <Algebra.NamedExpression>orig, casted.args);
-          }
+        transform: (_copy, orig) => {
           throw new Error(`Expression of type ${orig.subType} cannot be converted into internal representation of expression.`);
         },
       },
     }, {
       [Algebra.Types.EXPRESSION]: {
         [Algebra.ExpressionTypes.TERM]: { transform: term => this.transformTermExpression(term) },
+        [Algebra.ExpressionTypes.OPERATOR]: {
+          // The traversal already converted the arguments, in place on the copy, while the function is
+          // resolved from those arguments as algebra, which only the original still holds.
+          transform: (copy, orig) => this.buildOperator(
+            orig.operator.toLowerCase(),
+            orig,
+            <Expression[]> <unknown> copy.args,
+          ),
+        },
+        [Algebra.ExpressionTypes.NAMED]: {
+          transform: (copy, orig) => this.buildOperator(
+            orig.name.value,
+            orig,
+            <Expression[]> <unknown> copy.args,
+          ),
+        },
         [Algebra.ExpressionTypes.EXISTENCE]: {
           // The pattern of an existence expression stays algebra: it is materialized and evaluated as a
           // query later on, so it must be neither converted nor copied.
