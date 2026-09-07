@@ -13,6 +13,7 @@ import { MetadataValidationState } from '@comunica/utils-metadata';
 import type * as RDF from '@rdfjs/types';
 import { ArrayIterator } from 'asynciterator';
 import { DataFactory } from 'rdf-data-factory';
+import type { MockInstance } from 'vitest';
 import type { IActorRdfJoinMultiBindTestSideData } from '../lib/ActorRdfJoinMultiBind';
 import { ActorRdfJoinMultiBind } from '../lib/ActorRdfJoinMultiBind';
 import '@comunica/utils-jest';
@@ -47,7 +48,7 @@ IActorTest,
 IQueryOperationResultBindings
 >;
     let actor: ActorRdfJoinMultiBind;
-    let logSpy: jest.SpyInstance;
+    let logSpy: MockInstance;
 
     beforeEach(() => {
       mediatorJoinSelectivity = <any> {
@@ -62,7 +63,7 @@ IQueryOperationResultBindings
       };
       context = new ActionContext({ a: 'b', [KeysInitQuery.dataFactory.name]: DF });
       mediatorQueryOperation = <any> {
-        mediate: jest.fn(async(): Promise<IQueryOperationResultBindings> => {
+        mediate: vi.fn(async(): Promise<IQueryOperationResultBindings> => {
           return {
             bindingsStream: new ArrayIterator<RDF.Bindings>([
               BF.bindings([
@@ -98,7 +99,7 @@ IQueryOperationResultBindings
         mediatorMergeBindingsContext,
         minMaxCardinalityRatio: 100,
       });
-      logSpy = jest.spyOn((<any> actor), 'logDebug').mockImplementation();
+      logSpy = vi.spyOn((<any> actor), 'logDebug').mockImplementation();
     });
 
     async function getSideData(action: IActionRdfJoin): Promise<IActorRdfJoinMultiBindTestSideData> {
@@ -255,6 +256,63 @@ IQueryOperationResultBindings
           blockingItems: 0,
           requestTime: 32.592000000000006,
         });
+      });
+
+      it('should return a failed test if the entries could not be sorted due to no common variables', async() => {
+        await expect(actor.getJoinCoefficients(
+          {
+            type: 'inner',
+            entries: [
+              {
+                output: <any>{},
+                operation: FACTORY.createNop(),
+              },
+              {
+                output: <any>{},
+                operation: FACTORY.createNop(),
+              },
+              {
+                output: <any>{},
+                operation: FACTORY.createNop(),
+              },
+            ],
+            context: new ActionContext(),
+          },
+          {
+            metadatas: [
+              {
+                state: new MetadataValidationState(),
+                cardinality: { type: 'estimate', value: 3 },
+                pageSize: 100,
+                requestTime: 10,
+
+                variables: [
+                  { variable: DF.variable('a'), canBeUndef: false },
+                ],
+              },
+              {
+                state: new MetadataValidationState(),
+                cardinality: { type: 'estimate', value: 2 },
+                pageSize: 100,
+                requestTime: 20,
+
+                variables: [
+                  { variable: DF.variable('b'), canBeUndef: false },
+                ],
+              },
+              {
+                state: new MetadataValidationState(),
+                cardinality: { type: 'estimate', value: 500 },
+                pageSize: 100,
+                requestTime: 30,
+
+                variables: [
+                  { variable: DF.variable('c'), canBeUndef: false },
+                ],
+              },
+            ],
+          },
+        )).resolves.toFailTest(`Bind join can only join entries with at least one common variable`);
       });
 
       it('should handle three entries with a lower variable overlap', async() => {
@@ -732,13 +790,9 @@ IQueryOperationResultBindings
     });
 
     describe('createBindStream', () => {
-      it('throws when an unknown bind order is passed', async() => {
-        await expect(
-          async() => await (<any> ActorRdfJoinMultiBind).createBindStream('unknown').catch((error: any) => {
-            throw new Error(error);
-          }),
-        )
-          .rejects
+      it('throws when an unknown bind order is passed', () => {
+        // 'createBindStream' throws synchronously, so the call has to happen inside the expectation
+        expect(() => (<any> ActorRdfJoinMultiBind).createBindStream('unknown'))
           .toThrow(`Received request for unknown bind order: unknown`);
       });
     });
@@ -1301,8 +1355,8 @@ IQueryOperationResultBindings
             },
           ],
         };
-        const destroy0 = jest.spyOn(action.entries[0].output.bindingsStream, 'destroy');
-        const destroy1 = jest.spyOn(action.entries[1].output.bindingsStream, 'destroy');
+        const destroy0 = vi.spyOn(action.entries[0].output.bindingsStream, 'destroy');
+        const destroy1 = vi.spyOn(action.entries[1].output.bindingsStream, 'destroy');
         const { result } = await actor.getOutput(action, await getSideData(action));
 
         // Validate output

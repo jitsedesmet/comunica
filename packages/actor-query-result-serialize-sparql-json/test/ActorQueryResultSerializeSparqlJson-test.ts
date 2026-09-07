@@ -119,7 +119,7 @@ describe('ActorQueryResultSerializeSparqlJson', () => {
     beforeEach(() => {
       observedActors = [ 'urn:comunica:default:http/actors#fetch' ];
       httpInvalidator = <any> {
-        addInvalidateListener: jest.fn((listener: IInvalidateListener) => {
+        addInvalidateListener: vi.fn((listener: IInvalidateListener) => {
           lastListener = listener;
         }),
       };
@@ -270,6 +270,11 @@ describe('ActorQueryResultSerializeSparqlJson', () => {
 "metadata": { "httpRequests": 2 }}
 `,
         );
+      });
+
+      it('should not count requests from actors that are not observed', () => {
+        (<any> httpObserver).onRun({ name: 'urn:comunica:default:http/actors#other' }, null, null);
+        expect(httpObserver.requests).toBe(0);
       });
 
       it('should run on a bindings stream with http requests and cache invalidations', async() => {

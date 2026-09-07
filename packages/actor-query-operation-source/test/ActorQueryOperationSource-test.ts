@@ -14,7 +14,6 @@ import { assignOperationSource } from '@comunica/utils-query-operation';
 import { ArrayIterator } from 'asynciterator';
 import { DataFactory } from 'rdf-data-factory';
 import { ActorQueryOperationSource } from '../lib/ActorQueryOperationSource';
-import 'jest-rdf';
 import '@comunica/utils-jest';
 
 const AF = new AlgebraFactory();
@@ -32,12 +31,12 @@ describe('ActorQueryOperationSource', () => {
     source1 = <any> {
       source: {
         referenceValue: 'source1',
-        queryBindings: jest.fn(() => {
+        queryBindings: vi.fn(() => {
           const bindingsStream = new ArrayIterator([], { autoStart: false });
           bindingsStream.setProperty('metadata', { cardinality: { value: 10 }, variables: []});
           return bindingsStream;
         }),
-        queryQuads: jest.fn(() => {
+        queryQuads: vi.fn(() => {
           const quadStream = new ArrayIterator([], { autoStart: false });
           quadStream.setProperty('metadata', { cardinality: { value: 10 }});
           return quadStream;
@@ -223,6 +222,24 @@ describe('ActorQueryOperationSource', () => {
         await expect(result.bindingsStream).toEqualBindingsStream([]);
       });
 
+      it('should merge the source wrapper context into the operation context', async() => {
+        const sourceContext = new ActionContext({ 'context-key': 'context-value' });
+        const sourceWithContext: IQuerySourceWrapper = <any> {
+          context: sourceContext,
+          source: {
+            referenceValue: 'source1',
+            queryBindings: vi.fn(() => {
+              const bindingsStream = new ArrayIterator([], { autoStart: false });
+              bindingsStream.setProperty('metadata', { cardinality: { value: 10 }, variables: []});
+              return bindingsStream;
+            }),
+          },
+        };
+        const opIn = assignOperationSource(AF.createNop(), sourceWithContext);
+        await actor.run({ operation: opIn, context: ctx });
+        expect(sourceWithContext.source.queryBindings).toHaveBeenCalledWith(opIn, ctx.merge(sourceContext));
+      });
+
       it('should handle sliced bindings operations', async() => {
         const opIn = assignOperationSource(AF.createSlice(AF.createNop(), 1), source1);
         const result: IQueryOperationResultBindings = <any> await actor.run({ operation: opIn, context: ctx });
@@ -238,11 +255,11 @@ describe('ActorQueryOperationSource', () => {
       it('should handle bindings operations and invokes the logger', async() => {
         const parentNode = '';
         const logger: IPhysicalQueryPlanLogger = {
-          logOperation: jest.fn(),
-          toJson: jest.fn(),
-          stashChildren: jest.fn(),
-          unstashChild: jest.fn(),
-          appendMetadata: jest.fn(),
+          logOperation: vi.fn(),
+          toJson: vi.fn(),
+          stashChildren: vi.fn(),
+          unstashChild: vi.fn(),
+          appendMetadata: vi.fn(),
         };
         ctx = new ActionContext({
           [KeysInitQuery.physicalQueryPlanLogger.name]: logger,

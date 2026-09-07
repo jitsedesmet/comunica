@@ -55,7 +55,7 @@ describe('ActorQueryResultSerializeStats', () => {
     beforeEach(() => {
       observedActors = [ 'urn:comunica:default:http/actors#fetch' ];
       httpInvalidator = <any> {
-        addInvalidateListener: jest.fn((listener: IInvalidateListener) => {
+        addInvalidateListener: vi.fn((listener: IInvalidateListener) => {
           lastListener = listener;
         }),
       };
@@ -177,6 +177,11 @@ PLANNING,3.14,2
 TOTAL,3.14,2
 `,
         );
+      });
+
+      it('should not count requests from actors that are not observed', () => {
+        (<any> httpObserver).onRun({ name: 'urn:comunica:default:http/actors#other' }, null, null);
+        expect(httpObserver.requests).toBe(0);
       });
 
       it('should run on a bindings stream with http requests and cache invalidations', async() => {

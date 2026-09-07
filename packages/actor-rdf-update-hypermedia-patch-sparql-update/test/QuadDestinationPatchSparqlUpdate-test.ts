@@ -18,7 +18,7 @@ describe('QuadDestinationPatchSparqlUpdate', () => {
 
   beforeEach(() => {
     mediatorHttp = {
-      mediate: jest.fn(() => ({
+      mediate: vi.fn(() => ({
         status: 200,
       })),
     };
@@ -111,7 +111,7 @@ describe('QuadDestinationPatchSparqlUpdate', () => {
     });
 
     it('should close body if available', async() => {
-      const cancel = jest.fn();
+      const cancel = vi.fn();
       mediatorHttp.mediate = () => ({
         status: 200,
         body: { cancel },

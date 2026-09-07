@@ -52,7 +52,7 @@ describe('ActorOptimizeQueryOperationPruneEmptySourceOperations', () => {
             },
           ],
         }),
-        queryBindings: jest.fn((op) => {
+        queryBindings: vi.fn((op) => {
           const bindingsStream = new ArrayIterator([], { autoStart: false });
           let card = 0;
           switch (op.type) {
@@ -879,7 +879,7 @@ describe('ActorOptimizeQueryOperationPruneEmptySourceOperations', () => {
             bindingsStream.setProperty('metadata', { cardinality: { type: 'estimate', value: 1 }});
             return bindingsStream;
           };
-          jest.spyOn(sourceAsk.source, 'queryBoolean').mockResolvedValueOnce(false);
+          vi.spyOn(sourceAsk.source, 'queryBoolean').mockResolvedValueOnce(false);
           expect(sourceAsk.source.queryBoolean).not.toHaveBeenCalled();
           await expect(actor.hasSourceResults(AF, sourceAsk, AF.createNop(), ctx)).resolves.toBeFalsy();
           expect(sourceAsk.source.queryBoolean).toHaveBeenCalledTimes(1);
@@ -903,7 +903,7 @@ describe('ActorOptimizeQueryOperationPruneEmptySourceOperations', () => {
               ),
             },
           });
-          jest.spyOn(sourceAsk.source, 'queryBoolean').mockResolvedValueOnce(false);
+          vi.spyOn(sourceAsk.source, 'queryBoolean').mockResolvedValueOnce(false);
           expect(sourceAsk.source.queryBoolean).not.toHaveBeenCalled();
           await expect(actor.hasSourceResults(AF, sourceAsk, AF.createNop(), ctx)).resolves.toBeTruthy();
           expect(sourceAsk.source.queryBoolean).not.toHaveBeenCalled();
@@ -974,7 +974,7 @@ describe('ActorOptimizeQueryOperationPruneEmptySourceOperations', () => {
         });
 
         it('should wrap the operation in an ask operation', async() => {
-          jest.spyOn(sourceAsk.source, 'queryBoolean').mockImplementation(async() => true);
+          vi.spyOn(sourceAsk.source, 'queryBoolean').mockImplementation(async() => true);
           await actor.hasSourceResults(AF, sourceAsk, AF.createNop(), ctx);
           expect(sourceAsk.source.queryBoolean).toHaveBeenCalledWith(AF.createAsk(AF.createNop()), ctx);
         });

@@ -76,7 +76,7 @@ describe('ActorOptimizeQueryOperationDistinctTermsPushdown', () => {
       it('should not optimize when source does not support DistinctTerms', async() => {
         const source: IQuerySourceWrapper = <any> {
           source: {
-            getSelectorShape: jest.fn(async() => ({
+            getSelectorShape: vi.fn(async() => ({
               type: 'operation',
               operation: {
                 operationType: 'type',
@@ -102,7 +102,7 @@ describe('ActorOptimizeQueryOperationDistinctTermsPushdown', () => {
       it('should not optimize when projected variable cannot be mapped to pattern term', async() => {
         const source: IQuerySourceWrapper = <any> {
           source: {
-            getSelectorShape: jest.fn(async() => ({
+            getSelectorShape: vi.fn(async() => ({
               type: 'operation',
               operation: {
                 operationType: 'type',
@@ -130,7 +130,7 @@ describe('ActorOptimizeQueryOperationDistinctTermsPushdown', () => {
       it('should optimize DISTINCT(PROJECT(PATTERN)) with supporting source', async() => {
         const source: IQuerySourceWrapper = <any> {
           source: {
-            getSelectorShape: jest.fn(async() => ({
+            getSelectorShape: vi.fn(async() => ({
               type: 'operation',
               operation: {
                 operationType: 'type',
@@ -161,7 +161,7 @@ describe('ActorOptimizeQueryOperationDistinctTermsPushdown', () => {
       it('should optimize and map all quad positions', async() => {
         const source: IQuerySourceWrapper = <any> {
           source: {
-            getSelectorShape: jest.fn(async() => ({
+            getSelectorShape: vi.fn(async() => ({
               type: 'operation',
               operation: {
                 operationType: 'type',
@@ -191,7 +191,7 @@ describe('ActorOptimizeQueryOperationDistinctTermsPushdown', () => {
       it('should optimize with source context', async() => {
         const source: IQuerySourceWrapper = <any> {
           source: {
-            getSelectorShape: jest.fn(async() => ({
+            getSelectorShape: vi.fn(async() => ({
               type: 'operation',
               operation: {
                 operationType: 'type',
@@ -219,7 +219,7 @@ describe('ActorOptimizeQueryOperationDistinctTermsPushdown', () => {
       it('should rewrite JOIN with single input before optimization', async() => {
         const source: IQuerySourceWrapper = <any> {
           source: {
-            getSelectorShape: jest.fn(async() => ({
+            getSelectorShape: vi.fn(async() => ({
               type: 'operation',
               operation: {
                 operationType: 'type',
@@ -256,7 +256,7 @@ describe('ActorOptimizeQueryOperationDistinctTermsPushdown', () => {
       it('should not optimize JOIN with multiple inputs', async() => {
         const source: IQuerySourceWrapper = <any> {
           source: {
-            getSelectorShape: jest.fn(async() => ({
+            getSelectorShape: vi.fn(async() => ({
               type: 'operation',
               operation: {
                 operationType: 'type',
@@ -292,7 +292,7 @@ describe('ActorOptimizeQueryOperationDistinctTermsPushdown', () => {
       it('should preserve original operation when distinct is nested deeply', async() => {
         const source: IQuerySourceWrapper = <any> {
           source: {
-            getSelectorShape: jest.fn(async() => ({
+            getSelectorShape: vi.fn(async() => ({
               type: 'operation',
               operation: {
                 operationType: 'type',

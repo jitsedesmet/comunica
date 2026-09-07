@@ -981,7 +981,7 @@ IActorRdfJoinSelectivityOutput
       ], action.context, {});
       expect(metadataOut.state.valid).toBeTruthy();
 
-      const invalidateLister = jest.fn();
+      const invalidateLister = vi.fn();
       metadataOut.state.addInvalidateListener(invalidateLister);
       expect(invalidateLister).not.toHaveBeenCalled();
 
@@ -1190,17 +1190,17 @@ IActorRdfJoinSelectivityOutput
     it('invokes the physicalQueryPlanLogger', async() => {
       const parentNode = '';
       const logger: IPhysicalQueryPlanLogger = {
-        logOperation: jest.fn(),
-        toJson: jest.fn(),
-        stashChildren: jest.fn((node, filter) => filter ? filter(<IPlanNode> { logicalOperator: 'abc' }) : undefined),
-        unstashChild: jest.fn(),
-        appendMetadata: jest.fn(),
+        logOperation: vi.fn(),
+        toJson: vi.fn(),
+        stashChildren: vi.fn((node, filter) => filter ? filter(<IPlanNode> { logicalOperator: 'abc' }) : undefined),
+        unstashChild: vi.fn(),
+        appendMetadata: vi.fn(),
       };
       action.context = new ActionContext({
         [KeysInitQuery.physicalQueryPlanLogger.name]: logger,
         [KeysInitQuery.physicalQueryPlanNode.name]: parentNode,
       });
-      jest.spyOn(instance, 'getOutput');
+      vi.spyOn(instance, 'getOutput');
 
       const sideData: IActorRdfJoinTestSideData = {
         metadatas: [
@@ -1263,17 +1263,17 @@ IActorRdfJoinSelectivityOutput
     it('invokes the physicalQueryPlanLogger for a non-leaf operation', async() => {
       const parentNode = '';
       const logger: IPhysicalQueryPlanLogger = {
-        logOperation: jest.fn(),
-        toJson: jest.fn(),
-        stashChildren: jest.fn((node, filter) => filter ? filter(<IPlanNode> { logicalOperator: 'abc' }) : undefined),
-        unstashChild: jest.fn(),
-        appendMetadata: jest.fn(),
+        logOperation: vi.fn(),
+        toJson: vi.fn(),
+        stashChildren: vi.fn((node, filter) => filter ? filter(<IPlanNode> { logicalOperator: 'abc' }) : undefined),
+        unstashChild: vi.fn(),
+        appendMetadata: vi.fn(),
       };
       action.context = new ActionContext({
         [KeysInitQuery.physicalQueryPlanLogger.name]: logger,
         [KeysInitQuery.physicalQueryPlanNode.name]: parentNode,
       });
-      jest.spyOn(instance, 'getOutput');
+      vi.spyOn(instance, 'getOutput');
       (<any> instance).isLeaf = false;
 
       const sideData: IActorRdfJoinTestSideData = {

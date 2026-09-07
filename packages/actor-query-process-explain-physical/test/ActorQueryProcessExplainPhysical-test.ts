@@ -25,7 +25,7 @@ describe('ActorQueryProcessExplainPhysical', () => {
         async optimize(query: string, context: any) {
           return { operation: `${query}OPT`, context };
         },
-        evaluate: jest.fn(async() => {
+        evaluate: vi.fn(async() => {
           return {
             type: 'bindings',
             bindingsStream: new ArrayIterator([], { autoStart: false }),
@@ -78,6 +78,23 @@ describe('ActorQueryProcessExplainPhysical', () => {
           .set(KeysInitQuery.physicalQueryPlanLogger, new MemoryPhysicalQueryPlanLogger()));
       });
 
+      it('handles physical explain in raw context', async() => {
+        await expect(actor.run({
+          query: 'q',
+          context: new ActionContext().setRaw('explain', 'physical'),
+        })).resolves
+          .toEqual({
+            result: {
+              explain: true,
+              type: 'physical',
+              data: 'Empty',
+            },
+          });
+        expect(queryProcessor.evaluate).toHaveBeenCalledWith('qPARSEOPT', new ActionContext()
+          .setRaw('explain', 'physical')
+          .set(KeysInitQuery.physicalQueryPlanLogger, new MemoryPhysicalQueryPlanLogger()));
+      });
+
       it('handles physical-json explain in context', async() => {
         await expect(actor.run({
           query: 'q',
@@ -120,7 +137,7 @@ describe('ActorQueryProcessExplainPhysical', () => {
         (<any> queryProcessor).evaluate = async() => {
           return {
             type: 'boolean',
-            execute: jest.fn(),
+            execute: vi.fn(),
           };
         };
 
@@ -141,7 +158,7 @@ describe('ActorQueryProcessExplainPhysical', () => {
         (<any> queryProcessor).evaluate = async() => {
           return {
             type: 'void',
-            execute: jest.fn(),
+            execute: vi.fn(),
           };
         };
 

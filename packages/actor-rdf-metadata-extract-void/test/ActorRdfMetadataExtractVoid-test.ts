@@ -27,8 +27,8 @@ import {
   VOID_VOCABULARY,
 } from '../lib/Definitions';
 
-jest.mock('@comunica/actor-init-query');
-jest.mock('@comunica/bus-rdf-metadata-extract');
+vi.mock(import('@comunica/actor-init-query'));
+vi.mock(import('@comunica/bus-rdf-metadata-extract'));
 
 const DF = new DataFactory();
 const AF = new AlgebraFactory(DF);
@@ -40,7 +40,7 @@ describe('ActorRdfMetadataExtractVoid', () => {
   const sparqlEndpoint = DF.namedNode('http://localhost:3000/sparql');
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
     bus = new Bus({ name: 'bus' });
     actor = new ActorRdfMetadataExtractVoid({
       bus,
@@ -57,6 +57,14 @@ describe('ActorRdfMetadataExtractVoid', () => {
   describe('run', () => {
     it('should ignore empty metadata stream', async() => {
       const metadata = streamifyArray([]);
+      await expect(actor.run(<any>{ metadata, url: sparqlEndpoint.value })).resolves.toEqual({ metadata: {}});
+    });
+
+    it('should ignore rdf:type quads that are neither void:Dataset nor sd:Graph', async() => {
+      const metadata = streamifyArray([
+        DF.quad(sparqlEndpoint, DF.namedNode(RDF_TYPE), DF.namedNode('http://example.org/SomeOtherType')),
+        DF.quad(sparqlEndpoint, DF.namedNode(VOID_TRIPLES), DF.literal('1234')),
+      ]);
       await expect(actor.run(<any>{ metadata, url: sparqlEndpoint.value })).resolves.toEqual({ metadata: {}});
     });
 
@@ -129,6 +137,28 @@ describe('ActorRdfMetadataExtractVoid', () => {
           DF.quad(defaultGraph, DF.namedNode(VOID_TRIPLES), DF.literal('1234')),
         ]);
         await expect(actor.run(<any>{ metadata, url: sparqlEndpoint.value })).resolves.toEqual({ metadata: {}});
+      });
+
+      it('should not drop sd:defaultGraph when sd:feature is not sd:UnionDefaultGraph', async() => {
+        const defaultGraph = DF.namedNode('ex:defaultGraph');
+        const metadata = streamifyArray([
+          DF.quad(sparqlEndpoint, DF.namedNode(RDF_TYPE), DF.namedNode(VOID_DATASET)),
+          DF.quad(sparqlEndpoint, DF.namedNode(SD_DEFAULT_GRAPH), defaultGraph),
+          DF.quad(sparqlEndpoint, DF.namedNode(SD_FEATURE), DF.namedNode('sd:BasicFederatedQuery')),
+          DF.quad(defaultGraph, DF.namedNode(RDF_TYPE), DF.namedNode(typeUri)),
+          DF.quad(defaultGraph, DF.namedNode(VOID_TRIPLES), DF.literal('1234')),
+        ]);
+        await expect(actor.run(<any>{ metadata, url: sparqlEndpoint.value })).resolves.toEqual({
+          metadata: {
+            datasets: [
+              {
+                getCardinality: expect.any(Function),
+                source: sparqlEndpoint.value,
+                uri: defaultGraph.value,
+              },
+            ],
+          },
+        });
       });
 
       it('should drop intermediate sd:defaultDataset and propagate its vocabularies to sd:defaultGraph', async() => {
