@@ -3,6 +3,7 @@ import { KeysExpressionEvaluator } from '@comunica/context-entries';
 import type { Expression, IActionContext, OperatorExpression } from '@comunica/types';
 import { Algebra, AlgebraFactory, algebraUtils, isKnownSubType } from '@comunica/utils-algebra';
 import * as ExprEval from '@comunica/utils-expression-evaluator';
+import type { Patch } from '@traqula/core';
 
 export class AlgebraTransformer extends ExprEval.TermTransformer {
   private readonly AF = new AlgebraFactory();
@@ -14,19 +15,19 @@ export class AlgebraTransformer extends ExprEval.TermTransformer {
   }
 
   public async transformAlgebra(expr: Algebra.Expression): Promise<Expression> {
-    return <Expression> <unknown> await algebraUtils.mapOperationSubAsync(expr, {
+    return await algebraUtils.mapOperationSubAsyncStrict<'unsafe', Expression>(expr, {
       // Operator and named expressions are handled per type rather than per subType, because only a
       // type-level callback is handed the expression as it was before its arguments were converted,
       // and the function factory resolves the function from those arguments as algebra.
       [Algebra.Types.EXPRESSION]: {
         transform: (copy, orig) => {
           // The traversal already converted the arguments, in place on the copy.
-          const args = <Expression[]> <unknown> (<Algebra.OperatorExpression> <unknown> copy).args;
-          if (isKnownSubType(orig, Algebra.ExpressionTypes.OPERATOR)) {
-            return this.buildOperator(orig.operator.toLowerCase(), orig, args);
+          const casted = <Patch<typeof copy, { args: Expression[] }>> copy;
+          if (isKnownSubType(casted, Algebra.ExpressionTypes.OPERATOR)) {
+            return this.buildOperator(casted.operator.toLowerCase(), <Algebra.OperatorExpression> orig, casted.args);
           }
-          if (isKnownSubType(orig, Algebra.ExpressionTypes.NAMED)) {
-            return this.buildOperator(orig.name.value, orig, args);
+          if (isKnownSubType(casted, Algebra.ExpressionTypes.NAMED)) {
+            return this.buildOperator(casted.name.value, <Algebra.NamedExpression>orig, casted.args);
           }
           throw new Error(`Expression of type ${orig.subType} cannot be converted into internal representation of expression.`);
         },
