@@ -16,28 +16,26 @@ export class AlgebraTransformer extends ExprEval.TermTransformer {
   public async transformAlgebra(expr: Algebra.Expression): Promise<Expression> {
     return await algebraUtils.mapOperationSubAsyncStrict<'unsafe', Expression>(expr, {
       // Reached by an expression whose subType has no callback below, which is one this cannot convert.
-      [Algebra.Types.EXPRESSION]: {
-        transform: (_copy, orig) => {
-          throw new Error(`Expression of type ${orig.subType} cannot be converted into internal representation of expression.`);
-        },
-      },
+      [Algebra.Types.EXPRESSION]: { transform: (expression) => {
+        throw new Error(`Expression of type ${expression.subType} cannot be converted into internal representation of expression.`);
+      } },
     }, {
       [Algebra.Types.EXPRESSION]: {
         [Algebra.ExpressionTypes.TERM]: { transform: term => this.transformTermExpression(term) },
         [Algebra.ExpressionTypes.OPERATOR]: {
           // The traversal already converted the arguments, in place on the copy, while the function is
           // resolved from those arguments as algebra, which only the original still holds.
-          transform: (copy, orig) => this.buildOperator(
+          transform: (copy: { args: unknown }, orig) => this.buildOperator(
             orig.operator.toLowerCase(),
             orig,
-            <Expression[]> <unknown> copy.args,
+            <Expression[]> copy.args,
           ),
         },
         [Algebra.ExpressionTypes.NAMED]: {
-          transform: (copy, orig) => this.buildOperator(
+          transform: (copy: { args: unknown }, orig) => this.buildOperator(
             orig.name.value,
             orig,
-            <Expression[]> <unknown> copy.args,
+            <Expression[]> copy.args,
           ),
         },
         [Algebra.ExpressionTypes.EXISTENCE]: {
