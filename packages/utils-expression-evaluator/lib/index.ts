@@ -1,5 +1,6 @@
 export { TermTransformer } from './transformers/TermTransformer';
 export { BigNumber } from './util/BigNumber';
+export { exactDecimal, roundToFloat } from './util/FloatingPoint';
 export {
   OverloadTree,
 } from './functions/OverloadTree';
@@ -20,6 +21,7 @@ export {
   nonLexicalComparisonHandler,
   compareNumericLiterals,
   numericToDecimal,
+  numericToFloat,
 } from './functions/Helpers';
 export {
   ExpressionError,
@@ -101,7 +103,9 @@ export {
   parseYearMonthDuration,
   parseXSDDecimal,
   parseXSDInteger,
+  parseXSDDouble,
   parseXSDFloat,
+  collapseWhitespace,
   parseDate,
 } from './util/Parsing';
 export {

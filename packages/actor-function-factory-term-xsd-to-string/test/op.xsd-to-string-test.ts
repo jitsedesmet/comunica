@@ -57,7 +57,7 @@ describe('to string', () => {
         "0"^^xsd:double = "0"
         "0.0"^^xsd:double = "0"
         "+0.0"^^xsd:double = "0"
-        "-0.0"^^xsd:double = "0"
+        "-0.0"^^xsd:double = "-0"
         "1.25"^^xsd:double = "1.25"
         "+1.25"^^xsd:double = "1.25"
         "-1.25"^^xsd:double = "-1.25"
@@ -88,7 +88,7 @@ describe('to string', () => {
         "0"^^xsd:float = "0"
         "0.0"^^xsd:float = "0"
         "+0.0"^^xsd:float = "0"
-        "-0.0"^^xsd:float = "0"
+        "-0.0"^^xsd:float = "-0"
         "1.25"^^xsd:float = "1.25"
         "+1.25"^^xsd:float = "1.25"
         "-1.25"^^xsd:float = "-1.25"
@@ -129,6 +129,10 @@ describe('xsd:string with spec-compliant precision', () => {
       "1.0E7"^^xsd:float = "1.0E7"
       "3.4028235E38"^^xsd:float = "3.4028235E38"
       "0.30000000000000004"^^xsd:double = "0.30000000000000004"
+      "-0.0E0"^^xsd:float = "-0"
+      "2.1E3"^^xsd:float = "2100"
+      "1.26743233E15"^^xsd:double = "1.26743233E15"
+      "-1.1234"^^xsd:float = "-1.1234"
     `,
   });
 });

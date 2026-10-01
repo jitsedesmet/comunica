@@ -23,7 +23,7 @@ describe('Term', () => {
     });
 
     it('detects when literal is not NonLexicalLiteral', () => {
-      expect(isNonLexicalLiteral(new IntegerLiteral(1)))
+      expect(isNonLexicalLiteral(new IntegerLiteral(new BigNumber(1))))
         .toBeFalsy();
     });
   });
@@ -31,22 +31,22 @@ describe('Term', () => {
   describe('the string representation of numeric literals', () => {
     describe('like integers', () => {
       it('should properly express zero', () => {
-        const num = new IntegerLiteral(0e0);
+        const num = new IntegerLiteral(new BigNumber(0e0));
         expect(num.toRDF(DF).value).toBe('0');
       });
 
       it('should properly express one', () => {
-        const num = new IntegerLiteral(1e0);
+        const num = new IntegerLiteral(new BigNumber(1e0));
         expect(num.toRDF(DF).value).toBe('1');
       });
 
       it('should properly express small integer numbers', () => {
-        const num = new IntegerLiteral(1.234e3);
+        const num = new IntegerLiteral(new BigNumber(1.234e3));
         expect(num.toRDF(DF).value).toBe('1234');
       });
 
       it('should properly express large integer numbers', () => {
-        const num = new IntegerLiteral(1e8);
+        const num = new IntegerLiteral(new BigNumber(1e8));
         expect(num.toRDF(DF).value).toBe('100000000');
       });
     });
@@ -57,9 +57,11 @@ describe('Term', () => {
         expect(num.toRDF(DF).value).toBe('123456789012345678901234567890');
       });
 
-      it('should properly express negative zero', () => {
+      it('should normalize negative zero', () => {
         const num = new IntegerLiteral(new BigNumber('-0'));
         expect(num.toRDF(DF).value).toBe('0');
+        expect(num.typedValue.isNegative()).toBe(false);
+        expect(Object.is(num.toNumber(), 0)).toBe(true);
       });
     });
 
@@ -84,40 +86,41 @@ describe('Term', () => {
         expect(num.toRDF(DF).value).toBe('1.5');
       });
 
-      it('should properly express negative zero', () => {
+      it('should normalize negative zero', () => {
         const num = new DecimalLiteral(new BigNumber('-0.0'));
         expect(num.toRDF(DF).value).toBe('0.0');
+        expect(Object.is(num.toNumber(), 0)).toBe(true);
       });
     });
 
     describe('like decimals', () => {
       it('should properly express zero', () => {
-        const num = new DecimalLiteral(0e0);
+        const num = new DecimalLiteral(new BigNumber(0e0));
         expect(num.toRDF(DF).value).toBe('0.0');
       });
 
       it('should always include decimal point', () => {
-        const num = new DecimalLiteral(1e0);
+        const num = new DecimalLiteral(new BigNumber(1e0));
         expect(num.toRDF(DF).value).toBe('1.0');
       });
 
       it('should properly express small positive decimal numbers', () => {
-        const num = new DecimalLiteral(1e-12);
+        const num = new DecimalLiteral(new BigNumber(1e-12));
         expect(num.toRDF(DF).value).toBe('0.000000000001');
       });
 
       it('should properly express large positive decimal numbers', () => {
-        const num = new DecimalLiteral(100000000000.333);
+        const num = new DecimalLiteral(new BigNumber(100000000000.333));
         expect(num.toRDF(DF).value).toBe('100000000000.333');
       });
 
       it('should properly express small negative decimal numbers', () => {
-        const num = new DecimalLiteral(-1e-12);
+        const num = new DecimalLiteral(new BigNumber(-1e-12));
         expect(num.toRDF(DF).value).toBe('-0.000000000001');
       });
 
       it('should properly express large negative decimal numbers', () => {
-        const num = new DecimalLiteral(-100000000000.3);
+        const num = new DecimalLiteral(new BigNumber(-100000000000.3));
         expect(num.toRDF(DF).value).toBe('-100000000000.3');
       });
     });
@@ -144,6 +147,11 @@ describe('Term', () => {
       it('should properly express zero', () => {
         const num = createLiteral(0);
         expect(num.toRDF(DF).value).toBe('0.0E0');
+      });
+
+      it('should properly express negative zero', () => {
+        const num = createLiteral(-0);
+        expect(num.toRDF(DF).value).toBe('-0.0E0');
       });
 
       it('should properly express large positive finite values', () => {
@@ -194,7 +202,7 @@ describe('Term', () => {
 
   describe('the effective boolean value of numeric literals', () => {
     it.each([
-      [ 'integer zero', new IntegerLiteral(0), false ],
+      [ 'integer zero', new IntegerLiteral(new BigNumber(0)), false ],
       [ 'integer non-zero', new IntegerLiteral(new BigNumber('-1')), true ],
       [ 'decimal zero', new DecimalLiteral(new BigNumber('0.0')), false ],
       [ 'decimal tiny', new DecimalLiteral(new BigNumber('1e-400')), true ],

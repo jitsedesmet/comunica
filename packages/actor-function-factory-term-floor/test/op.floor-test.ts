@@ -20,6 +20,7 @@ describe('evaluation of \'FLOOR\' with spec-compliant precision', () => {
       "1.9999999999999999999999"^^xsd:double = "2.0E0"^^xsd:double
       "-1.5"^^xsd:float = "-2.0E0"^^xsd:float
       "INF"^^xsd:double = "INF"^^xsd:double
+      "-0.0E0"^^xsd:float = "-0.0E0"^^xsd:float
     `,
   });
 });

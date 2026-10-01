@@ -21,6 +21,7 @@ import * as C from '../util/Consts';
 import { TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
 import { IncompatibleLanguageOperation } from '../util/Errors';
+import { exactDecimal, roundToFloat } from '../util/FloatingPoint';
 import type {
   ArgumentType,
 } from './OverloadTree';
@@ -507,12 +508,18 @@ export function bool(val: boolean): E.BooleanLiteral {
   return new E.BooleanLiteral(val);
 }
 
+/**
+ * @param num The value, where JS numbers are converted to arbitrary-precision numbers.
+ */
 export function integer(num: number | BigNumber): E.IntegerLiteral {
-  return new E.IntegerLiteral(num);
+  return new E.IntegerLiteral(typeof num === 'number' ? new BigNumber(num) : num);
 }
 
+/**
+ * @param num The value, where JS numbers are converted to arbitrary-precision numbers.
+ */
 export function decimal(num: number | BigNumber): E.DecimalLiteral {
-  return new E.DecimalLiteral(num);
+  return new E.DecimalLiteral(typeof num === 'number' ? new BigNumber(num) : num);
 }
 
 /**
@@ -551,9 +558,10 @@ export function expressionToVar(
 
 /**
  * Convert the value of a numeric literal to an arbitrary-precision decimal value,
- * following https://www.w3.org/TR/xpath-functions/#casting-from-primitive-to-primitive.
- * Floats and doubles are converted to the decimal with the shortest representation that identifies them,
- * e.g. the float closest to 0.1 becomes the decimal 0.1.
+ * following https://www.w3.org/TR/xpath-functions-31/#casting-to-decimal.
+ * Floats and doubles are converted to the decimal that is numerically closest to them,
+ * which is their exact value, as decimals have arbitrary precision,
+ * e.g. the double closest to 0.1 becomes 0.1000000000000000055511151231257827021181583404541015625.
  *
  * @param lit The numeric literal to convert.
  * @returns The decimal value, or undefined if the value is NaN or infinite.
@@ -563,11 +571,19 @@ export function numericToDecimal(lit: E.NumericLiteral): BigNumber | undefined {
   if (typeof value !== 'number') {
     return value;
   }
-  if (!Number.isFinite(value)) {
-    return undefined;
-  }
-  // The canonical representation of floats and doubles is the shortest one that identifies the value.
-  return new BigNumber(lit instanceof E.FloatLiteral ? float(value).str() : double(value).str());
+  return Number.isFinite(value) ? exactDecimal(value) : undefined;
+}
+
+/**
+ * Convert the value of a numeric literal to the closest single precision number,
+ * following https://www.w3.org/TR/xpath-functions-31/#casting-to-float.
+ * Integers and decimals are rounded directly to single precision (and not via double precision).
+ *
+ * @param lit The numeric literal to convert.
+ */
+export function numericToFloat(lit: E.NumericLiteral): number {
+  const value: E.NumericValue = lit.typedValue;
+  return typeof value === 'number' ? Math.fround(value) : roundToFloat(value);
 }
 
 /**
@@ -587,14 +603,11 @@ export function compareNumericLiterals(left: E.NumericLiteral, right: E.NumericL
   if (typeof leftValue !== 'number' && typeof rightValue !== 'number') {
     return leftValue.comparedTo(rightValue) ?? Number.NaN;
   }
-  let leftNumber = left.toNumber();
-  let rightNumber = right.toNumber();
   // A decimal compared to a float is promoted to a float, other combinations are promoted to doubles.
-  if (typeof leftValue !== 'number' && right instanceof E.FloatLiteral) {
-    leftNumber = Math.fround(leftNumber);
-  } else if (typeof rightValue !== 'number' && left instanceof E.FloatLiteral) {
-    rightNumber = Math.fround(rightNumber);
-  }
+  const promoteToFloat = (typeof leftValue !== 'number' && right instanceof E.FloatLiteral) ||
+    (typeof rightValue !== 'number' && left instanceof E.FloatLiteral);
+  const leftNumber = promoteToFloat ? numericToFloat(left) : left.toNumber();
+  const rightNumber = promoteToFloat ? numericToFloat(right) : right.toNumber();
   if (leftNumber < rightNumber) {
     return -1;
   }

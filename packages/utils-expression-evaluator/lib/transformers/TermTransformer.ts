@@ -135,14 +135,14 @@ export class TermTransformer implements ITermTransformer {
       const isFloat = TypeURL.XSD_FLOAT in superTypeDict;
       const isDouble = TypeURL.XSD_DOUBLE in superTypeDict;
       if (isFloat || isDouble) {
-        const doubleVal: number | undefined = P.parseXSDFloat(lit.value);
-        if (doubleVal === undefined) {
+        const floatingVal = isFloat ? P.parseXSDFloat(lit.value) : P.parseXSDDouble(lit.value);
+        if (floatingVal === undefined) {
           return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
         }
         if (isFloat) {
-          return new E.FloatLiteral(doubleVal, dataType, lit.value);
+          return new E.FloatLiteral(floatingVal, dataType, lit.value);
         }
-        return new E.DoubleLiteral(doubleVal, dataType, lit.value);
+        return new E.DoubleLiteral(floatingVal, dataType, lit.value);
       }
 
       return new E.Literal<string>(lit.value, dataType, lit.value);

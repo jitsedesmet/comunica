@@ -28,7 +28,7 @@ describe('evaluation of \'/\' like', () => {
       2i   1i  = 2d
       12i  6i  = 2d
       6i   INF = 0f
-      6i  -INF = 0f
+      6i  -INF = -0f
     
       -0f  -0f =  NaN
        1f  -1f = -1f
@@ -38,7 +38,7 @@ describe('evaluation of \'/\' like', () => {
     
       INF -INF = NaN
       INF  0f  = INF
-      0f  -INF = 0f
+      0f  -INF = -0f
     
       NaN    NaN    = NaN
       NaN    anyNum = NaN

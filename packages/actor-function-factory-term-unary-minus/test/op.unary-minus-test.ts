@@ -40,6 +40,8 @@ describe('evaluation of \'- (unary)\' with spec-compliant precision', () => {
         "123456789012345678901234567890"^^xsd:integer = "-123456789012345678901234567890"^^xsd:integer
         "-0.1000000000000000000001"^^xsd:decimal = "0.1000000000000000000001"^^xsd:decimal
         "0.1"^^xsd:float = "-1.0E-1"^^xsd:float
+        "0"^^xsd:double = "-0.0E0"^^xsd:double
+        "-0.0"^^xsd:decimal = "0.0"^^xsd:decimal
       `,
   });
 });

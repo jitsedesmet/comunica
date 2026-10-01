@@ -1,12 +1,12 @@
 import { TermFunctionBase } from '@comunica/bus-function-factory';
 import type {
-  BigNumber,
   DecimalLiteral,
   IntegerLiteral,
   StringLiteral,
   DoubleLiteral,
 } from '@comunica/utils-expression-evaluator';
 import {
+  BigNumber,
   bool,
   decimal,
   declare,
@@ -14,7 +14,6 @@ import {
   float,
   FloatLiteral,
   integer,
-  numericToDecimal,
   string,
   TypeURL,
 } from '@comunica/utils-expression-evaluator';
@@ -55,24 +54,23 @@ export class TermFunctionXsdToString extends TermFunctionBase {
   }
 
   private static castAsDouble(val: DoubleLiteral): StringLiteral {
-    // Specification requires exact 0 to be returned as "0" which differs from canonical "0.0E0"
-    if (val.typedValue === 0) {
-      return string('0');
+    const value = val.typedValue;
+    // Specification requires zero to be returned as "0" or "-0", which differs from canonical "0.0E0" or "-0.0E0"
+    if (value === 0) {
+      return string(Object.is(value, -0) ? '-0' : '0');
     }
 
-    // Double and float, where absolute value is in range `[0.000001, 1000000[`,
-    // should be converted to decimal before casting to string, as per the spec.
-    // The range is checked on the decimal value, so that e.g. the float closest to 0.000001 is included.
-    const decimalValue = numericToDecimal(val);
-    if (decimalValue) {
-      const absolute = decimalValue.abs();
-      if (absolute.gte('0.000001') && absolute.lt(1_000_000)) {
-        return TermFunctionXsdToString.castAsDecimal(decimalValue);
-      }
+    // The canonical representation is the shortest one that identifies the value,
+    // which also handles NaN and infinities.
+    const canonical = val instanceof FloatLiteral ? float(value).str() : double(value).str();
+
+    // Values with an absolute value in range `[0.000001, 1000000[` should be converted to a decimal before casting to
+    // string, as per the spec. The decimal bounds are promoted to the type of the value when comparing.
+    const lowerBound = val instanceof FloatLiteral ? Math.fround(0.000_001) : 0.000_001;
+    if (Math.abs(value) >= lowerBound && Math.abs(value) < 1_000_000) {
+      return TermFunctionXsdToString.castAsDecimal(new BigNumber(canonical));
     }
 
-    // Other cases should be handled as canonical doubles (or floats).
-    // This also includes the handling of NaN and infinity.
-    return string(val instanceof FloatLiteral ? float(val.typedValue).str() : double(val.typedValue).str());
+    return string(canonical);
   }
 }

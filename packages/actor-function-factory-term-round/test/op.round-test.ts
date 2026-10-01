@@ -26,6 +26,9 @@ describe('evaluation of \'ROUND\' with spec-compliant precision', () => {
       "2.5"^^xsd:float = "3.0E0"^^xsd:float
       "INF"^^xsd:double = "INF"^^xsd:double
       "NaN"^^xsd:double = "NaN"^^xsd:double
+      "-0.4"^^xsd:double = "-0.0E0"^^xsd:double
+      "-0.5"^^xsd:float = "-0.0E0"^^xsd:float
+      "-0.4"^^xsd:decimal = "0.0"^^xsd:decimal
     `,
   });
 });

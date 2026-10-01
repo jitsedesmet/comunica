@@ -17,15 +17,15 @@ describe('lesser than', () => {
       expect(op.applyOnTerms(
         [
           new Eval.Quad(
-            new Eval.IntegerLiteral(2),
-            new Eval.IntegerLiteral(2),
-            new Eval.IntegerLiteral(2),
+            new Eval.IntegerLiteral(new Eval.BigNumber(2)),
+            new Eval.IntegerLiteral(new Eval.BigNumber(2)),
+            new Eval.IntegerLiteral(new Eval.BigNumber(2)),
             dg,
           ),
           new Eval.Quad(
-            new Eval.IntegerLiteral(2),
-            new Eval.IntegerLiteral(3),
-            new Eval.IntegerLiteral(2),
+            new Eval.IntegerLiteral(new Eval.BigNumber(2)),
+            new Eval.IntegerLiteral(new Eval.BigNumber(3)),
+            new Eval.IntegerLiteral(new Eval.BigNumber(2)),
             dg,
           ),
         ],
@@ -42,15 +42,15 @@ describe('lesser than', () => {
       expect(op.applyOnTerms(
         [
           new Eval.Quad(
-            new Eval.IntegerLiteral(2),
-            new Eval.IntegerLiteral(2),
-            new Eval.IntegerLiteral(2),
+            new Eval.IntegerLiteral(new Eval.BigNumber(2)),
+            new Eval.IntegerLiteral(new Eval.BigNumber(2)),
+            new Eval.IntegerLiteral(new Eval.BigNumber(2)),
             dg,
           ),
           new Eval.Quad(
-            new Eval.IntegerLiteral(3),
-            new Eval.IntegerLiteral(2),
-            new Eval.IntegerLiteral(2),
+            new Eval.IntegerLiteral(new Eval.BigNumber(3)),
+            new Eval.IntegerLiteral(new Eval.BigNumber(2)),
+            new Eval.IntegerLiteral(new Eval.BigNumber(2)),
             dg,
           ),
         ],

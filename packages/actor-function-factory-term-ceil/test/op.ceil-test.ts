@@ -20,6 +20,8 @@ describe('evaluation of \'CEIL\' with spec-compliant precision', () => {
       "1.0000000000000000000001"^^xsd:double = "1.0E0"^^xsd:double
       "1.5"^^xsd:float = "2.0E0"^^xsd:float
       "-INF"^^xsd:float = "-INF"^^xsd:float
+      "-0.5"^^xsd:double = "-0.0E0"^^xsd:double
+      "-0.5"^^xsd:decimal = "0.0"^^xsd:decimal
     `,
   });
 });

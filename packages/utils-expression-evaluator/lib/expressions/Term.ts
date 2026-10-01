@@ -15,6 +15,7 @@ import { BigNumber } from '../util/BigNumber';
 import * as C from '../util/Consts';
 import { TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
+import { roundToFloat } from '../util/FloatingPoint';
 import { serializeDate, serializeDateTime, serializeDuration, serializeTime } from '../util/Serialization';
 
 export abstract class Term implements TermExpression {
@@ -162,9 +163,15 @@ export class Literal<T extends ISerializable> extends Term {
  */
 export type NumericValue = number | BigNumber;
 
-function toBigNumber(value: BigNumber | number): BigNumber {
-  // BigNumbers are immutable, so they can be reused.
-  return BigNumber.isBigNumber(value) ? value : new BigNumber(value);
+const BIG_ZERO = new BigNumber(0);
+
+/**
+ * The value space of decimals (and integers) has no negative zero,
+ * while BigNumbers do, so negative zero is normalized to (positive) zero.
+ * @param value An arbitrary-precision number.
+ */
+function normalizeDecimal(value: BigNumber): BigNumber {
+  return value.isZero() ? BIG_ZERO : value;
 }
 
 export abstract class NumericLiteral<T extends NumericValue = NumericValue> extends Literal<T> {
@@ -208,12 +215,12 @@ export abstract class NumericLiteral<T extends NumericValue = NumericValue> exte
  */
 export class IntegerLiteral extends NumericLiteral<BigNumber> {
   public constructor(
-    typedValue: BigNumber | number,
+    typedValue: BigNumber,
     dataType?: string,
     strValue?: string,
     language?: string,
   ) {
-    super(toBigNumber(typedValue), dataType ?? TypeURL.XSD_INTEGER, strValue, language);
+    super(normalizeDecimal(typedValue), dataType ?? TypeURL.XSD_INTEGER, strValue, language);
   }
 
   protected override specificFormatter(val: BigNumber): string {
@@ -233,12 +240,12 @@ export class IntegerLiteral extends NumericLiteral<BigNumber> {
  */
 export class DecimalLiteral extends NumericLiteral<BigNumber> {
   public constructor(
-    typedValue: BigNumber | number,
+    typedValue: BigNumber,
     dataType?: string,
     strValue?: string,
     language?: string,
   ) {
-    super(toBigNumber(typedValue), dataType ?? TypeURL.XSD_DECIMAL, strValue, language);
+    super(normalizeDecimal(typedValue), dataType ?? TypeURL.XSD_DECIMAL, strValue, language);
   }
 
   protected override specificFormatter(val: BigNumber): string {
@@ -261,7 +268,7 @@ export class DecimalLiteral extends NumericLiteral<BigNumber> {
  * The canonical representation consists of a decimal mantissa, followed by E, followed by integer exponent.
  * The mantissa must follow canonical decimal format, and if zero, must be `0.0`.
  * The exponent must follow canonical integer format, and if zero, must be `0`.
- * The canonical representation of zero is `0.0E0`.
+ * The canonical representation of zero is `0.0E0`, and of negative zero is `-0.0E0`.
  *
  * Doubles are IEEE 754 double-precision 64-bit floating point numbers, just like JS numbers.
  */
@@ -276,6 +283,10 @@ export class DoubleLiteral extends NumericLiteral<number> {
   }
 
   protected override specificFormatter(val: number): string {
+    if (Object.is(val, -0)) {
+      // https://www.w3.org/TR/xmlschema11-2/#f-doubleCanmap
+      return '-0.0E0';
+    }
     if (Number.isFinite(val)) {
       return DoubleLiteral.formatExponential(val.toExponential());
     }
@@ -331,12 +342,12 @@ export class FloatLiteral extends DoubleLiteral {
   }
 
   protected override specificFormatter(val: number): string {
-    if (Number.isFinite(val)) {
+    if (Number.isFinite(val) && val !== 0) {
       // Use the shortest representation that uniquely identifies the single-precision value,
       // e.g. `1.0E-1` instead of `1.0000000149011612E-1` for the float closest to 0.1.
       for (let digits = 1; digits < 9; digits++) {
         const exponential = val.toExponential(digits - 1);
-        if (Math.fround(Number(exponential)) === val) {
+        if (roundToFloat(new BigNumber(exponential)) === val) {
           return DoubleLiteral.formatExponential(exponential);
         }
       }

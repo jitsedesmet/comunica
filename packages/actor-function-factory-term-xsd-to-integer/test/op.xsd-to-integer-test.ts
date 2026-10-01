@@ -70,6 +70,8 @@ describe('xsd:integer with spec-compliant precision', () => {
       "-123456789012345678901234567890.9"^^xsd:decimal = "-123456789012345678901234567890"^^xsd:integer
       "1.0E20"^^xsd:double = "100000000000000000000"^^xsd:integer
       "-0.9"^^xsd:double = "0"^^xsd:integer
+      "1.0E23"^^xsd:double = "99999999999999991611392"^^xsd:integer
+      '" 12 "' = "12"^^xsd:integer
     `,
     errorTable: `
       ""^^xsd:string = 'Invalid cast'

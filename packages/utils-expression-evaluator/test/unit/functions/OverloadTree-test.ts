@@ -115,7 +115,7 @@ describe('OverloadTree', () => {
   it('can handle both substitution and promotion at once', () => {
     emptyTree.addOverload([ TypeURL.XSD_DOUBLE ], () => ([ arg ]) => arg);
 
-    const arg = new IntegerLiteral(0, TypeURL.XSD_SHORT);
+    const arg = new IntegerLiteral(new BigNumber(0), TypeURL.XSD_SHORT);
     const res = isLiteralTermExpression(emptyTree
       .search([ arg ], superTypeProvider, functionArgumentsCache)!(
       expressionEvaluator,
@@ -140,8 +140,8 @@ describe('OverloadTree', () => {
   });
 
   it('will cache addition function', () => {
-    const one = new IntegerLiteral(1);
-    const two = new IntegerLiteral(2);
+    const one = new IntegerLiteral(new BigNumber(1));
+    const two = new IntegerLiteral(new BigNumber(2));
     const additionFunction = <TermFunctionBase> new TermFunctionAddition();
     expect(functionArgumentsCache['+']).toBeUndefined();
     const res = additionFunction.applyOnTerms([ one, two ], expressionEvaluator);
@@ -160,8 +160,8 @@ describe('OverloadTree', () => {
 
   it('searches the cache arity aware', () => {
     const apple = new StringLiteral('apple');
-    const one = new IntegerLiteral(1);
-    const two = new IntegerLiteral(2);
+    const one = new IntegerLiteral(new BigNumber(1));
+    const two = new IntegerLiteral(new BigNumber(2));
     const subtractFunction = new TermFunctionSubStr();
     expect(functionArgumentsCache.substr).toBeUndefined();
     expect(subtractFunction.applyOnTerms([ apple, one, two ], expressionEvaluator).str()).toBe('ap');

@@ -5,8 +5,10 @@ import type {
 } from '@comunica/utils-expression-evaluator';
 import {
   CastError,
+  collapseWhitespace,
   declare,
   float,
+  numericToFloat,
   parseXSDFloat,
   TypeURL,
 } from '@comunica/utils-expression-evaluator';
@@ -17,10 +19,11 @@ export class TermFunctionXsdToFloat extends TermFunctionBase {
       arity: 1,
       operator: TypeURL.XSD_FLOAT,
       overloads: declare(TypeURL.XSD_FLOAT)
-        .onNumeric1(() => (val: NumericLiteral) => float(val.toNumber()))
+        // https://www.w3.org/TR/xpath-functions-31/#casting-to-float
+        .onNumeric1(() => (val: NumericLiteral) => float(numericToFloat(val)))
         .onBoolean1Typed(() => val => float(val ? 1 : 0))
         .onUnary(TypeURL.XSD_STRING, () => (val: StringLiteral) => {
-          const result = parseXSDFloat(val.str());
+          const result = parseXSDFloat(collapseWhitespace(val.str()));
           if (result === undefined) {
             throw new CastError(val, TypeURL.XSD_FLOAT);
           }

@@ -10,6 +10,7 @@ import type {
 import { BigNumber } from './BigNumber';
 import { simplifyDurationRepresentation } from './DateTimeHelpers';
 import { ParseError } from './Errors';
+import { roundToFloat } from './FloatingPoint';
 import { maximumDayInMonthFor } from './SpecAlgos';
 
 // Lexical spaces as defined by https://www.w3.org/TR/xmlschema-2/#built-in-primitive-datatypes
@@ -18,16 +19,16 @@ const XSD_DECIMAL_LEXICAL = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/u;
 const XSD_FLOAT_LEXICAL = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[Ee][+-]?\d+)?$/u;
 
 /**
- * Parses float datatypes (double, float).
+ * Apply the `collapse` whitespace facet of XSD (https://www.w3.org/TR/xmlschema11-2/#rf-whiteSpace),
+ * which is done before casting strings to atomic types, such as numerics.
  *
- * All invalid lexical values return undefined.
- *
- * @param value the string to interpret as a number
+ * @param value the string to collapse
  */
-export function parseXSDFloat(value: string): number | undefined {
-  if (XSD_FLOAT_LEXICAL.test(value)) {
-    return Number(value);
-  }
+export function collapseWhitespace(value: string): string {
+  return value.replaceAll(/[\t\n\r ]+/gu, ' ').trim();
+}
+
+function parseSpecialFloatingPoint(value: string): number | undefined {
   if (value === 'NaN') {
     return Number.NaN;
   }
@@ -38,6 +39,36 @@ export function parseXSDFloat(value: string): number | undefined {
     return Number.NEGATIVE_INFINITY;
   }
   return undefined;
+}
+
+/**
+ * Parses double datatypes into a double-precision number,
+ * following https://www.w3.org/TR/xmlschema11-2/#f-doubleLexmap.
+ *
+ * All invalid lexical values return undefined.
+ *
+ * @param value the string to interpret as a number
+ */
+export function parseXSDDouble(value: string): number | undefined {
+  // JS numbers are doubles, and JS parses numbers with correct rounding.
+  return XSD_FLOAT_LEXICAL.test(value) ? Number(value) : parseSpecialFloatingPoint(value);
+}
+
+/**
+ * Parses float datatypes into a (JS number that is a) single-precision number,
+ * following https://www.w3.org/TR/xmlschema11-2/#f-floatLexmap.
+ *
+ * All invalid lexical values return undefined.
+ *
+ * @param value the string to interpret as a number
+ */
+export function parseXSDFloat(value: string): number | undefined {
+  if (!XSD_FLOAT_LEXICAL.test(value)) {
+    return parseSpecialFloatingPoint(value);
+  }
+  const float = roundToFloat(new BigNumber(value));
+  // Zero keeps the sign of the lexical value.
+  return float === 0 && value.startsWith('-') ? -0 : float;
 }
 
 /**

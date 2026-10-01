@@ -28,7 +28,7 @@ describe('evaluation of \'-\' like', () => {
       1i 0i = 1i
       2i 1i = 1i
     
-      -0f  0f  =  0f
+      -0f  0f  = -0f
       -1f  1f  = -2f
       -6f -12f =  6f
       -6i -12f =  6f

@@ -355,6 +355,9 @@ describe('evaluation of \'=\' on numerics with spec-compliant precision', () => 
       "NaN"^^xsd:double "0"^^xsd:decimal = false
       "0"^^xsd:decimal "NaN"^^xsd:float = false
       "-0.0"^^xsd:decimal "0"^^xsd:integer = true
+      "-0.0E0"^^xsd:double "0.0E0"^^xsd:double = true
+      "1.00000005960464477539062500000001"^^xsd:decimal "1.0000001"^^xsd:float = true
+      "1.000000059604644775390625"^^xsd:decimal "1"^^xsd:float = true
     `,
   });
 });

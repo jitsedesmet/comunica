@@ -30,7 +30,7 @@ describe('evaluation of \'+\' like', () => {
       0i 1i = 1i
       1i 2i = 3i
     
-      -0f -0f =  0f
+      -0f -0f = -0f
       -0f -1f = -1f
       -1f -2f = -3f
       

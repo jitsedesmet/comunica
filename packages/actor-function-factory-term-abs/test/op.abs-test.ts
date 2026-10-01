@@ -20,6 +20,7 @@ describe('evaluation of \'ABS\' with spec-compliant precision', () => {
       "-0.1"^^xsd:float = "1.0E-1"^^xsd:float
       "-INF"^^xsd:double = "INF"^^xsd:double
       "NaN"^^xsd:float = "NaN"^^xsd:float
+      "-0.0E0"^^xsd:double = "0.0E0"^^xsd:double
     `,
   });
 });

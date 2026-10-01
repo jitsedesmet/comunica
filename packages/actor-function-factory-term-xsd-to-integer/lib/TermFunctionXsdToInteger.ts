@@ -2,6 +2,7 @@ import { TermFunctionBase } from '@comunica/bus-function-factory';
 import {
   BigNumber,
   CastError,
+  collapseWhitespace,
   declare,
   integer,
   numericToDecimal,
@@ -20,6 +21,7 @@ export class TermFunctionXsdToInteger extends TermFunctionBase {
       operator: TypeURL.XSD_INTEGER,
       overloads: declare(TypeURL.XSD_INTEGER)
         .onBoolean1Typed(() => val => integer(val ? 1 : 0))
+        // https://www.w3.org/TR/xpath-functions-31/#casting-to-integer
         .onNumeric1(() => (val: NumericLiteral) => {
           const result = numericToDecimal(val);
           if (result === undefined) {
@@ -29,7 +31,7 @@ export class TermFunctionXsdToInteger extends TermFunctionBase {
           return integer(result.integerValue(BigNumber.ROUND_DOWN));
         })
         .onString1(() => (val: Term) => {
-          const result = parseXSDInteger(val.str());
+          const result = parseXSDInteger(collapseWhitespace(val.str()));
           if (result === undefined) {
             throw new CastError(val, TypeURL.XSD_INTEGER);
           }
