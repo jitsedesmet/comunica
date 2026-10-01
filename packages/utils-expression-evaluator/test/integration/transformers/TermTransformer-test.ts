@@ -2,7 +2,7 @@
 import { getMockSuperTypeProvider } from '@comunica/utils-jest';
 import type * as RDF from '@rdfjs/types';
 import { DataFactory } from 'rdf-data-factory';
-import { isNonLexicalLiteral, TermTransformer } from '../../../lib';
+import { BigNumber, isNonLexicalLiteral, TermTransformer } from '../../../lib';
 import * as E from '../../../lib/expressions';
 import { TypeURL as DT } from '../../../lib/util/Consts';
 import * as Err from '../../../lib/util/Errors';
@@ -118,14 +118,14 @@ describe('TermTransformer', () => {
       num.termType = undefined;
       const res = termTransformer.transformLiteral(num);
       expect(res.strValue).toBe('11');
-      expect(res.typedValue).toBe(11);
+      expect(res.typedValue).toEqual(new BigNumber(11));
       expect(res.language).toBeUndefined();
       expect(res.dataType).toEqual(DT.XSD_INTEGER);
       // No namednode but language is given
       num.language = 'en';
       const res2 = termTransformer.transformLiteral(num);
       expect(res2.strValue).toBe('11');
-      expect(res2.typedValue).toBe(11);
+      expect(res2.typedValue).toEqual(new BigNumber(11));
       expect(res2.language).toBeUndefined();
       expect(res2.dataType).toEqual(DT.XSD_INTEGER);
     });
@@ -150,7 +150,7 @@ describe('TermTransformer', () => {
       expect(res.strValue).toBe('11');
       expect(res.termType).toBe('literal');
       expect(res.dataType).toEqual(DT.XSD_INTEGER);
-      expect(res.typedValue).toBe(11);
+      expect(res.typedValue).toEqual(new BigNumber(11));
       expect(res.expressionType).toBe('term');
     });
 
@@ -169,7 +169,7 @@ describe('TermTransformer', () => {
       expect(res.strValue).toBe('11');
       expect(res.termType).toBe('literal');
       expect(res.dataType).toEqual(DT.XSD_DECIMAL);
-      expect(res.typedValue).toBe(11);
+      expect(res.typedValue).toEqual(new BigNumber(11));
       expect(res.expressionType).toBe('term');
     });
 
@@ -181,6 +181,33 @@ describe('TermTransformer', () => {
       expect(res.dataType).toEqual(DT.XSD_FLOAT);
       expect(res.typedValue).toBe(11);
       expect(res.expressionType).toBe('term');
+    });
+
+    it('keeps the arbitrary precision of integers', () => {
+      const res = termTransformer.transformLiteral(int('123456789012345678901234567890'));
+      expect(res).toBeInstanceOf(E.IntegerLiteral);
+      expect(res.typedValue).toEqual(new BigNumber('123456789012345678901234567890'));
+      expect(new E.IntegerLiteral(res.typedValue).str()).toBe('123456789012345678901234567890');
+    });
+
+    it('keeps the arbitrary precision of decimals', () => {
+      const res = termTransformer.transformLiteral(decimal('0.100000000000000000000000000001'));
+      expect(res).toBeInstanceOf(E.DecimalLiteral);
+      expect(res.typedValue).toEqual(new BigNumber('0.100000000000000000000000000001'));
+      expect(new E.DecimalLiteral(res.typedValue).str()).toBe('0.100000000000000000000000000001');
+    });
+
+    it('stores doubles as IEEE 754 double-precision numbers', () => {
+      const res = termTransformer.transformLiteral(double('0.1'));
+      expect(res).toBeInstanceOf(E.DoubleLiteral);
+      expect(res.typedValue).toBe(0.1);
+    });
+
+    it('rounds floats to IEEE 754 single-precision numbers', () => {
+      const res = termTransformer.transformLiteral(float('0.1'));
+      expect(res).toBeInstanceOf(E.FloatLiteral);
+      expect(res.typedValue).toBe(Math.fround(0.1));
+      expect(res.typedValue).not.toBe(0.1);
     });
 
     it('dateTime type transform', () => {
@@ -278,6 +305,23 @@ describe('TermTransformer', () => {
 
       it('datatype: decimal', () => {
         returnNonLexicalTest('apple', DT.XSD_DECIMAL);
+      });
+
+      it.each([
+        [ '1.5', DT.XSD_INTEGER ],
+        [ '1e3', DT.XSD_INTEGER ],
+        [ '', DT.XSD_INTEGER ],
+        [ '1e3', DT.XSD_DECIMAL ],
+        [ '0x1F', DT.XSD_DECIMAL ],
+        [ 'Infinity', DT.XSD_DECIMAL ],
+        [ ' 1', DT.XSD_DECIMAL ],
+        [ '.', DT.XSD_DECIMAL ],
+        [ '', DT.XSD_DOUBLE ],
+        [ '0x1F', DT.XSD_DOUBLE ],
+        [ 'Infinity', DT.XSD_DOUBLE ],
+        [ '1e', DT.XSD_FLOAT ],
+      ])('numeric value %j with datatype %s', (value, dataType) => {
+        returnNonLexicalTest(value, dataType);
       });
 
       it('datatype: boolean', () => {

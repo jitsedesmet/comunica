@@ -68,6 +68,30 @@ describe('evaluation of \'+\' like', () => {
       "apple"^^xsd:integer "0"^^xsd:integer = 'Invalid lexical form'
     `,
   });
+  // https://github.com/comunica/comunica/issues/1266
+  describe('with spec-compliant precision', () => {
+    runFuncTestTable({
+      ...baseConfig,
+      testTable: `
+        "0.1"^^xsd:double "0.2"^^xsd:double = "3.0000000000000004E-1"^^xsd:double
+        "0.1"^^xsd:float "0.2"^^xsd:float = "3.0E-1"^^xsd:float
+        "16777216"^^xsd:float "1"^^xsd:float = "1.6777216E7"^^xsd:float
+        "3.4E38"^^xsd:float "3.4E38"^^xsd:float = "INF"^^xsd:float
+        "0.1"^^xsd:decimal "0.2"^^xsd:decimal = "0.3"^^xsd:decimal
+        "0.1"^^xsd:decimal "0.2"^^xsd:double = "3.0000000000000004E-1"^^xsd:double
+        "0.1"^^xsd:decimal "0.2"^^xsd:float = "3.0E-1"^^xsd:float
+        "0.1000000000000000000001"^^xsd:decimal "0.1"^^xsd:decimal = "0.2000000000000000000001"^^xsd:decimal
+        "9007199254740993"^^xsd:integer "1"^^xsd:integer = "9007199254740994"^^xsd:integer
+        "123456789012345678901234567890"^^xsd:integer "1"^^xsd:integer = "123456789012345678901234567891"^^xsd:integer
+        "123456789012345678901234567890"^^xsd:integer "0.5"^^xsd:decimal = "123456789012345678901234567890.5"^^xsd:decimal
+      `,
+      errorTable: `
+        "apple"^^xsd:decimal "0"^^xsd:double = 'Invalid lexical form'
+        "0"^^xsd:double "apple"^^xsd:decimal = 'Invalid lexical form'
+        "apple"^^xsd:decimal "0"^^xsd:float = 'Invalid lexical form'
+      `,
+    });
+  });
   runFuncTestTable({
     ...baseConfig,
     config: new ActionContext().set(KeysExpressionEvaluator.superTypeProvider, {

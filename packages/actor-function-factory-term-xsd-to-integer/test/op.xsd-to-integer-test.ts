@@ -52,3 +52,28 @@ describe('to integer', () => {
       `,
   });
 });
+
+// https://github.com/comunica/comunica/issues/1266
+describe('xsd:integer with spec-compliant precision', () => {
+  runFuncTestTable({
+    registeredActors: [
+      args => new ActorFunctionFactoryTermXsdToInteger(args),
+    ],
+    arity: 1,
+    notation: Notation.Function,
+    operation: 'xsd:integer',
+    testTable: `
+      "-1" = "-1"^^xsd:integer
+      "+1" = "1"^^xsd:integer
+      "12345678901234567890123" = "12345678901234567890123"^^xsd:integer
+      "123456789012345678901234567890.9"^^xsd:decimal = "123456789012345678901234567890"^^xsd:integer
+      "-123456789012345678901234567890.9"^^xsd:decimal = "-123456789012345678901234567890"^^xsd:integer
+      "1.0E20"^^xsd:double = "100000000000000000000"^^xsd:integer
+      "-0.9"^^xsd:double = "0"^^xsd:integer
+    `,
+    errorTable: `
+      ""^^xsd:string = 'Invalid cast'
+      "1e3"^^xsd:string = 'Invalid cast'
+    `,
+  });
+});

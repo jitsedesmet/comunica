@@ -14,7 +14,7 @@ export class TermFunctionAbs extends TermFunctionBase {
       arity: 1,
       operator: SparqlOperator.ABS,
       overloads: declare(SparqlOperator.ABS)
-        .numericConverter(() => num => Math.abs(num))
+        .numericConverter(() => num => num.abs(), () => num => Math.abs(num))
         .collect(),
     });
   }

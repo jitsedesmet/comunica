@@ -1,4 +1,5 @@
 export { TermTransformer } from './transformers/TermTransformer';
+export { BigNumber } from './util/BigNumber';
 export {
   OverloadTree,
 } from './functions/OverloadTree';
@@ -17,6 +18,8 @@ export {
   expressionToVar,
   Builder,
   nonLexicalComparisonHandler,
+  compareNumericLiterals,
+  numericToDecimal,
 } from './functions/Helpers';
 export {
   ExpressionError,
@@ -73,6 +76,7 @@ export {
   NamedNode,
   Variable,
   NumericLiteral,
+  NumericValue,
   BooleanLiteral,
   BlankNode,
   DecimalLiteral,
@@ -96,6 +100,7 @@ export {
   parseTime,
   parseYearMonthDuration,
   parseXSDDecimal,
+  parseXSDInteger,
   parseXSDFloat,
   parseDate,
 } from './util/Parsing';

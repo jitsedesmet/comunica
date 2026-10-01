@@ -17,7 +17,7 @@ export class TermFunctionXsdToDouble extends TermFunctionBase {
       arity: 1,
       operator: TypeURL.XSD_DOUBLE,
       overloads: declare(TypeURL.XSD_DOUBLE)
-        .onNumeric1(() => (val: NumericLiteral) => double(val.typedValue))
+        .onNumeric1(() => (val: NumericLiteral) => double(val.toNumber()))
         .onBoolean1Typed(() => val => double(val ? 1 : 0))
         .onUnary(TypeURL.XSD_STRING, () => (val: Term) => {
           const result = parseXSDFloat(val.str());

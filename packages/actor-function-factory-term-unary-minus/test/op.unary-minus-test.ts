@@ -26,3 +26,20 @@ describe('evaluation of \'- (unary)\' like', () => {
       `,
   });
 });
+
+// https://github.com/comunica/comunica/issues/1266
+describe('evaluation of \'- (unary)\' with spec-compliant precision', () => {
+  runFuncTestTable({
+    registeredActors: [
+      args => new ActorFunctionFactoryTermUnaryMinus(args),
+    ],
+    arity: 1,
+    operation: '-',
+    notation: Notation.Prefix,
+    testTable: `
+        "123456789012345678901234567890"^^xsd:integer = "-123456789012345678901234567890"^^xsd:integer
+        "-0.1000000000000000000001"^^xsd:decimal = "0.1000000000000000000001"^^xsd:decimal
+        "0.1"^^xsd:float = "-1.0E-1"^^xsd:float
+      `,
+  });
+});

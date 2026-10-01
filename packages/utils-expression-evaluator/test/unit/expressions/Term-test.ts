@@ -2,6 +2,7 @@ import type { ISuperTypeProvider } from '@comunica/types';
 import { getMockSuperTypeProvider } from '@comunica/utils-jest';
 import { DataFactory } from 'rdf-data-factory';
 import {
+  BigNumber,
   TypeURL,
   DoubleLiteral,
   FloatLiteral,
@@ -47,6 +48,45 @@ describe('Term', () => {
       it('should properly express large integer numbers', () => {
         const num = new IntegerLiteral(1e8);
         expect(num.toRDF(DF).value).toBe('100000000');
+      });
+    });
+
+    describe('like arbitrary-precision integers', () => {
+      it('should not lose precision for very large integers', () => {
+        const num = new IntegerLiteral(new BigNumber('123456789012345678901234567890'));
+        expect(num.toRDF(DF).value).toBe('123456789012345678901234567890');
+      });
+
+      it('should properly express negative zero', () => {
+        const num = new IntegerLiteral(new BigNumber('-0'));
+        expect(num.toRDF(DF).value).toBe('0');
+      });
+    });
+
+    describe('like arbitrary-precision decimals', () => {
+      it('should not lose precision for decimals with many digits', () => {
+        const num = new DecimalLiteral(new BigNumber('12345678901234567890.123456789012345678901'));
+        expect(num.toRDF(DF).value).toBe('12345678901234567890.123456789012345678901');
+      });
+
+      it('should not use exponential notation for very small decimals', () => {
+        const num = new DecimalLiteral(new BigNumber('1e-30'));
+        expect(num.toRDF(DF).value).toBe('0.000000000000000000000000000001');
+      });
+
+      it('should not use exponential notation for very large decimals', () => {
+        const num = new DecimalLiteral(new BigNumber('1e30'));
+        expect(num.toRDF(DF).value).toBe('1000000000000000000000000000000.0');
+      });
+
+      it('should strip trailing zeroes', () => {
+        const num = new DecimalLiteral(new BigNumber('1.500'));
+        expect(num.toRDF(DF).value).toBe('1.5');
+      });
+
+      it('should properly express negative zero', () => {
+        const num = new DecimalLiteral(new BigNumber('-0.0'));
+        expect(num.toRDF(DF).value).toBe('0.0');
       });
     });
 
@@ -125,6 +165,57 @@ describe('Term', () => {
         const num = createLiteral(-0.01);
         expect(num.toRDF(DF).value).toBe('-1.0E-2');
       });
+    });
+
+    describe('like floats', () => {
+      it('should round the value to single precision', () => {
+        expect(new FloatLiteral(0.1).typedValue).toBe(Math.fround(0.1));
+      });
+
+      it('should use the shortest representation of the single precision value', () => {
+        expect(new FloatLiteral(0.1).toRDF(DF).value).toBe('1.0E-1');
+        expect(new FloatLiteral(16_777_217).toRDF(DF).value).toBe('1.6777216E7');
+        expect(new FloatLiteral(3.4028234663852886e38).toRDF(DF).value).toBe('3.4028235E38');
+        expect(new FloatLiteral(1e-45).toRDF(DF).value).toBe('1.0E-45');
+      });
+
+      it('should use 9 significant digits when required', () => {
+        expect(new FloatLiteral(1.1539286504103075e-7).toRDF(DF).value).toBe('1.15392865E-7');
+      });
+    });
+
+    describe('like doubles', () => {
+      it('should not round the value to single precision', () => {
+        expect(new DoubleLiteral(0.1).typedValue).toBe(0.1);
+        expect(new DoubleLiteral(0.1 + 0.2).toRDF(DF).value).toBe('3.0000000000000004E-1');
+      });
+    });
+  });
+
+  describe('the effective boolean value of numeric literals', () => {
+    it.each([
+      [ 'integer zero', new IntegerLiteral(0), false ],
+      [ 'integer non-zero', new IntegerLiteral(new BigNumber('-1')), true ],
+      [ 'decimal zero', new DecimalLiteral(new BigNumber('0.0')), false ],
+      [ 'decimal tiny', new DecimalLiteral(new BigNumber('1e-400')), true ],
+      [ 'double zero', new DoubleLiteral(0), false ],
+      [ 'double NaN', new DoubleLiteral(Number.NaN), false ],
+      [ 'double non-zero', new DoubleLiteral(0.1), true ],
+      [ 'float tiny', new FloatLiteral(1e-50), false ],
+    ])('should be correct for %s', (_, literal, ebv) => {
+      expect(literal.coerceEBV()).toBe(ebv);
+    });
+  });
+
+  describe('the JS number value of numeric literals', () => {
+    it('should convert arbitrary-precision numbers to the closest double', () => {
+      expect(new DecimalLiteral(new BigNumber('0.1000000000000000000001')).toNumber()).toBe(0.1);
+      expect(new IntegerLiteral(new BigNumber('9007199254740993')).toNumber()).toBe(9_007_199_254_740_992);
+    });
+
+    it('should return floating point numbers as is', () => {
+      expect(new DoubleLiteral(0.1).toNumber()).toBe(0.1);
+      expect(new FloatLiteral(0.1).toNumber()).toBe(Math.fround(0.1));
     });
   });
 });

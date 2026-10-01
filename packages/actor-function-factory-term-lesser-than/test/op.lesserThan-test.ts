@@ -461,3 +461,25 @@ describe('evaluation of \'<\'', () => {
     });
   });
 });
+
+// https://github.com/comunica/comunica/issues/1266
+describe('evaluation of \'<\' on numerics with spec-compliant precision', () => {
+  runFuncTestTable({
+    ...config,
+    testTable: `
+      "9007199254740992"^^xsd:integer "9007199254740993"^^xsd:integer = true
+      "9007199254740993"^^xsd:integer "9007199254740992"^^xsd:integer = false
+      "0.1"^^xsd:decimal "0.1000000000000000000001"^^xsd:decimal = true
+      "0.1000000000000000000001"^^xsd:decimal "0.1"^^xsd:decimal = false
+      "0.1"^^xsd:double "0.1"^^xsd:float = true
+      "0.1"^^xsd:float "0.1"^^xsd:double = false
+      "0.1"^^xsd:decimal "0.1"^^xsd:float = false
+      "0.1"^^xsd:float "0.1"^^xsd:decimal = false
+      "0.1"^^xsd:decimal "0.1"^^xsd:double = false
+      "0.3"^^xsd:decimal "0.30000000000000004"^^xsd:double = true
+      "0.29999999999999999"^^xsd:decimal "0.3"^^xsd:decimal = true
+      "NaN"^^xsd:double "1"^^xsd:decimal = false
+      "1"^^xsd:decimal "NaN"^^xsd:double = false
+    `,
+  });
+});

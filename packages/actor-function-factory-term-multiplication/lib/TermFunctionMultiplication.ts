@@ -4,7 +4,6 @@ import {
   declare,
   SparqlOperator,
 } from '@comunica/utils-expression-evaluator';
-import { BigNumber } from 'bignumber.js';
 
 export class TermFunctionMultiplication extends TermFunctionBase {
   public constructor() {
@@ -12,7 +11,7 @@ export class TermFunctionMultiplication extends TermFunctionBase {
       arity: 2,
       operator: SparqlOperator.MULTIPLICATION,
       overloads: declare(SparqlOperator.MULTIPLICATION)
-        .arithmetic(() => (left, right) => new BigNumber(left).times(right).toNumber())
+        .arithmetic(() => (left, right) => left.times(right), () => (left, right) => left * right)
         .collect(),
     });
   }

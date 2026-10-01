@@ -54,3 +54,19 @@ describe('evaluation of \'-\' like', () => {
     `,
   });
 });
+
+// https://github.com/comunica/comunica/issues/1266
+describe('evaluation of \'-\' with spec-compliant precision', () => {
+  runFuncTestTable({
+    ...config,
+    testTable: `
+      "0.3"^^xsd:double "0.1"^^xsd:double = "1.9999999999999998E-1"^^xsd:double
+      "0.3"^^xsd:float "0.1"^^xsd:float = "2.0000002E-1"^^xsd:float
+      "0.3"^^xsd:decimal "0.1"^^xsd:decimal = "0.2"^^xsd:decimal
+      "0.3"^^xsd:decimal "0.1"^^xsd:double = "1.9999999999999998E-1"^^xsd:double
+      "0.3000000000000000000001"^^xsd:decimal "0.3"^^xsd:decimal = "0.0000000000000000000001"^^xsd:decimal
+      "9007199254740993"^^xsd:integer "9007199254740992"^^xsd:integer = "1"^^xsd:integer
+      "-123456789012345678901234567890"^^xsd:integer "1"^^xsd:integer = "-123456789012345678901234567891"^^xsd:integer
+    `,
+  });
+});

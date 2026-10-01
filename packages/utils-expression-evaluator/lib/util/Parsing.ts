@@ -7,9 +7,15 @@ import type {
   ITimeZoneRepresentation,
   IYearMonthDurationRepresentation,
 } from '@comunica/types';
+import { BigNumber } from './BigNumber';
 import { simplifyDurationRepresentation } from './DateTimeHelpers';
 import { ParseError } from './Errors';
 import { maximumDayInMonthFor } from './SpecAlgos';
+
+// Lexical spaces as defined by https://www.w3.org/TR/xmlschema-2/#built-in-primitive-datatypes
+const XSD_INTEGER_LEXICAL = /^[+-]?\d+$/u;
+const XSD_DECIMAL_LEXICAL = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/u;
+const XSD_FLOAT_LEXICAL = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[Ee][+-]?\d+)?$/u;
 
 /**
  * Parses float datatypes (double, float).
@@ -19,33 +25,45 @@ import { maximumDayInMonthFor } from './SpecAlgos';
  * @param value the string to interpret as a number
  */
 export function parseXSDFloat(value: string): number | undefined {
-  const numb = Number(value);
-  if (Number.isNaN(numb)) {
-    if (value === 'NaN') {
-      return Number.NaN;
-    }
-    if (value === 'INF' || value === '+INF') {
-      return Number.POSITIVE_INFINITY;
-    }
-    if (value === '-INF') {
-      return Number.NEGATIVE_INFINITY;
-    }
-    return undefined;
+  if (XSD_FLOAT_LEXICAL.test(value)) {
+    return Number(value);
   }
-  return numb;
+  if (value === 'NaN') {
+    return Number.NaN;
+  }
+  if (value === 'INF' || value === '+INF') {
+    return Number.POSITIVE_INFINITY;
+  }
+  if (value === '-INF') {
+    return Number.NEGATIVE_INFINITY;
+  }
+  return undefined;
 }
 
 /**
- * Parses decimal datatypes (decimal, int, byte, nonPositiveInteger, etc...).
+ * Parses decimal datatypes (decimal, int, byte, nonPositiveInteger, etc...)
+ * into an arbitrary-precision number.
  *
  * All other values, including NaN, INF, and floating point numbers all
  * return undefined;
  *
  * @param value the string to interpret as a number
  */
-export function parseXSDDecimal(value: string): number | undefined {
-  const numb = Number(value);
-  return Number.isNaN(numb) ? undefined : numb;
+export function parseXSDDecimal(value: string): BigNumber | undefined {
+  return XSD_DECIMAL_LEXICAL.test(value) ? new BigNumber(value) : undefined;
+}
+
+/**
+ * Parses integer datatypes (integer, int, byte, nonPositiveInteger, etc...)
+ * into an arbitrary-precision number.
+ *
+ * All other values, including decimals, NaN, INF, and floating point numbers all
+ * return undefined;
+ *
+ * @param value the string to interpret as a number
+ */
+export function parseXSDInteger(value: string): BigNumber | undefined {
+  return XSD_INTEGER_LEXICAL.test(value) ? new BigNumber(value) : undefined;
 }
 
 export function parseDateTime(dateTimeStr: string): IDateTimeRepresentation {

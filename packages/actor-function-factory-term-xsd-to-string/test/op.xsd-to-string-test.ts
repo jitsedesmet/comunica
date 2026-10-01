@@ -110,3 +110,25 @@ describe('to string', () => {
       `,
   });
 });
+
+// https://github.com/comunica/comunica/issues/1266
+describe('xsd:string with spec-compliant precision', () => {
+  runFuncTestTable({
+    registeredActors: [
+      args => new ActorFunctionFactoryTermXsdToString(args),
+    ],
+    arity: 1,
+    notation: Notation.Function,
+    operation: 'xsd:string',
+    testTable: `
+      "123456789012345678901234567890"^^xsd:integer = "123456789012345678901234567890"
+      "0.1000000000000000000001"^^xsd:decimal = "0.1000000000000000000001"
+      "1234567890.0"^^xsd:decimal = "1234567890"
+      "0.1"^^xsd:float = "0.1"
+      "123456.7"^^xsd:float = "123456.7"
+      "1.0E7"^^xsd:float = "1.0E7"
+      "3.4028235E38"^^xsd:float = "3.4028235E38"
+      "0.30000000000000004"^^xsd:double = "0.30000000000000004"
+    `,
+  });
+});

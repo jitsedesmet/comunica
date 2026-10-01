@@ -121,15 +121,16 @@ export class TermTransformer implements ITermTransformer {
         return new E.BooleanLiteral(lit.value === 'true' || lit.value === '1', lit.value);
       }
       if (TypeURL.XSD_DECIMAL in superTypeDict) {
-        const intVal: number | undefined = P.parseXSDDecimal(lit.value);
-        if (intVal === undefined) {
+        const isInteger = TypeURL.XSD_INTEGER in superTypeDict;
+        const decimalVal = isInteger ? P.parseXSDInteger(lit.value) : P.parseXSDDecimal(lit.value);
+        if (decimalVal === undefined) {
           return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
         }
-        if (TypeURL.XSD_INTEGER in superTypeDict) {
-          return new E.IntegerLiteral(intVal, dataType, lit.value);
+        if (isInteger) {
+          return new E.IntegerLiteral(decimalVal, dataType, lit.value);
         }
         // If type is not an integer it's just a decimal.
-        return new E.DecimalLiteral(intVal, dataType, lit.value);
+        return new E.DecimalLiteral(decimalVal, dataType, lit.value);
       }
       const isFloat = TypeURL.XSD_FLOAT in superTypeDict;
       const isDouble = TypeURL.XSD_DOUBLE in superTypeDict;

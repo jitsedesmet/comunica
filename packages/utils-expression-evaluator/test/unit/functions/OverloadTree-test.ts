@@ -5,12 +5,15 @@ import type { TermFunctionBase } from '@comunica/bus-function-factory';
 import { KeysExpressionEvaluator, KeysInitQuery } from '@comunica/context-entries';
 import type { FunctionArgumentsCache, ISuperTypeProvider } from '@comunica/types';
 import { getMockEEActionContext, getMockEEFactory, getMockExpression } from '@comunica/utils-jest';
-import { TypeURL, OverloadTree } from '../../../lib';
+import { BigNumber, TypeURL, OverloadTree } from '../../../lib';
 import type { KnownLiteralTypes } from '../../../lib';
 import {
+  DecimalLiteral,
+  FloatLiteral,
   IntegerLiteral,
   isLiteralTermExpression,
   Literal,
+  NonLexicalLiteral,
   StringLiteral,
 } from '../../../lib/expressions';
 import type { ISerializable } from '../../../lib/expressions';
@@ -36,10 +39,10 @@ describe('OverloadTree', () => {
     promoteFrom: KnownLiteralTypes,
     promoteTo: KnownLiteralTypes,
     value: T,
-    valueToEqual?: T,
+    valueToEqual?: unknown,
+    arg: Literal<T> = new Literal<T>(value, promoteFrom),
   ): void {
     tree.addOverload([ promoteTo ], () => ([ arg ]) => arg);
-    const arg = new Literal<T>(value, promoteFrom);
     const res = isLiteralTermExpression(tree
       .search([ arg ], superTypeProvider, functionArgumentsCache)!(
       expressionEvaluator,
@@ -72,15 +75,30 @@ describe('OverloadTree', () => {
     });
 
     it('promotes FLOAT to DOUBLE', () => {
-      typePromotionTest(emptyTree, TypeURL.XSD_FLOAT, TypeURL.XSD_DOUBLE, '0');
+      const arg = new FloatLiteral(0.1);
+      typePromotionTest(emptyTree, TypeURL.XSD_FLOAT, TypeURL.XSD_DOUBLE, arg.typedValue, Math.fround(0.1), arg);
     });
 
     it('promotes DECIMAL to FLOAT', () => {
-      typePromotionTest(emptyTree, TypeURL.XSD_DECIMAL, TypeURL.XSD_FLOAT, '0');
+      const arg = new DecimalLiteral(new BigNumber('0.1'));
+      typePromotionTest(emptyTree, TypeURL.XSD_DECIMAL, TypeURL.XSD_FLOAT, arg.typedValue, Math.fround(0.1), arg);
     });
 
     it('promotes DECIMAL to DOUBLE', () => {
-      typePromotionTest(emptyTree, TypeURL.XSD_DECIMAL, TypeURL.XSD_DOUBLE, '0');
+      const arg = new DecimalLiteral(new BigNumber('0.1'));
+      typePromotionTest(emptyTree, TypeURL.XSD_DECIMAL, TypeURL.XSD_DOUBLE, arg.typedValue, 0.1, arg);
+    });
+
+    it('promotes arbitrary-precision DECIMAL to the closest DOUBLE', () => {
+      const arg = new DecimalLiteral(new BigNumber('0.1000000000000000000000000000001'));
+      typePromotionTest(emptyTree, TypeURL.XSD_DECIMAL, TypeURL.XSD_DOUBLE, arg.typedValue, 0.1, arg);
+    });
+
+    it('does not convert non-lexical literals when promoting', () => {
+      emptyTree.addOverload([ TypeURL.XSD_DOUBLE ], () => ([ arg ]) => arg);
+      const arg = new NonLexicalLiteral(undefined, TypeURL.XSD_DECIMAL, superTypeProvider, 'abc');
+      const res = emptyTree.search([ arg ], superTypeProvider, functionArgumentsCache)!(expressionEvaluator)([ arg ]);
+      expect(res).toBe(arg);
     });
   });
 
@@ -97,7 +115,7 @@ describe('OverloadTree', () => {
   it('can handle both substitution and promotion at once', () => {
     emptyTree.addOverload([ TypeURL.XSD_DOUBLE ], () => ([ arg ]) => arg);
 
-    const arg = new Literal<number>(0, TypeURL.XSD_SHORT);
+    const arg = new IntegerLiteral(0, TypeURL.XSD_SHORT);
     const res = isLiteralTermExpression(emptyTree
       .search([ arg ], superTypeProvider, functionArgumentsCache)!(
       expressionEvaluator,

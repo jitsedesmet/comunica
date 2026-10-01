@@ -17,7 +17,7 @@ export class TermFunctionXsdToFloat extends TermFunctionBase {
       arity: 1,
       operator: TypeURL.XSD_FLOAT,
       overloads: declare(TypeURL.XSD_FLOAT)
-        .onNumeric1(() => (val: NumericLiteral) => float(val.typedValue))
+        .onNumeric1(() => (val: NumericLiteral) => float(val.toNumber()))
         .onBoolean1Typed(() => val => float(val ? 1 : 0))
         .onUnary(TypeURL.XSD_STRING, () => (val: StringLiteral) => {
           const result = parseXSDFloat(val.str());

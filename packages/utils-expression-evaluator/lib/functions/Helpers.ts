@@ -16,6 +16,7 @@ import type * as RDF from '@rdfjs/types';
 import type { ISerializable, Literal, Quad } from '../expressions';
 import * as E from '../expressions';
 import { NonLexicalLiteral } from '../expressions';
+import { BigNumber } from '../util/BigNumber';
 import * as C from '../util/Consts';
 import { TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
@@ -411,24 +412,31 @@ addInvalidHandling = true,
    * We return the base types and not the provided types because we don't want to create invalid terms.
    * Providing negative number to a function unary - for example should not
    * return a term of type negative number having a positive value.
-   * @param op the numeric operator performed
+   *
+   * Integers and decimals are arbitrary-precision numbers, so they are handled by @param decimalOp,
+   * while floats and doubles are IEEE 754 floating point numbers handled by @param floatingOp.
+   * @param decimalOp the numeric operator performed on integers and decimals
+   * @param floatingOp the numeric operator performed on floats and doubles
    * @param addInvalidHandling whether to add invalid handling,
-   *   whether to add @param op in @see wrapInvalidLexicalProtected
+   *   whether to add the operators in @see wrapInvalidLexicalProtected
    */
   public numericConverter(
-    op: (expressionEvaluator: IInternalEvaluator) => (val: number) => number,
+    decimalOp: (expressionEvaluator: IInternalEvaluator) => (val: BigNumber) => BigNumber,
+    floatingOp: (expressionEvaluator: IInternalEvaluator) => (val: number) => number,
 addInvalidHandling = true,
   ): Builder {
-    const evalHelper = (expressionEvaluator: IInternalEvaluator) => (arg: Term): number =>
-      op(expressionEvaluator)((<Literal<number>>arg).typedValue);
+    const decimalHelper = (expressionEvaluator: IInternalEvaluator) => (arg: Term): BigNumber =>
+      decimalOp(expressionEvaluator)((<E.NumericLiteral<BigNumber>>arg).typedValue);
+    const floatingHelper = (expressionEvaluator: IInternalEvaluator) => (arg: Term): number =>
+      floatingOp(expressionEvaluator)((<E.NumericLiteral<number>>arg).typedValue);
     return this.onUnary(TypeURL.XSD_INTEGER, expressionEvaluator => arg =>
-      integer(evalHelper(expressionEvaluator)(arg)), addInvalidHandling)
+      integer(decimalHelper(expressionEvaluator)(arg)), addInvalidHandling)
       .onUnary(TypeURL.XSD_DECIMAL, expressionEvaluator => arg =>
-        decimal(evalHelper(expressionEvaluator)(arg)), addInvalidHandling)
+        decimal(decimalHelper(expressionEvaluator)(arg)), addInvalidHandling)
       .onUnary(TypeURL.XSD_FLOAT, expressionEvaluator => arg =>
-        float(evalHelper(expressionEvaluator)(arg)), addInvalidHandling)
+        float(floatingHelper(expressionEvaluator)(arg)), addInvalidHandling)
       .onUnary(TypeURL.XSD_DOUBLE, expressionEvaluator => arg =>
-        double(evalHelper(expressionEvaluator)(arg)), addInvalidHandling);
+        double(floatingHelper(expressionEvaluator)(arg)), addInvalidHandling);
   }
 
   /**
@@ -441,21 +449,38 @@ addInvalidHandling = true,
    * The way numeric function arguments work is described here:
    * https://www.w3.org/TR/xpath20/#mapping
    * Above url is referenced in the sparql spec: https://www.w3.org/TR/sparql11-query/#OperatorMapping
+   *
+   * Integers and decimals are arbitrary-precision numbers, so they are handled by @param decimalOp,
+   * while floats and doubles are IEEE 754 floating point numbers handled by @param floatingOp.
+   * Results of float operations are rounded to single precision.
+   * @param decimalOp the numeric operator performed on integers and decimals
+   * @param floatingOp the numeric operator performed on floats and doubles
+   * @param addInvalidHandling whether to add invalid handling,
+   *   whether to add the operators in @see wrapInvalidLexicalProtected
    */
   public arithmetic(
-    op: (expressionEvaluator: IInternalEvaluator) => (left: number, right: number) => number,
+    decimalOp: (expressionEvaluator: IInternalEvaluator) => (left: BigNumber, right: BigNumber) => BigNumber,
+    floatingOp: (expressionEvaluator: IInternalEvaluator) => (left: number, right: number) => number,
 addInvalidHandling = true,
   ): Builder {
-    const evalHelper = (expressionEvaluator: IInternalEvaluator) => (left: Term, right: Term): number =>
-      op(expressionEvaluator)((<Literal<number>>left).typedValue, (<Literal<number>>right).typedValue);
+    const decimalHelper = (expressionEvaluator: IInternalEvaluator) => (left: Term, right: Term): BigNumber =>
+      decimalOp(expressionEvaluator)(
+        (<E.NumericLiteral<BigNumber>>left).typedValue,
+        (<E.NumericLiteral<BigNumber>>right).typedValue,
+      );
+    const floatingHelper = (expressionEvaluator: IInternalEvaluator) => (left: Term, right: Term): number =>
+      floatingOp(expressionEvaluator)(
+        (<E.NumericLiteral<number>>left).typedValue,
+        (<E.NumericLiteral<number>>right).typedValue,
+      );
     return this.onBinary([ TypeURL.XSD_INTEGER, TypeURL.XSD_INTEGER ], expressionEvaluator => (left, right) =>
-      integer(evalHelper(expressionEvaluator)(left, right)), addInvalidHandling)
+      integer(decimalHelper(expressionEvaluator)(left, right)), addInvalidHandling)
       .onBinary([ TypeURL.XSD_DECIMAL, TypeURL.XSD_DECIMAL ], expressionEvaluator => (left, right) =>
-        decimal(evalHelper(expressionEvaluator)(left, right)), addInvalidHandling)
+        decimal(decimalHelper(expressionEvaluator)(left, right)), addInvalidHandling)
       .onBinary([ TypeURL.XSD_FLOAT, TypeURL.XSD_FLOAT ], expressionEvaluator => (left, right) =>
-        float(evalHelper(expressionEvaluator)(left, right)), addInvalidHandling)
+        float(floatingHelper(expressionEvaluator)(left, right)), addInvalidHandling)
       .onBinary([ TypeURL.XSD_DOUBLE, TypeURL.XSD_DOUBLE ], expressionEvaluator => (left, right) =>
-        double(evalHelper(expressionEvaluator)(left, right)), addInvalidHandling);
+        double(floatingHelper(expressionEvaluator)(left, right)), addInvalidHandling);
   }
 
   public stringTest(
@@ -482,14 +507,17 @@ export function bool(val: boolean): E.BooleanLiteral {
   return new E.BooleanLiteral(val);
 }
 
-export function integer(num: number): E.IntegerLiteral {
+export function integer(num: number | BigNumber): E.IntegerLiteral {
   return new E.IntegerLiteral(num);
 }
 
-export function decimal(num: number): E.DecimalLiteral {
+export function decimal(num: number | BigNumber): E.DecimalLiteral {
   return new E.DecimalLiteral(num);
 }
 
+/**
+ * @param num The value, which will be rounded to the closest single-precision floating point number.
+ */
 export function float(num: number): E.FloatLiteral {
   return new E.FloatLiteral(num);
 }
@@ -519,6 +547,61 @@ export function expressionToVar(
   variableExpression: VariableExpression,
 ): RDF.Variable {
   return dataFactory.variable(variableExpression.name.slice(1));
+}
+
+/**
+ * Convert the value of a numeric literal to an arbitrary-precision decimal value,
+ * following https://www.w3.org/TR/xpath-functions/#casting-from-primitive-to-primitive.
+ * Floats and doubles are converted to the decimal with the shortest representation that identifies them,
+ * e.g. the float closest to 0.1 becomes the decimal 0.1.
+ *
+ * @param lit The numeric literal to convert.
+ * @returns The decimal value, or undefined if the value is NaN or infinite.
+ */
+export function numericToDecimal(lit: E.NumericLiteral): BigNumber | undefined {
+  const value: E.NumericValue = lit.typedValue;
+  if (typeof value !== 'number') {
+    return value;
+  }
+  if (!Number.isFinite(value)) {
+    return undefined;
+  }
+  // The canonical representation of floats and doubles is the shortest one that identifies the value.
+  return new BigNumber(lit instanceof E.FloatLiteral ? float(value).str() : double(value).str());
+}
+
+/**
+ * Compare the values of two numeric literals, after promoting them to their least common numeric type,
+ * as defined by https://www.w3.org/TR/xpath-functions/#op.numeric.
+ * Integers and decimals are compared with arbitrary precision.
+ * When one of the arguments is a float or a double, the other argument is (rounded and) converted to that type.
+ *
+ * @param left The left operand.
+ * @param right The right operand.
+ * @returns -1 if left < right, 0 if left = right, 1 if left > right, and NaN if the values are unordered,
+ * i.e. when one of the values is NaN.
+ */
+export function compareNumericLiterals(left: E.NumericLiteral, right: E.NumericLiteral): number {
+  const leftValue: E.NumericValue = left.typedValue;
+  const rightValue: E.NumericValue = right.typedValue;
+  if (typeof leftValue !== 'number' && typeof rightValue !== 'number') {
+    return leftValue.comparedTo(rightValue) ?? Number.NaN;
+  }
+  let leftNumber = left.toNumber();
+  let rightNumber = right.toNumber();
+  // A decimal compared to a float is promoted to a float, other combinations are promoted to doubles.
+  if (typeof leftValue !== 'number' && right instanceof E.FloatLiteral) {
+    leftNumber = Math.fround(leftNumber);
+  } else if (typeof rightValue !== 'number' && left instanceof E.FloatLiteral) {
+    rightNumber = Math.fround(rightNumber);
+  }
+  if (leftNumber < rightNumber) {
+    return -1;
+  }
+  if (leftNumber > rightNumber) {
+    return 1;
+  }
+  return leftNumber === rightNumber ? 0 : Number.NaN;
 }
 
 /**

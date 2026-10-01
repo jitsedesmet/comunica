@@ -334,3 +334,27 @@ describe('evaluation of \'=\'', () => {
     });
   });
 });
+
+// https://github.com/comunica/comunica/issues/1266
+describe('evaluation of \'=\' on numerics with spec-compliant precision', () => {
+  runFuncTestTable({
+    ...config,
+    testTable: `
+      "9007199254740993"^^xsd:integer "9007199254740992"^^xsd:integer = false
+      "123456789012345678901234567890"^^xsd:integer "123456789012345678901234567890.0"^^xsd:decimal = true
+      "0.1000000000000000000001"^^xsd:decimal "0.1"^^xsd:decimal = false
+      "0.30"^^xsd:decimal "0.3"^^xsd:decimal = true
+      "0.1"^^xsd:decimal "0.1"^^xsd:double = true
+      "0.1"^^xsd:decimal "0.1"^^xsd:float = true
+      "0.1"^^xsd:float "0.1"^^xsd:double = false
+      "0.1"^^xsd:double "0.1"^^xsd:float = false
+      "0.1"^^xsd:float "0.1"^^xsd:float = true
+      "0.1000000000000000000001"^^xsd:decimal "0.1"^^xsd:double = true
+      "0.1"^^xsd:double "0.1000000000000000000001"^^xsd:decimal = true
+      "0.5"^^xsd:float "0.5"^^xsd:double = true
+      "NaN"^^xsd:double "0"^^xsd:decimal = false
+      "0"^^xsd:decimal "NaN"^^xsd:float = false
+      "-0.0"^^xsd:decimal "0"^^xsd:integer = true
+    `,
+  });
+});

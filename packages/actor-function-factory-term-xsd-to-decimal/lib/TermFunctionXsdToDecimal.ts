@@ -1,11 +1,13 @@
 import { TermFunctionBase } from '@comunica/bus-function-factory';
 import type {
+  NumericLiteral,
   Term,
 } from '@comunica/utils-expression-evaluator';
 import {
   CastError,
   decimal,
   declare,
+  numericToDecimal,
   parseXSDDecimal,
   TypeURL,
 } from '@comunica/utils-expression-evaluator';
@@ -16,8 +18,8 @@ export class TermFunctionXsdToDecimal extends TermFunctionBase {
       arity: 1,
       operator: TypeURL.XSD_DECIMAL,
       overloads: declare(TypeURL.XSD_DECIMAL)
-        .onNumeric1(() => (val: Term) => {
-          const result = parseXSDDecimal(val.str());
+        .onNumeric1(() => (val: NumericLiteral) => {
+          const result = numericToDecimal(val);
           if (result === undefined) {
             throw new CastError(val, TypeURL.XSD_DECIMAL);
           }
