@@ -123,7 +123,8 @@ export class TermTransformer implements ITermTransformer {
       if (TypeURL.XSD_DECIMAL in superTypeDict) {
         const isInteger = TypeURL.XSD_INTEGER in superTypeDict;
         const decimalVal = isInteger ? P.parseXSDInteger(lit.value) : P.parseXSDDecimal(lit.value);
-        if (decimalVal === undefined) {
+        // Values outside the range of a type derived from xsd:integer are not in its value space.
+        if (decimalVal === undefined || (isInteger && !P.isInXSDIntegerRange(decimalVal, superTypeDict))) {
           return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
         }
         if (isInteger) {

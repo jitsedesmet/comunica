@@ -103,6 +103,7 @@ export {
   parseYearMonthDuration,
   parseXSDDecimal,
   parseXSDInteger,
+  isInXSDIntegerRange,
   parseXSDDouble,
   parseXSDFloat,
   collapseWhitespace,

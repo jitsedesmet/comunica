@@ -1,4 +1,5 @@
 import type {
+  GeneralSuperTypeDict,
   IDateRepresentation,
   IDateTimeRepresentation,
   IDayTimeDurationRepresentation,
@@ -8,6 +9,7 @@ import type {
   IYearMonthDurationRepresentation,
 } from '@comunica/types';
 import { BigNumber } from './BigNumber';
+import { TypeURL } from './Consts';
 import { simplifyDurationRepresentation } from './DateTimeHelpers';
 import { ParseError } from './Errors';
 import { roundToFloat } from './FloatingPoint';
@@ -82,6 +84,37 @@ export function parseXSDFloat(value: string): number | undefined {
  */
 export function parseXSDDecimal(value: string): BigNumber | undefined {
   return XSD_DECIMAL_LEXICAL.test(value) ? new BigNumber(value) : undefined;
+}
+
+/**
+ * The value ranges ([minInclusive, maxInclusive], where undefined is unbounded) of the types derived from xsd:integer,
+ * as defined by https://www.w3.org/TR/xmlschema11-2/#built-in-derived.
+ */
+const XSD_INTEGER_RANGES: [TypeURL, BigNumber | undefined, BigNumber | undefined][] = [
+  [ TypeURL.XSD_NON_POSITIVE_INTEGER, undefined, new BigNumber(0) ],
+  [ TypeURL.XSD_NEGATIVE_INTEGER, undefined, new BigNumber(-1) ],
+  [ TypeURL.XSD_LONG, new BigNumber('-9223372036854775808'), new BigNumber('9223372036854775807') ],
+  [ TypeURL.XSD_INT, new BigNumber(-2_147_483_648), new BigNumber(2_147_483_647) ],
+  [ TypeURL.XSD_SHORT, new BigNumber(-32_768), new BigNumber(32_767) ],
+  [ TypeURL.XSD_BYTE, new BigNumber(-128), new BigNumber(127) ],
+  [ TypeURL.XSD_NON_NEGATIVE_INTEGER, new BigNumber(0), undefined ],
+  [ TypeURL.XSD_UNSIGNED_LONG, new BigNumber(0), new BigNumber('18446744073709551615') ],
+  [ TypeURL.XSD_UNSIGNED_INT, new BigNumber(0), new BigNumber(4_294_967_295) ],
+  [ TypeURL.XSD_UNSIGNED_SHORT, new BigNumber(0), new BigNumber(65_535) ],
+  [ TypeURL.XSD_UNSIGNED_BYTE, new BigNumber(0), new BigNumber(255) ],
+  [ TypeURL.XSD_POSITIVE_INTEGER, new BigNumber(1), undefined ],
+];
+
+/**
+ * Check whether an integer is in the value space of a datatype,
+ * which is restricted by the value ranges of the types derived from xsd:integer that the datatype is derived from.
+ *
+ * @param value the integer value
+ * @param superTypeDict the super types of the datatype
+ */
+export function isInXSDIntegerRange(value: BigNumber, superTypeDict: GeneralSuperTypeDict): boolean {
+  return XSD_INTEGER_RANGES.every(([ type, min, max ]) => !(type in superTypeDict) ||
+    ((min === undefined || value.gte(min)) && (max === undefined || value.lte(max))));
 }
 
 /**

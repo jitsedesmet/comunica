@@ -210,6 +210,27 @@ describe('TermTransformer', () => {
       expect(res.typedValue).not.toBe(0.1);
     });
 
+    it.each([
+      [ '-1', DT.XSD_NEGATIVE_INTEGER ],
+      [ '0', DT.XSD_NON_POSITIVE_INTEGER ],
+      [ '-0', DT.XSD_NON_NEGATIVE_INTEGER ],
+      [ '1', DT.XSD_POSITIVE_INTEGER ],
+      [ '-128', DT.XSD_BYTE ],
+      [ '127', DT.XSD_BYTE ],
+      [ '-32768', DT.XSD_SHORT ],
+      [ '2147483647', DT.XSD_INT ],
+      [ '-9223372036854775808', DT.XSD_LONG ],
+      [ '255', DT.XSD_UNSIGNED_BYTE ],
+      [ '65535', DT.XSD_UNSIGNED_SHORT ],
+      [ '4294967295', DT.XSD_UNSIGNED_INT ],
+      [ '18446744073709551615', DT.XSD_UNSIGNED_LONG ],
+      [ '123456789012345678901234567890', DT.XSD_INTEGER ],
+    ])('transforms integer value %s within the range of %s', (value, dataType) => {
+      const res = termTransformer.transformLiteral(DF.literal(value, DF.namedNode(dataType)));
+      expect(res).toBeInstanceOf(E.IntegerLiteral);
+      expect(res.typedValue.eq(value)).toBe(true);
+    });
+
     it('dateTime type transform', () => {
       const num = dateTime('2022-01-02T03:04:05Z');
       const res = termTransformer.transformLiteral(num);
@@ -322,6 +343,35 @@ describe('TermTransformer', () => {
         [ '1e', DT.XSD_FLOAT ],
       ])('numeric value %j with datatype %s', (value, dataType) => {
         returnNonLexicalTest(value, dataType);
+      });
+
+      it.each([
+        [ '0', DT.XSD_NEGATIVE_INTEGER ],
+        [ '1', DT.XSD_NON_POSITIVE_INTEGER ],
+        [ '-1', DT.XSD_NON_NEGATIVE_INTEGER ],
+        [ '-0', DT.XSD_POSITIVE_INTEGER ],
+        [ '-129', DT.XSD_BYTE ],
+        [ '128', DT.XSD_BYTE ],
+        [ '32768', DT.XSD_SHORT ],
+        [ '-2147483649', DT.XSD_INT ],
+        [ '9223372036854775808', DT.XSD_LONG ],
+        [ '-1', DT.XSD_UNSIGNED_BYTE ],
+        [ '256', DT.XSD_UNSIGNED_BYTE ],
+        [ '65536', DT.XSD_UNSIGNED_SHORT ],
+        [ '4294967296', DT.XSD_UNSIGNED_INT ],
+        [ '18446744073709551616', DT.XSD_UNSIGNED_LONG ],
+      ])('integer value %s outside the range of %s', (value, dataType) => {
+        returnNonLexicalTest(value, dataType);
+      });
+
+      it('integer value outside the range of a type that a custom datatype is derived from', () => {
+        termTransformer = new TermTransformer({
+          ...getMockSuperTypeProvider(),
+          discoverer: type => type === 'http://example.org/smallInt' ? DT.XSD_BYTE : 'term',
+        });
+        returnNonLexicalTest('128', 'http://example.org/smallInt');
+        expect(termTransformer.transformLiteral(DF.literal('127', DF.namedNode('http://example.org/smallInt'))))
+          .toBeInstanceOf(E.IntegerLiteral);
       });
 
       it('datatype: boolean', () => {

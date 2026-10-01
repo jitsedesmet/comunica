@@ -1,6 +1,8 @@
 import { BigNumber } from '../../../lib/util/BigNumber';
+import { TypeURL } from '../../../lib/util/Consts';
 import {
   collapseWhitespace,
+  isInXSDIntegerRange,
   parseDate,
   parseDateTime,
   parseXSDDecimal,
@@ -22,6 +24,28 @@ describe('util/parsing', () => {
 
     it.each([ '', '1.0', '1e3', '0x1F', ' 1', 'Infinity', 'NaN', '+' ])('should not parse %j', (value) => {
       expect(parseXSDInteger(value)).toBeUndefined();
+    });
+  });
+
+  describe('isInXSDIntegerRange', () => {
+    const superTypes = (...types: string[]): any => Object.fromEntries(types.map(type => [ type, 1 ]));
+
+    it('accepts any integer for types without a range', () => {
+      expect(isInXSDIntegerRange(new BigNumber('-1e40'), superTypes(TypeURL.XSD_INTEGER))).toBe(true);
+    });
+
+    it('applies the ranges of all super types', () => {
+      const byte = superTypes(TypeURL.XSD_BYTE, TypeURL.XSD_SHORT, TypeURL.XSD_INT, TypeURL.XSD_LONG);
+      expect(isInXSDIntegerRange(new BigNumber(127), byte)).toBe(true);
+      expect(isInXSDIntegerRange(new BigNumber(128), byte)).toBe(false);
+      expect(isInXSDIntegerRange(new BigNumber(-129), byte)).toBe(false);
+    });
+
+    it('applies ranges that are unbounded on one side', () => {
+      expect(isInXSDIntegerRange(new BigNumber('1e40'), superTypes(TypeURL.XSD_POSITIVE_INTEGER))).toBe(true);
+      expect(isInXSDIntegerRange(new BigNumber(0), superTypes(TypeURL.XSD_POSITIVE_INTEGER))).toBe(false);
+      expect(isInXSDIntegerRange(new BigNumber('-1e40'), superTypes(TypeURL.XSD_NEGATIVE_INTEGER))).toBe(true);
+      expect(isInXSDIntegerRange(new BigNumber(0), superTypes(TypeURL.XSD_NEGATIVE_INTEGER))).toBe(false);
     });
   });
 
