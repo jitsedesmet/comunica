@@ -559,9 +559,17 @@ export function expressionToVar(
 /**
  * Convert the value of a numeric literal to an arbitrary-precision decimal value,
  * following https://www.w3.org/TR/xpath-functions-31/#casting-to-decimal.
- * Floats and doubles are converted to the decimal that is numerically closest to them,
- * which is their exact value, as decimals have arbitrary precision,
- * e.g. the double closest to 0.1 becomes 0.1000000000000000055511151231257827021181583404541015625.
+ *
+ * For floats and doubles, the specification requires "the xs:decimal value, within the set of xs:decimal values
+ * that the implementation is capable of representing, that is numerically closest to" the value.
+ * Every finite float and double is a dyadic rational, so its decimal expansion is finite,
+ * and decimals are arbitrary-precision BigNumbers here, so the closest decimal value is the exact value.
+ * For example, the double closest to 0.1 becomes 0.1000000000000000055511151231257827021181583404541015625.
+ *
+ * We deliberately do not use the shortest decimal that identifies the float or double (0.1 in the example above),
+ * which some implementations return, as that decimal is not the closest one to the value.
+ * The specification does allow the shortest representation when casting floats and doubles to strings
+ * (https://www.w3.org/TR/xpath-functions-31/#casting-to-string), which is why `xsd:string` behaves differently.
  *
  * @param lit The numeric literal to convert.
  * @returns The decimal value, or undefined if the value is NaN or infinite.

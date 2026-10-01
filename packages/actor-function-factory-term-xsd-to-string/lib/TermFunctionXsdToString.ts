@@ -66,6 +66,8 @@ export class TermFunctionXsdToString extends TermFunctionBase {
 
     // Values with an absolute value in range `[0.000001, 1000000[` should be converted to a decimal before casting to
     // string, as per the spec. The decimal bounds are promoted to the type of the value when comparing.
+    // Unlike casting to xsd:decimal (see numericToDecimal), the shortest decimal that identifies the value is used,
+    // as the result must only convert back to the same value, e.g. "-1.1234"^^xsd:float becomes "-1.1234".
     const lowerBound = val instanceof FloatLiteral ? Math.fround(0.000_001) : 0.000_001;
     if (Math.abs(value) >= lowerBound && Math.abs(value) < 1_000_000) {
       return TermFunctionXsdToString.castAsDecimal(new BigNumber(canonical));

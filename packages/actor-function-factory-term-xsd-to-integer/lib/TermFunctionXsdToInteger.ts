@@ -22,6 +22,7 @@ export class TermFunctionXsdToInteger extends TermFunctionBase {
       overloads: declare(TypeURL.XSD_INTEGER)
         .onBoolean1Typed(() => val => integer(val ? 1 : 0))
         // https://www.w3.org/TR/xpath-functions-31/#casting-to-integer
+        // The fractional part of the exact value is discarded, so floats and doubles are not rounded first.
         .onNumeric1(() => (val: NumericLiteral) => {
           const result = numericToDecimal(val);
           if (result === undefined) {

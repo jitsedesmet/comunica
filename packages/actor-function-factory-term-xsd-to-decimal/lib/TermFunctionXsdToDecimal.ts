@@ -20,6 +20,7 @@ export class TermFunctionXsdToDecimal extends TermFunctionBase {
       operator: TypeURL.XSD_DECIMAL,
       overloads: declare(TypeURL.XSD_DECIMAL)
         // https://www.w3.org/TR/xpath-functions-31/#casting-to-decimal
+        // Floats and doubles become their exact (numerically closest) decimal value, see numericToDecimal.
         .onNumeric1(() => (val: NumericLiteral) => {
           const result = numericToDecimal(val);
           if (result === undefined) {
