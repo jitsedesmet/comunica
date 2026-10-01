@@ -44,7 +44,7 @@ export class AverageAggregator extends AggregateEvaluator implements IBindingsAg
     if (this.state === undefined) {
       return this.emptyValue();
     }
-    const count = new Eval.IntegerLiteral(this.state.count);
+    const count = Eval.integer(this.state.count);
     const result = this.divisionFunction.applyOnTerms([ this.state.sum, count ], this.evaluator);
     return result.toRDF(this.dataFactory);
   }

@@ -1,5 +1,10 @@
 import { TermFunctionBase } from '@comunica/bus-function-factory';
-import type { DirLangStringLiteral, LangStringLiteral, NumericLiteral } from '@comunica/utils-expression-evaluator';
+import type {
+  BigNumber,
+  DirLangStringLiteral,
+  IntegerLiteral,
+  LangStringLiteral,
+} from '@comunica/utils-expression-evaluator';
 import {
   declare,
   dirLangString,
@@ -20,41 +25,42 @@ export class TermFunctionSubStr extends TermFunctionBase {
       overloads: declare(SparqlOperator.SUBSTR)
         .onBinaryTyped(
           [ TypeURL.XSD_STRING, TypeURL.XSD_INTEGER ],
-          () => (source: string, startingLoc: number) => string([ ...source ].slice(startingLoc - 1).join('')),
+          () => (source: string, startingLoc: BigNumber) =>
+            string([ ...source ].slice(startingLoc.toNumber() - 1).join('')),
         )
         .onBinary(
           [ TypeURL.RDF_LANG_STRING, TypeURL.XSD_INTEGER ],
-          () => (source: LangStringLiteral, startingLoc: NumericLiteral) => {
-            const sub = [ ...source.typedValue ].slice(startingLoc.typedValue - 1).join('');
+          () => (source: LangStringLiteral, startingLoc: IntegerLiteral) => {
+            const sub = [ ...source.typedValue ].slice(startingLoc.toNumber() - 1).join('');
             return langString(sub, source.language);
           },
         )
         .onBinary(
           [ TypeURL.RDF_DIR_LANG_STRING, TypeURL.XSD_INTEGER ],
-          () => (source: DirLangStringLiteral, startingLoc: NumericLiteral) => {
-            const sub = [ ...source.typedValue ].slice(startingLoc.typedValue - 1).join('');
+          () => (source: DirLangStringLiteral, startingLoc: IntegerLiteral) => {
+            const sub = [ ...source.typedValue ].slice(startingLoc.toNumber() - 1).join('');
             return dirLangString(sub, source.language, source.direction);
           },
         )
         .onTernaryTyped(
           [ TypeURL.XSD_STRING, TypeURL.XSD_INTEGER, TypeURL.XSD_INTEGER ],
-          () => (source: string, startingLoc: number, length: number) =>
-            string([ ...source ].slice(startingLoc - 1, length + startingLoc - 1).join('')),
+          () => (source: string, startingLoc: BigNumber, length: BigNumber) =>
+            string([ ...source ].slice(startingLoc.toNumber() - 1, length.plus(startingLoc).toNumber() - 1).join('')),
         )
         .onTernary(
           [ TypeURL.RDF_LANG_STRING, TypeURL.XSD_INTEGER, TypeURL.XSD_INTEGER ],
-          () => (source: LangStringLiteral, startingLoc: NumericLiteral, length: NumericLiteral) => {
+          () => (source: LangStringLiteral, startingLoc: IntegerLiteral, length: IntegerLiteral) => {
             const sub = [ ...source.typedValue ]
-              .slice(startingLoc.typedValue - 1, length.typedValue + startingLoc.typedValue - 1)
+              .slice(startingLoc.toNumber() - 1, length.typedValue.plus(startingLoc.typedValue).toNumber() - 1)
               .join('');
             return langString(sub, source.language);
           },
         )
         .onTernary(
           [ TypeURL.RDF_DIR_LANG_STRING, TypeURL.XSD_INTEGER, TypeURL.XSD_INTEGER ],
-          () => (source: DirLangStringLiteral, startingLoc: NumericLiteral, length: NumericLiteral) => {
+          () => (source: DirLangStringLiteral, startingLoc: IntegerLiteral, length: IntegerLiteral) => {
             const sub = [ ...source.typedValue ]
-              .slice(startingLoc.typedValue - 1, length.typedValue + startingLoc.typedValue - 1)
+              .slice(startingLoc.toNumber() - 1, length.typedValue.plus(startingLoc.typedValue).toNumber() - 1)
               .join('');
             return dirLangString(sub, source.language, source.direction);
           },

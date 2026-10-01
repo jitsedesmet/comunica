@@ -1,6 +1,7 @@
 import { TermFunctionBase } from '@comunica/bus-function-factory';
 
 import {
+  BigNumber,
   declare,
   SparqlOperator,
 } from '@comunica/utils-expression-evaluator';
@@ -14,7 +15,7 @@ export class TermFunctionCeil extends TermFunctionBase {
       arity: 1,
       operator: SparqlOperator.CEIL,
       overloads: declare(SparqlOperator.CEIL)
-        .numericConverter(() => num => Math.ceil(num))
+        .numericConverter(() => num => num.integerValue(BigNumber.ROUND_CEIL), () => num => Math.ceil(num))
         .collect(),
     });
   }

@@ -15,7 +15,6 @@ import {
   TimeLiteral,
   TypeURL,
 } from '@comunica/utils-expression-evaluator';
-import { BigNumber } from 'bignumber.js';
 
 export class TermFunctionSubtraction extends TermFunctionBase {
   public constructor() {
@@ -23,7 +22,7 @@ export class TermFunctionSubtraction extends TermFunctionBase {
       arity: 2,
       operator: SparqlOperator.SUBTRACTION,
       overloads: declare(SparqlOperator.SUBTRACTION)
-        .arithmetic(() => (left, right) => new BigNumber(left).minus(right).toNumber())
+        .arithmetic(() => (left, right) => left.minus(right), () => (left, right) => left - right)
         .set([ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ], exprEval =>
           ([ date1, date2 ]: [ DateTimeLiteral, DateTimeLiteral ]) =>
           // https://www.w3.org/TR/xpath-functions/#func-subtract-dateTimes;

@@ -1,17 +1,18 @@
 import { TermFunctionBase } from '@comunica/bus-function-factory';
 import type {
-  NumericLiteral,
   DecimalLiteral,
-  FloatLiteral,
   IntegerLiteral,
   StringLiteral,
   DoubleLiteral,
 } from '@comunica/utils-expression-evaluator';
 import {
+  BigNumber,
   bool,
   decimal,
   declare,
   double,
+  float,
+  FloatLiteral,
   integer,
   string,
   TypeURL,
@@ -30,7 +31,8 @@ export class TermFunctionXsdToString extends TermFunctionBase {
         // The numeric types (xsd:decimal, xsd:double, xsd:float), as well as xsd:integer,
         // are handled individually, covering all cases of .onNumeric1, based on `extensionTableInput`.
         // Specification treats floats the same as doubles, and thy share formatter code, as well.
-        .set<DecimalLiteral>([ TypeURL.XSD_DECIMAL ], () => ([ val ]) => TermFunctionXsdToString.castAsDecimal(val))
+        .set<DecimalLiteral>([ TypeURL.XSD_DECIMAL ], () => ([ val ]) =>
+          TermFunctionXsdToString.castAsDecimal(val.typedValue))
         .set<IntegerLiteral>([ TypeURL.XSD_INTEGER ], () => ([ val ]) => TermFunctionXsdToString.castAsInteger(val))
         .set<DoubleLiteral>([ TypeURL.XSD_DOUBLE ], () => ([ val ]) => TermFunctionXsdToString.castAsDouble(val))
         .set<FloatLiteral>([ TypeURL.XSD_FLOAT ], () => ([ val ]) => TermFunctionXsdToString.castAsDouble(val))
@@ -40,34 +42,37 @@ export class TermFunctionXsdToString extends TermFunctionBase {
     });
   }
 
-  private static castAsInteger(val: NumericLiteral): StringLiteral {
+  private static castAsInteger(val: IntegerLiteral): StringLiteral {
     return string(integer(val.typedValue).str());
   }
 
-  private static castAsDecimal(val: NumericLiteral): StringLiteral {
+  private static castAsDecimal(value: BigNumber): StringLiteral {
     // Specification requires integer-valued decimals to be cast as integers.
-    return Number.isInteger(val.typedValue) ?
-      TermFunctionXsdToString.castAsInteger(val) :
-      string(decimal(val.typedValue).str());
+    return value.isInteger() ?
+      string(integer(value).str()) :
+      string(decimal(value).str());
   }
 
-  private static castAsDouble(val: NumericLiteral): StringLiteral {
-    // Specification requires exact 0 to be returned as "0" which differs from canonical "0.0E0"
-    if (val.typedValue === 0) {
-      return string('0');
+  private static castAsDouble(val: DoubleLiteral): StringLiteral {
+    const value = val.typedValue;
+    // Specification requires zero to be returned as "0" or "-0", which differs from canonical "0.0E0" or "-0.0E0"
+    if (value === 0) {
+      return string(Object.is(value, -0) ? '-0' : '0');
     }
 
-    // Decimal and float, where absolute value is in range `[0.000001, 1000000[`,
-    // should be converted to decimal before casting to string, as per the spec.
-    if (
-      (val.typedValue > -1e6 && val.typedValue <= -1e-6) ||
-      (val.typedValue >= 1e-6 && val.typedValue < 1e6)
-    ) {
-      return TermFunctionXsdToString.castAsDecimal(val);
+    // The canonical representation is the shortest one that identifies the value,
+    // which also handles NaN and infinities.
+    const canonical = val instanceof FloatLiteral ? float(value).str() : double(value).str();
+
+    // Values with an absolute value in range `[0.000001, 1000000[` should be converted to a decimal before casting to
+    // string, as per the spec. The decimal bounds are promoted to the type of the value when comparing.
+    // Unlike casting to xsd:decimal (see numericToDecimal), the shortest decimal that identifies the value is used,
+    // as the result must only convert back to the same value, e.g. "-1.1234"^^xsd:float becomes "-1.1234".
+    const lowerBound = val instanceof FloatLiteral ? Math.fround(0.000_001) : 0.000_001;
+    if (Math.abs(value) >= lowerBound && Math.abs(value) < 1_000_000) {
+      return TermFunctionXsdToString.castAsDecimal(new BigNumber(canonical));
     }
 
-    // Other cases should be handled as canonical doubles.
-    // This also includes the handling of NaN and infinity.
-    return string(double(val.typedValue).str());
+    return string(canonical);
   }
 }

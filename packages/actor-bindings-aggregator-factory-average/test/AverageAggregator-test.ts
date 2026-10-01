@@ -98,6 +98,31 @@ describe('AverageAggregator', () => {
       await expect(runAggregator(aggregator, [])).resolves.toEqual(termInt('0'));
     });
 
+    // https://github.com/comunica/comunica/issues/1266
+    it('with IEEE 754 double precision for doubles', async() => {
+      const input = [
+        BF.bindings([[ DF.variable('x'), termDouble('0.1') ]]),
+        BF.bindings([[ DF.variable('x'), termDouble('0.2') ]]),
+      ];
+      await expect(runAggregator(aggregator, input)).resolves.toEqual(termDouble('1.5000000000000002E-1'));
+    });
+
+    it('with arbitrary precision for decimals', async() => {
+      const input = [
+        BF.bindings([[ DF.variable('x'), termDecimal('0.1') ]]),
+        BF.bindings([[ DF.variable('x'), termDecimal('0.2') ]]),
+      ];
+      await expect(runAggregator(aggregator, input)).resolves.toEqual(termDecimal('0.15'));
+    });
+
+    it('with arbitrary precision for integers', async() => {
+      const input = [
+        BF.bindings([[ DF.variable('x'), termInt('9007199254740993') ]]),
+        BF.bindings([[ DF.variable('x'), termInt('9007199254740995') ]]),
+      ];
+      await expect(runAggregator(aggregator, input)).resolves.toEqual(termDecimal('9007199254740994.0'));
+    });
+
     it('with respect to type promotion and subtype substitution', async() => {
       const input = [
         BF.bindings([[ DF.variable('x'), DF.literal('1', DF.namedNode('http://www.w3.org/2001/XMLSchema#byte')) ]]),

@@ -10,7 +10,7 @@ import {
   getMockExpression,
 } from '@comunica/utils-jest';
 import { DataFactory } from 'rdf-data-factory';
-import { IntegerLiteral, SparqlOperator } from '../../../lib';
+import { BigNumber, IntegerLiteral, SparqlOperator } from '../../../lib';
 import { TypeURL as DT } from '../../../lib/util/Consts';
 import * as Err from '../../../lib/util/Errors';
 
@@ -94,7 +94,8 @@ describe('evaluators', () => {
         context: actionContext,
       }, undefined);
       expect(mediate.mock.calls).toHaveLength(1);
-      await expect(evaluator.evaluateAsEvaluatorExpression(BF.bindings())).resolves.toEqual(new IntegerLiteral(2));
+      await expect(evaluator.evaluateAsEvaluatorExpression(BF.bindings())).resolves
+        .toEqual(new IntegerLiteral(new BigNumber(2)));
     });
   });
 });

@@ -6,6 +6,7 @@ import type {
 } from '@comunica/utils-expression-evaluator';
 import {
   bool,
+  compareNumericLiterals,
   declare,
   nonLexicalComparisonHandler,
   SparqlOperator,
@@ -34,7 +35,9 @@ export class TermFunctionLesserThanEqual extends TermFunctionBase {
               return bool(nonLexicalCompare !== 1);
             }
 
-            return bool(left.typedValue < right.typedValue || left.typedValue === right.typedValue);
+            // Comparisons with NaN return NaN, which is neither -1 nor 0.
+            const comparison = compareNumericLiterals(left, right);
+            return bool(comparison === -1 || comparison === 0);
           },
           false,
         )

@@ -55,3 +55,28 @@ describe('to double', () => {
       `,
   });
 });
+
+// https://github.com/comunica/comunica/issues/1266
+describe('xsd:double with spec-compliant precision', () => {
+  runFuncTestTable({
+    registeredActors: [
+      args => new ActorFunctionFactoryTermXsdToDouble(args),
+    ],
+    arity: 1,
+    notation: Notation.Function,
+    operation: 'xsd:double',
+    testTable: `
+      "0.1000000000000000000001"^^xsd:decimal = "1.0E-1"^^xsd:double
+      "0.1"^^xsd:float = "1.0000000149011612E-1"^^xsd:double
+      "123456789012345678901234567890"^^xsd:integer = "1.2345678901234568E29"^^xsd:double
+      "-0.0E0"^^xsd:float = "-0.0E0"^^xsd:double
+      "-0.0"^^xsd:decimal = "0.0E0"^^xsd:double
+      '" 1.5E0 "' = "1.5E0"^^xsd:double
+      "-0" = "-0.0E0"^^xsd:double
+    `,
+    errorTable: `
+      "0x1F"^^xsd:string = 'Invalid cast'
+      ""^^xsd:string = 'Invalid cast'
+    `,
+  });
+});

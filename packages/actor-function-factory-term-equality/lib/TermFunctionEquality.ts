@@ -4,6 +4,7 @@ import type { IInternalEvaluator, TermExpression } from '@comunica/types';
 import type {
   BooleanLiteral,
   DateTimeLiteral,
+  NumericLiteral,
   DurationLiteral,
   ISerializable,
   LangStringLiteral,
@@ -13,6 +14,7 @@ import type {
 } from '@comunica/utils-expression-evaluator';
 import {
   bool,
+  compareNumericLiterals,
   dayTimeDurationsToSeconds,
   declare,
   defaultedDateTimeRepresentation,
@@ -42,7 +44,8 @@ export class TermFunctionEquality extends TermFunctionBase {
       overloads: declare(SparqlOperator.EQUAL)
         .set(
           [ TypeAlias.SPARQL_NUMERIC, TypeAlias.SPARQL_NUMERIC ],
-          exprEval => this.literalEquality(exprEval),
+          exprEval => this.literalEquality<NumericLiteral>(exprEval, ([ left, right ]) =>
+            compareNumericLiterals(left, right) === 0),
           false,
         )
         .stringTest(() => (left, right) => left.localeCompare(right) === 0)

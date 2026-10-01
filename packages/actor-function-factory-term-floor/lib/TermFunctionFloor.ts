@@ -1,6 +1,7 @@
 import { TermFunctionBase } from '@comunica/bus-function-factory';
 
 import {
+  BigNumber,
   declare,
   SparqlOperator,
 } from '@comunica/utils-expression-evaluator';
@@ -14,7 +15,7 @@ export class TermFunctionFloor extends TermFunctionBase {
       arity: 1,
       operator: SparqlOperator.FLOOR,
       overloads: declare(SparqlOperator.FLOOR)
-        .numericConverter(() => num => Math.floor(num))
+        .numericConverter(() => num => num.integerValue(BigNumber.ROUND_FLOOR), () => num => Math.floor(num))
         .collect(),
     });
   }

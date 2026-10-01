@@ -137,6 +137,20 @@ describe('terms order', () => {
   it('float type comparison', async() => {
     await orderTestIsLower(float('2'), float('11'));
   });
+  // https://github.com/comunica/comunica/issues/1266
+  it('integer type comparison with arbitrary precision', async() => {
+    await orderTestIsLower(int('9007199254740992'), int('9007199254740993'));
+    await orderTestIsLower(int('123456789012345678901234567890'), int('123456789012345678901234567891'));
+  });
+  it('decimal type comparison with arbitrary precision', async() => {
+    await orderTestIsLower(decimal('0.1'), decimal('0.1000000000000000000001'));
+  });
+  it('mixed numeric type comparison with type promotion', async() => {
+    await orderTestIsLower(double('0.1'), float('0.1'));
+    await orderTestIsLower(decimal('0.1'), double('0.10000000000000002'));
+    await orderTestIsEqual(decimal('0.1'), float('0.1'));
+    await orderTestIsEqual(decimal('0.1000000000000000000001'), double('0.1'));
+  });
   it('dateTime type comparison', async() => {
     await orderTestIsLower(dateTime('2000-01-01T00:00:00Z'), dateTime('2001-01-01T00:00:00Z'));
   });

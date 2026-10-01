@@ -11,9 +11,11 @@ import type {
 } from '@comunica/types';
 import { ExpressionType } from '@comunica/types';
 import type * as RDF from '@rdfjs/types';
+import { BigNumber } from '../util/BigNumber';
 import * as C from '../util/Consts';
 import { TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
+import { roundToFloat } from '../util/FloatingPoint';
 import { serializeDate, serializeDateTime, serializeDuration, serializeTime } from '../util/Serialization';
 
 export abstract class Term implements TermExpression {
@@ -151,25 +153,40 @@ export class Literal<T extends ISerializable> extends Term {
   }
 }
 
-export abstract class NumericLiteral extends Literal<number> {
-  protected constructor(
-    public override typedValue: number,
-    dataType: string,
-    public override strValue?: string,
-    public override language?: string,
-  ) {
-    super(typedValue, dataType, strValue, language);
-  }
+/**
+ * The internal representation of numeric values.
+ *
+ * Integers and decimals are unbounded in XSD (https://www.w3.org/TR/xmlschema-2/#decimal),
+ * so they are represented as arbitrary-precision BigNumbers.
+ * Doubles and floats are IEEE 754 floating point numbers,
+ * so they are represented as (respectively 64-bit and 32-bit rounded) JS numbers.
+ */
+export type NumericValue = number | BigNumber;
 
-  protected abstract specificFormatter(val: number): string;
+const BIG_ZERO = new BigNumber(0);
+
+/**
+ * The value space of decimals (and integers) has no negative zero,
+ * while BigNumbers do, so negative zero is normalized to (positive) zero.
+ * @param value An arbitrary-precision number.
+ */
+function normalizeDecimal(value: BigNumber): BigNumber {
+  return value.isZero() ? BIG_ZERO : value;
+}
+
+export abstract class NumericLiteral<T extends NumericValue = NumericValue> extends Literal<T> {
+  protected abstract specificFormatter(val: T): string;
 
   public override coerceEBV(): boolean {
-    return Boolean(this.typedValue);
+    // https://www.w3.org/TR/sparql11-query/#ebv: false if the numeric value is zero or NaN.
+    const value: NumericValue = this.typedValue;
+    return typeof value === 'number' ? Boolean(value) : !value.isZero();
   }
 
   public override toRDF(dataFactory: ComunicaDataFactory): RDF.Literal {
     const term = super.toRDF(dataFactory);
-    if (!Number.isFinite(this.typedValue)) {
+    const value: NumericValue = this.typedValue;
+    if (typeof value === 'number' && !Number.isFinite(value)) {
       term.value = term.value.replace('Infinity', 'INF');
     }
     return term;
@@ -178,6 +195,14 @@ export abstract class NumericLiteral extends Literal<number> {
   public override str(): string {
     return this.strValue ?? this.specificFormatter(this.typedValue);
   }
+
+  /**
+   * The numeric value of this literal as a JS number (a double), possibly losing precision.
+   */
+  public toNumber(): number {
+    const value: NumericValue = this.typedValue;
+    return typeof value === 'number' ? value : value.toNumber();
+  }
 }
 
 /**
@@ -185,20 +210,21 @@ export abstract class NumericLiteral extends Literal<number> {
  *
  * The canonical representation consists of a finite-length sequence of decimal digits (#x30-#x39),
  * with leading + and leading zeroes prohibited.
+ *
+ * Integers are unbounded, so the value is stored as an arbitrary-precision BigNumber.
  */
-export class IntegerLiteral extends NumericLiteral {
+export class IntegerLiteral extends NumericLiteral<BigNumber> {
   public constructor(
-    public override typedValue: number,
+    typedValue: BigNumber,
     dataType?: string,
-    public override strValue?: string,
-    public override language?: string,
+    strValue?: string,
+    language?: string,
   ) {
-    super(typedValue, dataType ?? TypeURL.XSD_INTEGER, strValue, language);
+    super(normalizeDecimal(typedValue), dataType ?? TypeURL.XSD_INTEGER, strValue, language);
   }
 
-  protected override specificFormatter(val: number): string {
-    // Force the number to not be represented as an exponential,
-    // even when large enough for JS to automatically try it.
+  protected override specificFormatter(val: BigNumber): string {
+    // Never use exponential notation, regardless of the size of the number.
     return val.toFixed(0);
   }
 }
@@ -209,26 +235,23 @@ export class IntegerLiteral extends NumericLiteral {
  * The canonical representation consists of a finite-length sequence of decimal digits (#x30-#x39),
  * separated by a period as a decimal indicator. Leading + is prohibited. Leading and trailing zeroes
  * are prohibited, except for the single mandatory digit on both sides of the decimal point.
+ *
+ * Decimals are unbounded, so the value is stored as an arbitrary-precision BigNumber.
  */
-export class DecimalLiteral extends NumericLiteral {
+export class DecimalLiteral extends NumericLiteral<BigNumber> {
   public constructor(
-    public override typedValue: number,
+    typedValue: BigNumber,
     dataType?: string,
-    public override strValue?: string,
-    public override language?: string,
+    strValue?: string,
+    language?: string,
   ) {
-    super(typedValue, dataType ?? TypeURL.XSD_DECIMAL, strValue, language);
+    super(normalizeDecimal(typedValue), dataType ?? TypeURL.XSD_DECIMAL, strValue, language);
   }
 
-  protected override specificFormatter(val: number): string {
-    let str = val.toString(10);
-
-    // When the number is so small that JavaScript forces exponential representation,
-    // the value must be forced into decimal format, and trailing zeroes must be stripped.
-    // This does not address accuracy issues, but it does ensure the output is a valid decimal.
-    if (str.includes('e')) {
-      str = val.toFixed(20).replace(/([0-9])0*$/u, '$1');
-    }
+  protected override specificFormatter(val: BigNumber): string {
+    // Never use exponential notation, and do not include trailing zeroes.
+    // eslint-disable-next-line unicorn/require-number-to-fixed-digits-argument -- BigNumber keeps all digits
+    let str = val.toFixed();
 
     // Ensure there is at least one decimal place.
     if (!str.includes('.')) {
@@ -245,33 +268,27 @@ export class DecimalLiteral extends NumericLiteral {
  * The canonical representation consists of a decimal mantissa, followed by E, followed by integer exponent.
  * The mantissa must follow canonical decimal format, and if zero, must be `0.0`.
  * The exponent must follow canonical integer format, and if zero, must be `0`.
- * The canonical representation of zero is `0.0E0`.
+ * The canonical representation of zero is `0.0E0`, and of negative zero is `-0.0E0`.
+ *
+ * Doubles are IEEE 754 double-precision 64-bit floating point numbers, just like JS numbers.
  */
-export class DoubleLiteral extends NumericLiteral {
+export class DoubleLiteral extends NumericLiteral<number> {
   public constructor(
-    public override typedValue: number,
+    typedValue: number,
     dataType?: string,
-    public override strValue?: string,
-    public override language?: string,
+    strValue?: string,
+    language?: string,
   ) {
     super(typedValue, dataType ?? TypeURL.XSD_DOUBLE, strValue, language);
   }
 
   protected override specificFormatter(val: number): string {
+    if (Object.is(val, -0)) {
+      // https://www.w3.org/TR/xmlschema11-2/#f-doubleCanmap
+      return '-0.0E0';
+    }
     if (Number.isFinite(val)) {
-      let [ mantissa, exponent ] = val.toExponential().split('e');
-
-      // Remove leading + from the exponent
-      if (exponent.startsWith('+')) {
-        exponent = exponent.replace(/^\+/u, '');
-      }
-
-      // Make sure the mantissa has a decimal slot
-      if (!mantissa.includes('.')) {
-        mantissa += '.0';
-      }
-
-      return `${mantissa}E${exponent}`;
+      return DoubleLiteral.formatExponential(val.toExponential());
     }
 
     if (val < 0) {
@@ -284,23 +301,59 @@ export class DoubleLiteral extends NumericLiteral {
 
     return 'NaN';
   }
+
+  /**
+   * Convert the JS exponential notation (e.g. `1.1e+3`) to the canonical XSD notation (e.g. `1.1E3`).
+   * @param exponential A finite number in JS exponential notation.
+   */
+  protected static formatExponential(exponential: string): string {
+    let [ mantissa, exponent ] = exponential.split('e');
+
+    // Remove leading + from the exponent
+    if (exponent.startsWith('+')) {
+      exponent = exponent.replace(/^\+/u, '');
+    }
+
+    // Make sure the mantissa has a decimal slot
+    if (!mantissa.includes('.')) {
+      mantissa += '.0';
+    }
+
+    return `${mantissa}E${exponent}`;
+  }
 }
 
 /**
  * Float datatype from XSD: https://www.w3.org/TR/xmlschema-2/#float
  *
- * Every float (32-bit) is stored as double (64-bit) number in JavaScript,
- * and the canonical representations of the XSD types are identical,
- * so the formatter implementation is shared through inheritance.
+ * Floats are IEEE 754 single-precision 32-bit floating point numbers.
+ * They are stored as JS numbers that are rounded to the nearest single-precision value.
+ * The canonical representations of the XSD types are identical,
+ * so the formatter implementation is mostly shared through inheritance.
  */
 export class FloatLiteral extends DoubleLiteral {
   public constructor(
-    public override typedValue: number,
+    typedValue: number,
     dataType?: string,
-    public override strValue?: string,
-    public override language?: string,
+    strValue?: string,
+    language?: string,
   ) {
-    super(typedValue, dataType ?? TypeURL.XSD_FLOAT, strValue, language);
+    super(Math.fround(typedValue), dataType ?? TypeURL.XSD_FLOAT, strValue, language);
+  }
+
+  protected override specificFormatter(val: number): string {
+    if (Number.isFinite(val) && val !== 0) {
+      // Use the shortest representation that uniquely identifies the single-precision value,
+      // e.g. `1.0E-1` instead of `1.0000000149011612E-1` for the float closest to 0.1.
+      for (let digits = 1; digits < 9; digits++) {
+        const exponential = val.toExponential(digits - 1);
+        if (roundToFloat(new BigNumber(exponential)) === val) {
+          return DoubleLiteral.formatExponential(exponential);
+        }
+      }
+      return DoubleLiteral.formatExponential(val.toExponential(8));
+    }
+    return super.specificFormatter(val);
   }
 }
 

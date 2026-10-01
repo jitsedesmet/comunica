@@ -62,3 +62,28 @@ describe('to decimal', () => {
       `,
   });
 });
+
+// https://github.com/comunica/comunica/issues/1266
+describe('xsd:decimal with spec-compliant precision', () => {
+  runFuncTestTable({
+    registeredActors: [
+      args => new ActorFunctionFactoryTermXsdToDecimal(args),
+    ],
+    arity: 1,
+    notation: Notation.Function,
+    operation: 'xsd:decimal',
+    testTable: `
+      "0.1"^^xsd:float = "0.100000001490116119384765625"^^xsd:decimal
+      "0.1"^^xsd:double = "0.1000000000000000055511151231257827021181583404541015625"^^xsd:decimal
+      "1.0E-7"^^xsd:double = "0.0000000999999999999999954748111825886258685613938723690807819366455078125"^^xsd:decimal
+      "0.5"^^xsd:double = "0.5"^^xsd:decimal
+      "-0.0E0"^^xsd:double = "0.0"^^xsd:decimal
+      "1.0E21"^^xsd:double = "1000000000000000000000.0"^^xsd:decimal
+      "1.0E23"^^xsd:double = "99999999999999991611392.0"^^xsd:decimal
+      '" .5 "' = "0.5"^^xsd:decimal
+      "1." = "1.0"^^xsd:decimal
+      "0.1000000000000000000001" = "0.1000000000000000000001"^^xsd:decimal
+      "123456789012345678901234567890"^^xsd:integer = "123456789012345678901234567890.0"^^xsd:decimal
+    `,
+  });
+});

@@ -11,7 +11,7 @@ export class TermFunctionUnaryMinus extends TermFunctionBase {
       arity: 1,
       operator: SparqlOperator.UMINUS,
       overloads: declare(SparqlOperator.UMINUS)
-        .numericConverter(() => val => -val)
+        .numericConverter(() => val => val.negated(), () => val => -val)
         .collect(),
     });
   }

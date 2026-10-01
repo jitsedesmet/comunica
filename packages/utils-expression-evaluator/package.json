@@ -42,6 +42,7 @@
     "@comunica/types": "^5.4.0",
     "@comunica/utils-algebra": "^5.4.0",
     "@rdfjs/types": "*",
+    "bignumber.js": "^11.0.0",
     "lru-cache": "^11.2.2",
     "rdf-data-factory": "^2.1.0",
     "rdf-string": "^2.0.1"

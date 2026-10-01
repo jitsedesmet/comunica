@@ -121,27 +121,29 @@ export class TermTransformer implements ITermTransformer {
         return new E.BooleanLiteral(lit.value === 'true' || lit.value === '1', lit.value);
       }
       if (TypeURL.XSD_DECIMAL in superTypeDict) {
-        const intVal: number | undefined = P.parseXSDDecimal(lit.value);
-        if (intVal === undefined) {
+        const isInteger = TypeURL.XSD_INTEGER in superTypeDict;
+        const decimalVal = isInteger ? P.parseXSDInteger(lit.value) : P.parseXSDDecimal(lit.value);
+        // Values outside the range of a type derived from xsd:integer are not in its value space.
+        if (decimalVal === undefined || (isInteger && !P.isInXSDIntegerRange(decimalVal, superTypeDict))) {
           return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
         }
-        if (TypeURL.XSD_INTEGER in superTypeDict) {
-          return new E.IntegerLiteral(intVal, dataType, lit.value);
+        if (isInteger) {
+          return new E.IntegerLiteral(decimalVal, dataType, lit.value);
         }
         // If type is not an integer it's just a decimal.
-        return new E.DecimalLiteral(intVal, dataType, lit.value);
+        return new E.DecimalLiteral(decimalVal, dataType, lit.value);
       }
       const isFloat = TypeURL.XSD_FLOAT in superTypeDict;
       const isDouble = TypeURL.XSD_DOUBLE in superTypeDict;
       if (isFloat || isDouble) {
-        const doubleVal: number | undefined = P.parseXSDFloat(lit.value);
-        if (doubleVal === undefined) {
+        const floatingVal = isFloat ? P.parseXSDFloat(lit.value) : P.parseXSDDouble(lit.value);
+        if (floatingVal === undefined) {
           return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
         }
         if (isFloat) {
-          return new E.FloatLiteral(doubleVal, dataType, lit.value);
+          return new E.FloatLiteral(floatingVal, dataType, lit.value);
         }
-        return new E.DoubleLiteral(doubleVal, dataType, lit.value);
+        return new E.DoubleLiteral(floatingVal, dataType, lit.value);
       }
 
       return new E.Literal<string>(lit.value, dataType, lit.value);

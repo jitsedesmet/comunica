@@ -4,6 +4,7 @@ import { KeysExpressionEvaluator, KeysInitQuery } from '@comunica/context-entrie
 import type { IInternalEvaluator, TermExpression } from '@comunica/types';
 import {
   bool,
+  compareNumericLiterals,
   dayTimeDurationsToSeconds,
   declare,
   defaultedDateTimeRepresentation,
@@ -21,6 +22,7 @@ import {
 } from '@comunica/utils-expression-evaluator';
 import type {
   BooleanLiteral,
+  NumericLiteral,
   Term,
   Quad,
   BlankNode,
@@ -58,7 +60,8 @@ export class TermFunctionLesserThan extends TermFunctionBase {
       overloads: declare(SparqlOperator.LT)
         .set(
           [ TypeAlias.SPARQL_NUMERIC, TypeAlias.SPARQL_NUMERIC ],
-          exprEval => this.literalLesserThan(exprEval),
+          exprEval => this.literalLesserThan<NumericLiteral>(exprEval, ([ left, right ]) =>
+            compareNumericLiterals(left, right) === -1),
           false,
         )
         // No non-lexical handling for strings, since they can't have invalid lexicals

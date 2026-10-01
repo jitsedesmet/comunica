@@ -1,7 +1,6 @@
 import type { GeneralSuperTypeDict, ISuperTypeProvider, TermExpression, TermType } from '@comunica/types';
-import type * as E from '../expressions';
-import { asTermType } from '../expressions';
-import { double, float, string } from '../functions/Helpers';
+import { asTermType, NumericLiteral } from '../expressions';
+import { double, float, numericToFloat, string } from '../functions/Helpers';
 import type { ArgumentType } from '../functions/OverloadTree';
 import type { KnownLiteralTypes } from './Consts';
 import { TypeAlias, TypeURL } from './Consts';
@@ -228,6 +227,20 @@ export function isSubTypeOf(
   return getSuperTypeDict(baseType, superTypeProvider)[argumentType] !== undefined;
 }
 
+/**
+ * Promote a numeric literal to a float or double.
+ * Other terms, such as non-lexical literals, are not converted,
+ * so that they can be handled by the invalid lexical form handling of the function.
+ * @param arg The term to promote.
+ * @param promote The function creating the promoted literal from a numeric literal.
+ */
+function promoteNumeric(arg: TermExpression, promote: (lit: NumericLiteral) => TermExpression): TermExpression {
+  return arg instanceof NumericLiteral ? promote(arg) : arg;
+}
+
+const toDouble = (lit: NumericLiteral): TermExpression => double(lit.toNumber());
+const toFloat = (lit: NumericLiteral): TermExpression => float(numericToFloat(lit));
+
 // Defined by https://www.w3.org/TR/xpath-31/#promotion .
 // e.g. When a function takes a string, it can also accept a XSD_ANY_URI if it's cast first.
 export const typePromotion: Partial<Record<ArgumentType, {
@@ -238,12 +251,12 @@ export const typePromotion: Partial<Record<ArgumentType, {
     { typeToPromote: TypeURL.XSD_ANY_URI, conversionFunction: arg => string(arg.str()) },
   ],
   [TypeURL.XSD_DOUBLE]: [
-    { typeToPromote: TypeURL.XSD_FLOAT, conversionFunction: arg => double((<E.NumericLiteral>arg).typedValue) },
-    // TODO: in case of decimal a round needs to happen.
-    { typeToPromote: TypeURL.XSD_DECIMAL, conversionFunction: arg => double((<E.NumericLiteral>arg).typedValue) },
+    { typeToPromote: TypeURL.XSD_FLOAT, conversionFunction: arg => promoteNumeric(arg, toDouble) },
+    // Rounds the arbitrary-precision decimal to the closest double.
+    { typeToPromote: TypeURL.XSD_DECIMAL, conversionFunction: arg => promoteNumeric(arg, toDouble) },
   ],
   [TypeURL.XSD_FLOAT]: [
-    // TODO: in case of decimal a round needs to happen.
-    { typeToPromote: TypeURL.XSD_DECIMAL, conversionFunction: arg => float((<E.NumericLiteral>arg).typedValue) },
+    // Rounds the arbitrary-precision decimal to the closest float.
+    { typeToPromote: TypeURL.XSD_DECIMAL, conversionFunction: arg => promoteNumeric(arg, toFloat) },
   ],
 };

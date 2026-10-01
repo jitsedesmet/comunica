@@ -1,4 +1,5 @@
 import type {
+  GeneralSuperTypeDict,
   IDateRepresentation,
   IDateTimeRepresentation,
   IDayTimeDurationRepresentation,
@@ -7,45 +8,126 @@ import type {
   ITimeZoneRepresentation,
   IYearMonthDurationRepresentation,
 } from '@comunica/types';
+import { BigNumber } from './BigNumber';
+import { TypeURL } from './Consts';
 import { simplifyDurationRepresentation } from './DateTimeHelpers';
 import { ParseError } from './Errors';
+import { roundToFloat } from './FloatingPoint';
 import { maximumDayInMonthFor } from './SpecAlgos';
 
+// Lexical spaces as defined by https://www.w3.org/TR/xmlschema-2/#built-in-primitive-datatypes
+const XSD_INTEGER_LEXICAL = /^[+-]?\d+$/u;
+const XSD_DECIMAL_LEXICAL = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/u;
+const XSD_FLOAT_LEXICAL = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[Ee][+-]?\d+)?$/u;
+
 /**
- * Parses float datatypes (double, float).
+ * Apply the `collapse` whitespace facet of XSD (https://www.w3.org/TR/xmlschema11-2/#rf-whiteSpace),
+ * which is done before casting strings to atomic types, such as numerics.
+ *
+ * @param value the string to collapse
+ */
+export function collapseWhitespace(value: string): string {
+  return value.replaceAll(/[\t\n\r ]+/gu, ' ').trim();
+}
+
+function parseSpecialFloatingPoint(value: string): number | undefined {
+  if (value === 'NaN') {
+    return Number.NaN;
+  }
+  if (value === 'INF' || value === '+INF') {
+    return Number.POSITIVE_INFINITY;
+  }
+  if (value === '-INF') {
+    return Number.NEGATIVE_INFINITY;
+  }
+  return undefined;
+}
+
+/**
+ * Parses double datatypes into a double-precision number,
+ * following https://www.w3.org/TR/xmlschema11-2/#f-doubleLexmap.
+ *
+ * All invalid lexical values return undefined.
+ *
+ * @param value the string to interpret as a number
+ */
+export function parseXSDDouble(value: string): number | undefined {
+  // JS numbers are doubles, and JS parses numbers with correct rounding.
+  return XSD_FLOAT_LEXICAL.test(value) ? Number(value) : parseSpecialFloatingPoint(value);
+}
+
+/**
+ * Parses float datatypes into a (JS number that is a) single-precision number,
+ * following https://www.w3.org/TR/xmlschema11-2/#f-floatLexmap.
  *
  * All invalid lexical values return undefined.
  *
  * @param value the string to interpret as a number
  */
 export function parseXSDFloat(value: string): number | undefined {
-  const numb = Number(value);
-  if (Number.isNaN(numb)) {
-    if (value === 'NaN') {
-      return Number.NaN;
-    }
-    if (value === 'INF' || value === '+INF') {
-      return Number.POSITIVE_INFINITY;
-    }
-    if (value === '-INF') {
-      return Number.NEGATIVE_INFINITY;
-    }
-    return undefined;
+  if (!XSD_FLOAT_LEXICAL.test(value)) {
+    return parseSpecialFloatingPoint(value);
   }
-  return numb;
+  const float = roundToFloat(new BigNumber(value));
+  // Zero keeps the sign of the lexical value.
+  return float === 0 && value.startsWith('-') ? -0 : float;
 }
 
 /**
- * Parses decimal datatypes (decimal, int, byte, nonPositiveInteger, etc...).
+ * Parses decimal datatypes (decimal, int, byte, nonPositiveInteger, etc...)
+ * into an arbitrary-precision number.
  *
  * All other values, including NaN, INF, and floating point numbers all
  * return undefined;
  *
  * @param value the string to interpret as a number
  */
-export function parseXSDDecimal(value: string): number | undefined {
-  const numb = Number(value);
-  return Number.isNaN(numb) ? undefined : numb;
+export function parseXSDDecimal(value: string): BigNumber | undefined {
+  return XSD_DECIMAL_LEXICAL.test(value) ? new BigNumber(value) : undefined;
+}
+
+/**
+ * The value ranges ([minInclusive, maxInclusive], where undefined is unbounded) of the types derived from xsd:integer,
+ * as defined by https://www.w3.org/TR/xmlschema11-2/#built-in-derived.
+ */
+const XSD_INTEGER_RANGES: [TypeURL, BigNumber | undefined, BigNumber | undefined][] = [
+  [ TypeURL.XSD_NON_POSITIVE_INTEGER, undefined, new BigNumber(0) ],
+  [ TypeURL.XSD_NEGATIVE_INTEGER, undefined, new BigNumber(-1) ],
+  [ TypeURL.XSD_LONG, new BigNumber('-9223372036854775808'), new BigNumber('9223372036854775807') ],
+  [ TypeURL.XSD_INT, new BigNumber(-2_147_483_648), new BigNumber(2_147_483_647) ],
+  [ TypeURL.XSD_SHORT, new BigNumber(-32_768), new BigNumber(32_767) ],
+  [ TypeURL.XSD_BYTE, new BigNumber(-128), new BigNumber(127) ],
+  [ TypeURL.XSD_NON_NEGATIVE_INTEGER, new BigNumber(0), undefined ],
+  [ TypeURL.XSD_UNSIGNED_LONG, new BigNumber(0), new BigNumber('18446744073709551615') ],
+  [ TypeURL.XSD_UNSIGNED_INT, new BigNumber(0), new BigNumber(4_294_967_295) ],
+  [ TypeURL.XSD_UNSIGNED_SHORT, new BigNumber(0), new BigNumber(65_535) ],
+  [ TypeURL.XSD_UNSIGNED_BYTE, new BigNumber(0), new BigNumber(255) ],
+  [ TypeURL.XSD_POSITIVE_INTEGER, new BigNumber(1), undefined ],
+];
+
+/**
+ * Check whether an integer is in the value space of a datatype,
+ * which is restricted by the value ranges of the types derived from xsd:integer that the datatype is derived from.
+ *
+ * @param value the integer value
+ * @param superTypeDict the super types of the datatype
+ */
+export function isInXSDIntegerRange(value: BigNumber, superTypeDict: GeneralSuperTypeDict): boolean {
+  return XSD_INTEGER_RANGES.every(([ type, min, max ]) => !(type in superTypeDict) ||
+    ((min === undefined || value.gte(min)) && (max === undefined || value.lte(max))));
+}
+
+/**
+ * Parses integer datatypes (integer, int, byte, nonPositiveInteger, etc...)
+ * into an arbitrary-precision number.
+ *
+ * All other values, including decimals, NaN, INF, and floating point numbers all
+ * return undefined;
+ *
+ * @param value the string to interpret as a number
+ */
+export function parseXSDInteger(value: string): BigNumber | undefined {
+  return XSD_INTEGER_LEXICAL.test(value) ? new BigNumber(value) : undefined;
 }
 
 export function parseDateTime(dateTimeStr: string): IDateTimeRepresentation {

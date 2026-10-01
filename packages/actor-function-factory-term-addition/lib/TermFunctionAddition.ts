@@ -15,7 +15,6 @@ import {
   TimeLiteral,
   TypeURL,
 } from '@comunica/utils-expression-evaluator';
-import { BigNumber } from 'bignumber.js';
 
 export class TermFunctionAddition extends TermFunctionBase {
   public constructor() {
@@ -23,7 +22,7 @@ export class TermFunctionAddition extends TermFunctionBase {
       arity: 2,
       operator: SparqlOperator.ADDITION,
       overloads: declare(SparqlOperator.ADDITION)
-        .arithmetic(() => (left, right) => new BigNumber(left).plus(right).toNumber())
+        .arithmetic(() => (left, right) => left.plus(right), () => (left, right) => left + right)
         .set([ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DAY_TIME_DURATION ], () =>
           ([ date, dur ]: [ DateTimeLiteral, DayTimeDurationLiteral ]) =>
           // https://www.w3.org/TR/xpath-functions/#func-add-dayTimeDuration-to-dateTime

@@ -11,7 +11,7 @@ export class TermFunctionUnaryPlus extends TermFunctionBase {
       arity: 1,
       operator: SparqlOperator.UPLUS,
       overloads: declare(SparqlOperator.UPLUS)
-        .numericConverter(() => val => val)
+        .numericConverter(() => val => val, () => val => val)
         .collect(),
     });
   }

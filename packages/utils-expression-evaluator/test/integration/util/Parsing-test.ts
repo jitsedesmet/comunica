@@ -1,6 +1,128 @@
-import { parseDate, parseDateTime } from '../../../lib/util/Parsing';
+import { BigNumber } from '../../../lib/util/BigNumber';
+import { TypeURL } from '../../../lib/util/Consts';
+import {
+  collapseWhitespace,
+  isInXSDIntegerRange,
+  parseDate,
+  parseDateTime,
+  parseXSDDecimal,
+  parseXSDDouble,
+  parseXSDFloat,
+  parseXSDInteger,
+} from '../../../lib/util/Parsing';
 
 describe('util/parsing', () => {
+  describe('parseXSDInteger', () => {
+    it.each([
+      [ '0', '0' ],
+      [ '-1', '-1' ],
+      [ '+01', '1' ],
+      [ '123456789012345678901234567890', '123456789012345678901234567890' ],
+    ])('should parse %j without losing precision', (value, expected) => {
+      expect(parseXSDInteger(value)).toEqual(new BigNumber(expected));
+    });
+
+    it.each([ '', '1.0', '1e3', '0x1F', ' 1', 'Infinity', 'NaN', '+' ])('should not parse %j', (value) => {
+      expect(parseXSDInteger(value)).toBeUndefined();
+    });
+  });
+
+  describe('isInXSDIntegerRange', () => {
+    const superTypes = (...types: string[]): any => Object.fromEntries(types.map(type => [ type, 1 ]));
+
+    it('accepts any integer for types without a range', () => {
+      expect(isInXSDIntegerRange(new BigNumber('-1e40'), superTypes(TypeURL.XSD_INTEGER))).toBe(true);
+    });
+
+    it('applies the ranges of all super types', () => {
+      const byte = superTypes(TypeURL.XSD_BYTE, TypeURL.XSD_SHORT, TypeURL.XSD_INT, TypeURL.XSD_LONG);
+      expect(isInXSDIntegerRange(new BigNumber(127), byte)).toBe(true);
+      expect(isInXSDIntegerRange(new BigNumber(128), byte)).toBe(false);
+      expect(isInXSDIntegerRange(new BigNumber(-129), byte)).toBe(false);
+    });
+
+    it('applies ranges that are unbounded on one side', () => {
+      expect(isInXSDIntegerRange(new BigNumber('1e40'), superTypes(TypeURL.XSD_POSITIVE_INTEGER))).toBe(true);
+      expect(isInXSDIntegerRange(new BigNumber(0), superTypes(TypeURL.XSD_POSITIVE_INTEGER))).toBe(false);
+      expect(isInXSDIntegerRange(new BigNumber('-1e40'), superTypes(TypeURL.XSD_NEGATIVE_INTEGER))).toBe(true);
+      expect(isInXSDIntegerRange(new BigNumber(0), superTypes(TypeURL.XSD_NEGATIVE_INTEGER))).toBe(false);
+    });
+  });
+
+  describe('parseXSDDecimal', () => {
+    it.each([
+      [ '0', '0' ],
+      [ '-1.5', '-1.5' ],
+      [ '+.5', '0.5' ],
+      [ '1.', '1' ],
+      [ '0.1000000000000000000000000000001', '0.1000000000000000000000000000001' ],
+    ])('should parse %j without losing precision', (value, expected) => {
+      expect(parseXSDDecimal(value)).toEqual(new BigNumber(expected));
+    });
+
+    it.each([ '', '.', '1e3', '0x1F', ' 1', 'Infinity', 'INF', 'NaN', '-' ])('should not parse %j', (value) => {
+      expect(parseXSDDecimal(value)).toBeUndefined();
+    });
+  });
+
+  describe('parseXSDDouble', () => {
+    it.each([
+      [ '0', 0 ],
+      [ '-0', -0 ],
+      [ '-0.0E0', -0 ],
+      [ '-1.5E2', -150 ],
+      [ '.5e-1', 0.05 ],
+      [ '1.', 1 ],
+      [ '0.1', 0.1 ],
+      [ '1e400', Number.POSITIVE_INFINITY ],
+      [ 'INF', Number.POSITIVE_INFINITY ],
+      [ '+INF', Number.POSITIVE_INFINITY ],
+      [ '-INF', Number.NEGATIVE_INFINITY ],
+      [ 'NaN', Number.NaN ],
+    ])('should parse %j', (value, expected) => {
+      expect(parseXSDDouble(value)).toBe(expected);
+    });
+
+    it.each([ '', '.', '1e', '0x1F', ' 1', 'Infinity', '-NaN', 'inf' ])('should not parse %j', (value) => {
+      expect(parseXSDDouble(value)).toBeUndefined();
+    });
+  });
+
+  describe('parseXSDFloat', () => {
+    it.each([
+      [ '0', 0 ],
+      [ '-0', -0 ],
+      [ '-0.0E0', -0 ],
+      [ '-1e-50', -0 ],
+      [ '1e-50', 0 ],
+      [ '-1.5E2', -150 ],
+      [ '0.1', Math.fround(0.1) ],
+      [ '1e39', Number.POSITIVE_INFINITY ],
+      // Rounding via a double would give 1.
+      [ '1.00000005960464477539062500000001', 1 + 2 ** -23 ],
+      [ 'INF', Number.POSITIVE_INFINITY ],
+      [ '-INF', Number.NEGATIVE_INFINITY ],
+      [ 'NaN', Number.NaN ],
+    ])('should parse %j', (value, expected) => {
+      expect(parseXSDFloat(value)).toBe(expected);
+    });
+
+    it.each([ '', '.', '1e', '0x1F', ' 1', 'Infinity', '-NaN', 'inf' ])('should not parse %j', (value) => {
+      expect(parseXSDFloat(value)).toBeUndefined();
+    });
+  });
+
+  describe('collapseWhitespace', () => {
+    it.each([
+      [ '1', '1' ],
+      [ ' 1 ', '1' ],
+      [ '\t\n\r 1.5\n', '1.5' ],
+      [ ' a \t\n b ', 'a b' ],
+    ])('should collapse %j', (value, expected) => {
+      expect(collapseWhitespace(value)).toBe(expected);
+    });
+  });
+
   describe('parseXSDDateTime', () => {
     it('should parse dates correctly', () => {
       expect(parseDateTime('2010-06-21T11:28:01Z')).toEqual({

@@ -9,6 +9,7 @@ import {
   createFuncMediator,
   BF,
   termDecimal,
+  termDouble,
   DF,
   float,
   getMockEEActionContext,
@@ -113,6 +114,32 @@ describe('SumAggregator', () => {
         BF.bindings([[ DF.variable('x'), termDecimal('3.5') ]]),
       ];
       await expect(runAggregator(aggregator, input)).resolves.toEqual(termDecimal('11.1'));
+    });
+
+    // https://github.com/comunica/comunica/issues/1266
+    it('with IEEE 754 double precision for doubles', async() => {
+      const input = [
+        BF.bindings([[ DF.variable('x'), termDouble('0.1') ]]),
+        BF.bindings([[ DF.variable('x'), termDouble('0.2') ]]),
+      ];
+      await expect(runAggregator(aggregator, input)).resolves.toEqual(termDouble('3.0000000000000004E-1'));
+    });
+
+    it('with arbitrary precision for integers', async() => {
+      const input = [
+        BF.bindings([[ DF.variable('x'), termInt('9007199254740993') ]]),
+        BF.bindings([[ DF.variable('x'), termInt('9007199254740993') ]]),
+      ];
+      await expect(runAggregator(aggregator, input)).resolves.toEqual(termInt('18014398509481986'));
+    });
+
+    it('with arbitrary precision for decimals', async() => {
+      const input = [
+        BF.bindings([[ DF.variable('x'), termDecimal('0.1000000000000000000001') ]]),
+        BF.bindings([[ DF.variable('x'), termDecimal('0.1000000000000000000001') ]]),
+        BF.bindings([[ DF.variable('x'), termDecimal('0.1000000000000000000001') ]]),
+      ];
+      await expect(runAggregator(aggregator, input)).resolves.toEqual(termDecimal('0.3000000000000000000003'));
     });
 
     it('passing a non-literal should not be accepted', async() => {

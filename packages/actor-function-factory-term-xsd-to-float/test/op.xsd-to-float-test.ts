@@ -55,3 +55,28 @@ describe('to float', () => {
       `,
   });
 });
+
+// https://github.com/comunica/comunica/issues/1266
+describe('xsd:float with spec-compliant precision', () => {
+  runFuncTestTable({
+    registeredActors: [
+      args => new ActorFunctionFactoryTermXsdToFloat(args),
+    ],
+    arity: 1,
+    notation: Notation.Function,
+    operation: 'xsd:float',
+    testTable: `
+      "0.1"^^xsd:double = "1.0E-1"^^xsd:float
+      "0.1" = "1.0E-1"^^xsd:float
+      "16777217"^^xsd:integer = "1.6777216E7"^^xsd:float
+      "1.0E39"^^xsd:double = "INF"^^xsd:float
+      "-0.0E0"^^xsd:double = "-0.0E0"^^xsd:float
+      "-0" = "-0.0E0"^^xsd:float
+      '" 0.5 "' = "5.0E-1"^^xsd:float
+      "1.00000005960464477539062500000001" = "1.0000001E0"^^xsd:float
+      "1.00000005960464477539062500000001"^^xsd:decimal = "1.0000001E0"^^xsd:float
+      "1.000000059604644775390625"^^xsd:decimal = "1.0E0"^^xsd:float
+      "-0.0"^^xsd:decimal = "0.0E0"^^xsd:float
+    `,
+  });
+});

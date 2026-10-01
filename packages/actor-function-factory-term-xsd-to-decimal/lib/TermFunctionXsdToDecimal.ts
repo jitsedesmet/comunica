@@ -1,11 +1,14 @@
 import { TermFunctionBase } from '@comunica/bus-function-factory';
 import type {
+  NumericLiteral,
   Term,
 } from '@comunica/utils-expression-evaluator';
 import {
   CastError,
+  collapseWhitespace,
   decimal,
   declare,
+  numericToDecimal,
   parseXSDDecimal,
   TypeURL,
 } from '@comunica/utils-expression-evaluator';
@@ -16,16 +19,17 @@ export class TermFunctionXsdToDecimal extends TermFunctionBase {
       arity: 1,
       operator: TypeURL.XSD_DECIMAL,
       overloads: declare(TypeURL.XSD_DECIMAL)
-        .onNumeric1(() => (val: Term) => {
-          const result = parseXSDDecimal(val.str());
+        // https://www.w3.org/TR/xpath-functions-31/#casting-to-decimal
+        // Floats and doubles become their exact (numerically closest) decimal value, see numericToDecimal.
+        .onNumeric1(() => (val: NumericLiteral) => {
+          const result = numericToDecimal(val);
           if (result === undefined) {
             throw new CastError(val, TypeURL.XSD_DECIMAL);
           }
           return decimal(result);
         })
         .onString1(() => (val: Term) => {
-          const str = val.str();
-          const result = /^([+-])?(\d+(\.\d+)?)$/u.test(str) ? parseXSDDecimal(str) : undefined;
+          const result = parseXSDDecimal(collapseWhitespace(val.str()));
           if (result === undefined) {
             throw new CastError(val, TypeURL.XSD_DECIMAL);
           }
