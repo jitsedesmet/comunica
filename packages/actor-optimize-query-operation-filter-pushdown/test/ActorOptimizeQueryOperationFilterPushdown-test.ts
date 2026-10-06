@@ -912,6 +912,21 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
           expect(filterPushdown(expression, join)).toEqual([ false, AF.createFilter(join, expression) ]);
         });
 
+        it('is not pushed down into entries that miss variables used within a nested existence filter', async() => {
+          const expression = AF.createOperatorExpression('||', [
+            AF.createTermExpression(DF.variable('o')),
+            AF.createExistenceExpression(false, AF.createFilter(
+              AF.createPattern(DF.variable('o'), DF.namedNode('p'), DF.namedNode('c')),
+              AF.createOperatorExpression('bound', [ AF.createTermExpression(DF.variable('y')) ]),
+            )),
+          ]);
+          const join = AF.createJoin([
+            AF.createPattern(DF.variable('s'), DF.namedNode('p'), DF.variable('o')),
+            AF.createPattern(DF.variable('s'), DF.namedNode('q'), DF.variable('y')),
+          ]);
+          expect(filterPushdown(expression, join)).toEqual([ false, AF.createFilter(join, expression) ]);
+        });
+
         it('is not pushed down for for empty joins', async() => {
           expect(filterPushdown(
             AF.createTermExpression(DF.variable('s')),

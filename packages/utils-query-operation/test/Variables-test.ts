@@ -136,13 +136,13 @@ describe('Variables', () => {
       ))).toEqual([ DF.variable('s'), DF.variable('a'), DF.variable('g') ]);
     });
 
-    it('returns the variables of a path', () => {
+    it('returns the variables of a path, including within quoted triples', () => {
       expect(getCertainlyBoundVariables(AF.createPath(
         DF.variable('s'),
         AF.createZeroOrMorePath(AF.createLink(DF.namedNode('p'))),
-        DF.namedNode('o'),
+        DF.quad(DF.variable('a'), DF.namedNode('p'), DF.namedNode('o')),
         DF.variable('g'),
-      ))).toEqual([ DF.variable('s'), DF.variable('g') ]);
+      ))).toEqual([ DF.variable('s'), DF.variable('a'), DF.variable('g') ]);
     });
 
     it('returns the variables of all entries of a bgp or join', () => {

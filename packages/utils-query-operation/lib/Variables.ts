@@ -23,17 +23,26 @@ export function variablesSubsetOf(variables: RDF.Variable[], otherVariables: RDF
 }
 
 /**
+ * Get the variables in the terms of the given pattern or path, including within quoted triples.
+ * @param operation A pattern or path.
+ * @return The variables.
+ */
+export function getPatternOrPathVariables(operation: Algebra.Pattern | Algebra.Path): RDF.Variable[] {
+  const terms = isKnownOperation(operation, Algebra.Types.PATTERN) ?
+      [ operation.subject, operation.predicate, operation.object, operation.graph ] :
+      [ operation.subject, operation.object, operation.graph ];
+  return uniqTerms(getVariables(terms.flatMap(term => term.termType === 'Quad' ? getTermsNested(term) : [ term ])));
+}
+
+/**
  * Get the variables that are bound in every solution of the given operation.
  * Unlike in-scope variables, this excludes variables that may be left unbound, such as those within OPTIONAL.
  * @param operation An operation.
  * @return The certainly bound variables, which may be an underestimation for unknown operations.
  */
 export function getCertainlyBoundVariables(operation: Algebra.Operation): RDF.Variable[] {
-  if (isKnownOperation(operation, Algebra.Types.PATTERN)) {
-    return uniqTerms(getVariables(getTermsNested(operation)));
-  }
-  if (isKnownOperation(operation, Algebra.Types.PATH)) {
-    return uniqTerms(getVariables([ operation.subject, operation.object, operation.graph ]));
+  if (isKnownOperation(operation, Algebra.Types.PATTERN) || isKnownOperation(operation, Algebra.Types.PATH)) {
+    return getPatternOrPathVariables(operation);
   }
   if (isKnownOperation(operation, Algebra.Types.BGP)) {
     return uniqTerms(operation.patterns.flatMap(pattern => getCertainlyBoundVariables(pattern)));
