@@ -10,6 +10,7 @@ import '@comunica/utils-jest';
 
 const AF = new AlgebraFactory();
 const DF = new DataFactory();
+const FALSE = DF.literal('false', DF.namedNode('http://www.w3.org/2001/XMLSchema#boolean'));
 
 describe('ActorOptimizeQueryOperationFilterPushdown', () => {
   let bus: any;
@@ -556,6 +557,35 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
       });
     });
 
+    describe('canMatchZeroLength', () => {
+      const link = AF.createLink(DF.namedNode('p'));
+      const zeroOrMore = AF.createZeroOrMorePath(link);
+
+      it('returns true for zero-or-more and zero-or-one paths', () => {
+        expect(actor.canMatchZeroLength(zeroOrMore)).toBe(true);
+        expect(actor.canMatchZeroLength(AF.createZeroOrOnePath(link))).toBe(true);
+      });
+
+      it('returns false for links and negated property sets', () => {
+        expect(actor.canMatchZeroLength(link)).toBe(false);
+        expect(actor.canMatchZeroLength(AF.createNps([ DF.namedNode('p') ]))).toBe(false);
+      });
+
+      it('checks the nested path of one-or-more and inverse paths', () => {
+        expect(actor.canMatchZeroLength(AF.createOneOrMorePath(link))).toBe(false);
+        expect(actor.canMatchZeroLength(AF.createOneOrMorePath(zeroOrMore))).toBe(true);
+        expect(actor.canMatchZeroLength(AF.createInv(link))).toBe(false);
+        expect(actor.canMatchZeroLength(AF.createInv(zeroOrMore))).toBe(true);
+      });
+
+      it('requires all entries of sequences and some entry of alternatives', () => {
+        expect(actor.canMatchZeroLength(AF.createSeq([ zeroOrMore, link ]))).toBe(false);
+        expect(actor.canMatchZeroLength(AF.createSeq([ zeroOrMore, zeroOrMore ]))).toBe(true);
+        expect(actor.canMatchZeroLength(AF.createAlt([ link, link ]))).toBe(false);
+        expect(actor.canMatchZeroLength(AF.createAlt([ zeroOrMore, link ]))).toBe(true);
+      });
+    });
+
     describe('filterPushdown', () => {
       function filterPushdown(
         expression: Algebra.Expression,
@@ -625,7 +655,7 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
 
         it('is replaced with a no-op for FILTER(false)', async() => {
           expect(filterPushdown(
-            AF.createTermExpression(DF.literal('false')),
+            AF.createTermExpression(FALSE),
             AF.createExtend(AF.createBgp([]), DF.variable('v'), AF.createTermExpression(DF.namedNode('o'))),
           )).toEqual([ true, AF.createUnion([]) ]);
         });
@@ -677,9 +707,22 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
           ) ]);
         });
 
+        it('is not replaced with a no-op for FILTER("false")', async() => {
+          const expression = AF.createTermExpression(DF.literal('false'));
+          expect(filterPushdown(expression, AF.createNop()))
+            .toEqual([ false, AF.createFilter(AF.createNop(), expression) ]);
+        });
+
+        it('is replaced with a no-op for FILTER("0"^^xsd:boolean)', async() => {
+          expect(filterPushdown(
+            AF.createTermExpression(DF.literal('0', DF.namedNode('http://www.w3.org/2001/XMLSchema#boolean'))),
+            AF.createNop(),
+          )).toEqual([ true, AF.createUnion([]) ]);
+        });
+
         it('is replaced with a no-op  for FILTER(false)', async() => {
           expect(filterPushdown(
-            AF.createTermExpression(DF.literal('false')),
+            AF.createTermExpression(FALSE),
             AF.createFilter(AF.createBgp([]), AF.createTermExpression(DF.variable('b'))),
           )).toEqual([ true, AF.createUnion([]) ]);
         });
@@ -745,7 +788,7 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
 
         it('is replaced with a no-op for FILTER(false)', async() => {
           expect(filterPushdown(
-            AF.createTermExpression(DF.literal('false')),
+            AF.createTermExpression(FALSE),
             AF.createJoin([
               AF.createPattern(DF.variable('s'), DF.variable('p'), DF.namedNode('o1')),
               AF.createPattern(DF.variable('s'), DF.namedNode('p2'), DF.namedNode('o2')),
@@ -835,6 +878,40 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
           ]) ]);
         });
 
+        it('is not pushed down into entries that may leave variables unbound that other entries bind', async() => {
+          const expression = AF.createTermExpression(DF.variable('z'));
+          const union = AF.createUnion([
+            AF.createPattern(DF.variable('s'), DF.namedNode('p'), DF.variable('o')),
+            AF.createPattern(DF.variable('s'), DF.namedNode('q'), DF.variable('z')),
+          ]);
+          const pattern = AF.createPattern(DF.variable('s'), DF.namedNode('r'), DF.variable('z'));
+          expect(filterPushdown(expression, AF.createJoin([ union, pattern ])))
+            .toEqual([ true, AF.createJoin([ union, AF.createFilter(pattern, expression) ]) ]);
+        });
+
+        it('is pushed down into entries that may leave variables unbound that no other entry binds', async() => {
+          const expression = AF.createTermExpression(DF.variable('z'));
+          const leftJoin = AF.createLeftJoin(
+            AF.createPattern(DF.variable('s'), DF.namedNode('p'), DF.variable('o')),
+            AF.createPattern(DF.variable('s'), DF.namedNode('q'), DF.variable('z')),
+          );
+          const pattern = AF.createPattern(DF.variable('s'), DF.namedNode('r'), DF.variable('o'));
+          expect(filterPushdown(expression, AF.createJoin([ leftJoin, pattern ])))
+            .toEqual([ true, AF.createJoin([ AF.createFilter(leftJoin, expression), pattern ]) ]);
+        });
+
+        it('is not pushed down when all overlapping entries may leave variables unbound', async() => {
+          const expression = AF.createTermExpression(DF.variable('z'));
+          const join = AF.createJoin([
+            AF.createLeftJoin(
+              AF.createPattern(DF.variable('s'), DF.namedNode('p'), DF.variable('o')),
+              AF.createPattern(DF.variable('s'), DF.namedNode('q'), DF.variable('z')),
+            ),
+            AF.createValues([ DF.variable('z') ], [{}]),
+          ]);
+          expect(filterPushdown(expression, join)).toEqual([ false, AF.createFilter(join, expression) ]);
+        });
+
         it('is not pushed down for for empty joins', async() => {
           expect(filterPushdown(
             AF.createTermExpression(DF.variable('s')),
@@ -874,7 +951,7 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
 
         it('is replaced with a no-op for FILTER(false)', async() => {
           expect(filterPushdown(
-            AF.createTermExpression(DF.literal('false')),
+            AF.createTermExpression(FALSE),
             AF.createProject(
               AF.createBgp([]),
               [ DF.variable('s'), DF.variable('p') ],
@@ -947,7 +1024,7 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
 
         it('is replaced with a no-op for FILTER(false)', async() => {
           expect(filterPushdown(
-            AF.createTermExpression(DF.literal('false')),
+            AF.createTermExpression(FALSE),
             AF.createUnion([
               AF.createPattern(DF.variable('s'), DF.variable('p'), DF.namedNode('o1')),
               AF.createPattern(DF.variable('s'), DF.namedNode('p2'), DF.namedNode('o2')),
@@ -1019,7 +1096,7 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
 
         it('is replaced with a no-op for FILTER(false)', async() => {
           expect(filterPushdown(
-            AF.createTermExpression(DF.literal('false')),
+            AF.createTermExpression(FALSE),
             AF.createValues(
               [ DF.variable('s'), DF.variable('p') ],
               [],
@@ -1473,6 +1550,19 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
               AF.createTermExpression(DF.namedNode('other')),
             ]);
             const path = AF.createPath(DF.variable('s'), AF.createNps([]), DF.variable('o'));
+            expect(filterPushdown(expression, path)).toEqual([ false, AF.createFilter(path, expression) ]);
+          });
+
+          it('is not pushed down for paths that can have zero length', async() => {
+            const expression = AF.createOperatorExpression('=', [
+              AF.createTermExpression(DF.variable('s')),
+              AF.createTermExpression(DF.namedNode('s')),
+            ]);
+            const path = AF.createPath(
+              DF.variable('s'),
+              AF.createZeroOrMorePath(AF.createLink(DF.namedNode('p'))),
+              DF.variable('o'),
+            );
             expect(filterPushdown(expression, path)).toEqual([ false, AF.createFilter(path, expression) ]);
           });
 

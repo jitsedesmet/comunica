@@ -17,6 +17,7 @@ import {
 } from '@comunica/utils-algebra';
 import {
   doesShapeAcceptOperation,
+  getCertainlyBoundVariables,
   getExpressionVariables,
   getOperationSource,
   variablesIntersect,
@@ -352,7 +353,7 @@ export class ActorOptimizeQueryOperationFilterPushdown extends ActorOptimizeQuer
   }
 
   /**
-   * Push down the given expression into the entries of the given join that bind all of its variables.
+   * Push down the given expression into the join entries that determine the bindings of all its variables.
    * If no such entry exists, the filter is applied to the join of all entries that bind some of its variables.
    * @param expression An expression to push down.
    * @param expressionVariables The variables inside the given expression.
@@ -368,34 +369,55 @@ export class ActorOptimizeQueryOperationFilterPushdown extends ActorOptimizeQuer
     factory: AlgebraFactory,
     context: IActionContext,
   ): [ boolean, Algebra.Operation ] {
-    const fullyOverlapping: Algebra.Operation[] = [];
-    const partiallyOverlapping: Algebra.Operation[] = [];
-    const notOverlapping: Algebra.Operation[] = [];
-    for (const input of join.input) {
-      const inputVariables = algebraUtils.inScopeVariables(input);
-      if (variablesSubsetOf(expressionVariables, inputVariables)) {
-        fullyOverlapping.push(input);
-      } else if (variablesIntersect(expressionVariables, inputVariables)) {
-        partiallyOverlapping.push(input);
-      } else {
-        notOverlapping.push(input);
-      }
-    }
-
-    if (fullyOverlapping.length > 0) {
-      this.logDebug(context, `Push down filter into ${fullyOverlapping.length} of ${join.input.length} join entries`);
-      return [ true, factory.createJoin(join.input.map(input => fullyOverlapping.includes(input) ?
+    const inputsVariables = join.input.map(input => algebraUtils.inScopeVariables(input));
+    const isPushableInputs = join.input.map((input, index) => this.isPushableIntoJoinEntry(
+      expressionVariables,
+      input,
+      inputsVariables[index],
+      inputsVariables.filter((_, otherIndex) => otherIndex !== index).flat(),
+    ));
+    if (isPushableInputs.includes(true)) {
+      this.logDebug(context, `Push down filter into ${isPushableInputs.filter(Boolean).length} of ${join.input.length} join entries`);
+      return [ true, factory.createJoin(join.input.map((input, index) => isPushableInputs[index] ?
         this.filterPushdown(expression, expressionVariables, input, factory, context)[1] :
         input)) ];
     }
-    if (partiallyOverlapping.length > 0 && notOverlapping.length > 0) {
-      this.logDebug(context, `Push down filter into the join of ${partiallyOverlapping.length} of ${join.input.length} join entries`);
+
+    const overlappingInputs = join.input
+      .filter((_, index) => variablesIntersect(expressionVariables, inputsVariables[index]));
+    if (overlappingInputs.length > 0 && overlappingInputs.length < join.input.length) {
+      this.logDebug(context, `Push down filter into the join of ${overlappingInputs.length} of ${join.input.length} join entries`);
       return [ true, factory.createJoin([
-        factory.createFilter(factory.createJoin(partiallyOverlapping, false), expression),
-        ...notOverlapping,
+        factory.createFilter(factory.createJoin(overlappingInputs, false), expression),
+        ...join.input.filter(input => !overlappingInputs.includes(input)),
       ]) ];
     }
     return [ false, factory.createFilter(join, expression) ];
+  }
+
+  /**
+   * Check if a filter over a join can be pushed into the given join entry without changing its solutions.
+   * This requires the entry to have all expression variables in scope, and the other entries to not bind
+   * those variables that the entry may leave unbound.
+   * @param expressionVariables The variables inside the filter expression.
+   * @param input A join entry.
+   * @param inputVariables The in-scope variables of the join entry.
+   * @param otherInputsVariables The in-scope variables of the other join entries.
+   * @return If the filter can be pushed into the join entry.
+   */
+  public isPushableIntoJoinEntry(
+    expressionVariables: RDF.Variable[],
+    input: Algebra.Operation,
+    inputVariables: RDF.Variable[],
+    otherInputsVariables: RDF.Variable[],
+  ): boolean {
+    if (!variablesSubsetOf(expressionVariables, inputVariables)) {
+      return false;
+    }
+    const certainlyBoundVariables = getCertainlyBoundVariables(input);
+    const possiblyUnboundVariables = expressionVariables
+      .filter(variable => !variablesSubsetOf([ variable ], certainlyBoundVariables));
+    return !variablesIntersect(possiblyUnboundVariables, otherInputsVariables);
   }
 
   /**
@@ -414,7 +436,11 @@ export class ActorOptimizeQueryOperationFilterPushdown extends ActorOptimizeQuer
     context: IActionContext,
   ): [ boolean, Algebra.Operation ] {
     const equality = this.getEqualityExpressionPushableIntoPattern(expression);
-    const substituted = equality && this.substituteVariable(operation, equality.variable, equality.term, factory);
+    // A path of zero length matches any fixed term, even if that term does not occur in the data
+    const isSubstitutable = !isKnownOperation(operation, Algebra.Types.PATH) ||
+      !this.canMatchZeroLength(operation.predicate);
+    const substituted = equality && isSubstitutable &&
+      this.substituteVariable(operation, equality.variable, equality.term, factory);
     if (!substituted) {
       return [ false, factory.createFilter(operation, expression) ];
     }
@@ -469,6 +495,28 @@ export class ActorOptimizeQueryOperationFilterPushdown extends ActorOptimizeQuer
     // Keep metadata such as source annotations
     substituted.metadata = operation.metadata;
     return isSubstituted ? substituted : undefined;
+  }
+
+  /**
+   * Check if the given property path can match paths of zero length, which connect each term to itself.
+   * @param path A property path.
+   * @return If the path can have zero length.
+   */
+  public canMatchZeroLength(path: Algebra.Operation): boolean {
+    if (isKnownOperation(path, Algebra.Types.ZERO_OR_MORE_PATH) ||
+      isKnownOperation(path, Algebra.Types.ZERO_OR_ONE_PATH)) {
+      return true;
+    }
+    if (isKnownOperation(path, Algebra.Types.ONE_OR_MORE_PATH) || isKnownOperation(path, Algebra.Types.INV)) {
+      return this.canMatchZeroLength(path.path);
+    }
+    if (isKnownOperation(path, Algebra.Types.SEQ)) {
+      return path.input.every(input => this.canMatchZeroLength(input));
+    }
+    if (isKnownOperation(path, Algebra.Types.ALT)) {
+      return path.input.some(input => this.canMatchZeroLength(input));
+    }
+    return false;
   }
 
   /**
@@ -535,12 +583,14 @@ export class ActorOptimizeQueryOperationFilterPushdown extends ActorOptimizeQuer
   }
 
   /**
-   * Check if an expression is simply 'false'.
+   * Check if an expression is the boolean literal false.
    * @param expression An expression.
+   * @return If the expression is false.
    */
   public isExpressionFalse(expression: Algebra.Expression): boolean {
-    const casted = <Extract<Algebra.KnownExpression, { term?: unknown }>> expression;
-    return (casted.term && casted.term.termType === 'Literal' && casted.term.value === 'false');
+    return isKnownSubType(expression, Algebra.ExpressionTypes.TERM) && expression.term.termType === 'Literal' &&
+      expression.term.datatype.value === 'http://www.w3.org/2001/XMLSchema#boolean' &&
+      (expression.term.value === 'false' || expression.term.value === '0');
   }
 
   /**
