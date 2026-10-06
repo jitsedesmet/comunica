@@ -9,8 +9,7 @@ import type { TestResult, IActorTest } from '@comunica/core';
 import { passTestVoid } from '@comunica/core';
 import type { ComunicaDataFactory } from '@comunica/types';
 import { Algebra, AlgebraFactory, algebraUtils } from '@comunica/utils-algebra';
-import { getExpressionVariables } from '@comunica/utils-query-operation';
-import type * as RDF from '@rdfjs/types';
+import { getExpressionVariables, variablesIntersect } from '@comunica/utils-query-operation';
 
 /**
  * A comunica LeftJoin Expression Pushdown Optimize Query Operation Actor.
@@ -40,8 +39,8 @@ export class ActorOptimizeQueryOperationLeftjoinExpressionPushdown extends Actor
             const variablesExpression = getExpressionVariables(op.expression);
             const variablesLeft = algebraUtils.inScopeVariables(op.input[0]);
             const variablesRight = algebraUtils.inScopeVariables(op.input[1]);
-            const intersectLeft = self.variablesIntersect(variablesExpression, variablesLeft);
-            const intersectRight = self.variablesIntersect(variablesExpression, variablesRight);
+            const intersectLeft = variablesIntersect(variablesExpression, variablesLeft);
+            const intersectRight = variablesIntersect(variablesExpression, variablesRight);
             if (!intersectLeft && intersectRight) {
               self.logDebug(action.context, `Pushed down optional expression to right-hand operator`);
               // Mark as left join filter, so that bind-joins remain possible.
@@ -58,14 +57,5 @@ export class ActorOptimizeQueryOperationLeftjoinExpressionPushdown extends Actor
     });
 
     return { operation, context: action.context };
-  }
-
-  /**
-   * Check if there is an overlap between the two given lists of variables.
-   * @param varsA A list of variables.
-   * @param varsB A list of variables.
-   */
-  public variablesIntersect(varsA: RDF.Variable[], varsB: RDF.Variable[]): boolean {
-    return varsA.some(varA => varsB.some(varB => varA.equals(varB)));
   }
 }

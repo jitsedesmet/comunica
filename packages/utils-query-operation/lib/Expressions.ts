@@ -11,10 +11,8 @@ export function getExpressionVariables(expression: Algebra.Expression): RDF.Vari
   if (isKnownSubType(expression, Algebra.ExpressionTypes.EXISTENCE)) {
     return algebraUtils.inScopeVariables(expression.input);
   }
-  if (isKnownSubType(expression, Algebra.ExpressionTypes.NAMED)) {
-    return [];
-  }
-  if (isKnownSubType(expression, Algebra.ExpressionTypes.OPERATOR)) {
+  if (isKnownSubType(expression, Algebra.ExpressionTypes.NAMED) ||
+    isKnownSubType(expression, Algebra.ExpressionTypes.OPERATOR)) {
     return uniqTerms(expression.args.flatMap(arg => getExpressionVariables(arg)));
   }
   if (isKnownSubType(expression, Algebra.ExpressionTypes.TERM)) {
