@@ -44,13 +44,24 @@ export class ActorOptimizeQueryOperationPruneEmptySourceOperations extends Actor
     // Collect all operations with source types
     // Only consider unions of patterns or alts of links, since these are created during exhaustive source assignment.
     const collectedOperations: (Algebra.Pattern | Algebra.Link)[] = [];
+    // Links are matched in the graph of the path they occur in.
+    // Paths can not be nested, so the last visited path is the one that contains the alts below it.
+    const linkGraphs: Map<Algebra.Operation, Algebra.Path['graph']> = new Map();
+    let pathGraph: Algebra.Path['graph'] = dataFactory.defaultGraph();
     algebraUtils.visitOperation(operation, {
       [Algebra.Types.UNION]: { preVisitor: (subOperation) => {
         this.collectMultiOperationInputs(subOperation.input, collectedOperations, Algebra.Types.PATTERN);
         return {};
       } },
+      [Algebra.Types.PATH]: { preVisitor: (subOperation) => {
+        pathGraph = subOperation.graph;
+        return {};
+      } },
       [Algebra.Types.ALT]: { preVisitor: (subOperation) => {
         this.collectMultiOperationInputs(subOperation.input, collectedOperations, Algebra.Types.LINK);
+        for (const input of subOperation.input) {
+          linkGraphs.set(input, pathGraph);
+        }
         return { continue: false };
       } },
       [Algebra.Types.SERVICE]: { preVisitor: () => ({ continue: false }) },
@@ -63,9 +74,17 @@ export class ActorOptimizeQueryOperationPruneEmptySourceOperations extends Actor
     // Determine in an async manner whether or not these sources return non-empty results
     const emptyOperations: Set<Algebra.Operation> = new Set();
     await Promise.all(collectedOperations.map(async(collectedOperation) => {
-      const checkOperation = collectedOperation.type === Algebra.Types.LINK ?
-        algebraFactory.createPattern(dataFactory.variable('s'), collectedOperation.iri, dataFactory.variable('o')) :
-        collectedOperation;
+      let checkOperation: Algebra.Operation = collectedOperation;
+      if (collectedOperation.type === Algebra.Types.LINK) {
+        // A graph variable is renamed, so that it can not coincide with the subject or object variable
+        const graph = linkGraphs.get(collectedOperation)!;
+        checkOperation = algebraFactory.createPattern(
+          dataFactory.variable('s'),
+          collectedOperation.iri,
+          dataFactory.variable('o'),
+          graph.termType === 'Variable' ? dataFactory.variable('g') : graph,
+        );
+      }
       if (!await this.hasSourceResults(
         algebraFactory,
         getOperationSource(collectedOperation)!,

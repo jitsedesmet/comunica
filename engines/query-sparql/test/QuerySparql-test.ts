@@ -2843,6 +2843,31 @@ WHERE { }
       });
     });
 
+    describe('for property paths in named graphs over multiple sources', () => {
+      it('should not prune sources that only have the predicate in a named graph', async() => {
+        const storeNamed = RdfStore.createDefault();
+        storeNamed.addQuad(DF.quad(
+          DF.namedNode('ex:s1'),
+          DF.namedNode('ex:p'),
+          DF.namedNode('ex:o1'),
+          DF.namedNode('http://example.org/g1'),
+        ));
+        const storeDefault = RdfStore.createDefault();
+        storeDefault.addQuad(DF.quad(DF.namedNode('ex:s2'), DF.namedNode('ex:p'), DF.namedNode('ex:o2')));
+
+        const bindings = await (await engine.queryBindings(`SELECT * { GRAPH ?g { ?s <ex:p>+ ?o } }`, {
+          sources: [ storeNamed, storeDefault ],
+        })).toArray();
+        expect(bindings).toEqualBindingsArray([
+          BF.bindings([
+            [ DF.variable('s'), DF.namedNode('ex:s1') ],
+            [ DF.variable('o'), DF.namedNode('ex:o1') ],
+            [ DF.variable('g'), DF.namedNode('http://example.org/g1') ],
+          ]),
+        ]);
+      });
+    });
+
     describe('for a complex query', () => {
       it('with VALUES and OPTIONAL', async() => {
         const context: QueryStringContext = {

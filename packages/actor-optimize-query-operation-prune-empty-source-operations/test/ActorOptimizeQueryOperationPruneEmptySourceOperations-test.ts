@@ -405,6 +405,77 @@ describe('ActorOptimizeQueryOperationPruneEmptySourceOperations', () => {
         });
       });
 
+      describe('with paths', () => {
+        function createPath(graph?: RDF.Term, links = [ 'p1', 'empty' ]): Algebra.Path {
+          return AF.createPath(
+            DF.variable('a'),
+            AF.createZeroOrMorePath(AF.createAlt(links
+              .map(link => assignOperationSource(AF.createLink(DF.namedNode(link)), source1)))),
+            DF.variable('b'),
+            graph,
+          );
+        }
+
+        it('should check links in the default graph', async() => {
+          const { operation: opOut } = await actor.run({ operation: createPath(), context: ctx });
+          expect(source1.source.queryBindings).toHaveBeenCalledWith(
+            AF.createPattern(DF.variable('s'), DF.namedNode('p1'), DF.variable('o')),
+            ctx,
+          );
+          expect(opOut).toEqual(AF.createPath(
+            DF.variable('a'),
+            AF.createZeroOrMorePath(assignOperationSource(AF.createLink(DF.namedNode('p1')), source1)),
+            DF.variable('b'),
+          ));
+        });
+
+        it('should check links in the named graph of the path', async() => {
+          const { operation: opOut } = await actor.run({ operation: createPath(DF.namedNode('g')), context: ctx });
+          expect(source1.source.queryBindings).toHaveBeenCalledWith(
+            AF.createPattern(DF.variable('s'), DF.namedNode('p1'), DF.variable('o'), DF.namedNode('g')),
+            ctx,
+          );
+          expect(source1.source.queryBindings).toHaveBeenCalledWith(
+            AF.createPattern(DF.variable('s'), DF.namedNode('empty'), DF.variable('o'), DF.namedNode('g')),
+            ctx,
+          );
+          expect(opOut).toEqual(AF.createPath(
+            DF.variable('a'),
+            AF.createZeroOrMorePath(assignOperationSource(AF.createLink(DF.namedNode('p1')), source1)),
+            DF.variable('b'),
+            DF.namedNode('g'),
+          ));
+        });
+
+        it('should check links in a renamed graph variable of the path', async() => {
+          await actor.run({ operation: createPath(DF.variable('s'), [ 'p1' ]), context: ctx });
+          expect(source1.source.queryBindings).toHaveBeenCalledTimes(1);
+          expect(source1.source.queryBindings).toHaveBeenCalledWith(
+            AF.createPattern(DF.variable('s'), DF.namedNode('p1'), DF.variable('o'), DF.variable('g')),
+            ctx,
+          );
+        });
+
+        it('should check links in the graph of the path they occur in', async() => {
+          await actor.run({
+            operation: AF.createJoin([
+              createPath(DF.namedNode('g1'), [ 'p1' ]),
+              createPath(DF.namedNode('g2'), [ 'p2' ]),
+            ]),
+            context: ctx,
+          });
+          expect(source1.source.queryBindings).toHaveBeenCalledTimes(2);
+          expect(source1.source.queryBindings).toHaveBeenCalledWith(
+            AF.createPattern(DF.variable('s'), DF.namedNode('p1'), DF.variable('o'), DF.namedNode('g1')),
+            ctx,
+          );
+          expect(source1.source.queryBindings).toHaveBeenCalledWith(
+            AF.createPattern(DF.variable('s'), DF.namedNode('p2'), DF.variable('o'), DF.namedNode('g2')),
+            ctx,
+          );
+        });
+      });
+
       describe('with mixed operations', () => {
         it('should prune alt in union', async() => {
           const opIn = AF.createUnion([
