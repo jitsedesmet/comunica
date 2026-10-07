@@ -64,6 +64,10 @@ export class ActorOptimizeQueryOperationPruneEmptySourceOperations extends Actor
         }
         return { continue: false };
       } },
+      // Paths that match zero-length take their nodes from the sources of their links,
+      // so pruning a link would lose the zero-length solutions over the nodes of its source.
+      [Algebra.Types.ZERO_OR_MORE_PATH]: { preVisitor: () => ({ continue: false }) },
+      [Algebra.Types.ZERO_OR_ONE_PATH]: { preVisitor: () => ({ continue: false }) },
       [Algebra.Types.SERVICE]: { preVisitor: () => ({ continue: false }) },
       // Operations within FROM (NAMED) are evaluated over a different dataset than the source's default dataset.
       // Their graphs are only rewritten when the FROM operation is executed,

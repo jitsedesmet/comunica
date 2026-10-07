@@ -409,7 +409,7 @@ describe('ActorOptimizeQueryOperationPruneEmptySourceOperations', () => {
         function createPath(graph?: RDF.Term, links = [ 'p1', 'empty' ]): Algebra.Path {
           return AF.createPath(
             DF.variable('a'),
-            AF.createZeroOrMorePath(AF.createAlt(links
+            AF.createOneOrMorePath(AF.createAlt(links
               .map(link => assignOperationSource(AF.createLink(DF.namedNode(link)), source1)))),
             DF.variable('b'),
             graph,
@@ -424,7 +424,7 @@ describe('ActorOptimizeQueryOperationPruneEmptySourceOperations', () => {
           );
           expect(opOut).toEqual(AF.createPath(
             DF.variable('a'),
-            AF.createZeroOrMorePath(assignOperationSource(AF.createLink(DF.namedNode('p1')), source1)),
+            AF.createOneOrMorePath(assignOperationSource(AF.createLink(DF.namedNode('p1')), source1)),
             DF.variable('b'),
           ));
         });
@@ -441,7 +441,7 @@ describe('ActorOptimizeQueryOperationPruneEmptySourceOperations', () => {
           );
           expect(opOut).toEqual(AF.createPath(
             DF.variable('a'),
-            AF.createZeroOrMorePath(assignOperationSource(AF.createLink(DF.namedNode('p1')), source1)),
+            AF.createOneOrMorePath(assignOperationSource(AF.createLink(DF.namedNode('p1')), source1)),
             DF.variable('b'),
             DF.namedNode('g'),
           ));
@@ -471,6 +471,52 @@ describe('ActorOptimizeQueryOperationPruneEmptySourceOperations', () => {
           );
           expect(source1.source.queryBindings).toHaveBeenCalledWith(
             AF.createPattern(DF.variable('s'), DF.namedNode('p2'), DF.variable('o'), DF.namedNode('g2')),
+            ctx,
+          );
+        });
+
+        it('should not prune links in zero-or-more paths', async() => {
+          const alt = AF.createAlt([
+            assignOperationSource(AF.createLink(DF.namedNode('p1')), source1),
+            assignOperationSource(AF.createLink(DF.namedNode('empty')), source1),
+          ]);
+          const opIn = AF.createPath(DF.variable('a'), AF.createZeroOrMorePath(alt), DF.variable('b'));
+          const { operation: opOut } = await actor.run({ operation: opIn, context: ctx });
+          expect(source1.source.queryBindings).not.toHaveBeenCalled();
+          expect(opOut).toEqual(opIn);
+        });
+
+        it('should not prune links in zero-or-one paths', async() => {
+          const alt = AF.createAlt([
+            assignOperationSource(AF.createLink(DF.namedNode('p1')), source1),
+            assignOperationSource(AF.createLink(DF.namedNode('empty')), source1),
+          ]);
+          const opIn = AF.createPath(DF.variable('a'), AF.createZeroOrOnePath(alt), DF.variable('b'));
+          const { operation: opOut } = await actor.run({ operation: opIn, context: ctx });
+          expect(source1.source.queryBindings).not.toHaveBeenCalled();
+          expect(opOut).toEqual(opIn);
+        });
+
+        it('should prune links in a sequence next to a zero-or-more path', async() => {
+          const opIn = AF.createPath(
+            DF.variable('a'),
+            AF.createSeq([
+              createPath().predicate,
+              AF.createZeroOrMorePath(AF.createAlt([
+                assignOperationSource(AF.createLink(DF.namedNode('p2')), source1),
+                assignOperationSource(AF.createLink(DF.namedNode('empty')), source1),
+              ])),
+            ]),
+            DF.variable('b'),
+          );
+          await actor.run({ operation: opIn, context: ctx });
+          expect(source1.source.queryBindings).toHaveBeenCalledTimes(2);
+          expect(source1.source.queryBindings).toHaveBeenCalledWith(
+            AF.createPattern(DF.variable('s'), DF.namedNode('p1'), DF.variable('o')),
+            ctx,
+          );
+          expect(source1.source.queryBindings).toHaveBeenCalledWith(
+            AF.createPattern(DF.variable('s'), DF.namedNode('empty'), DF.variable('o')),
             ctx,
           );
         });

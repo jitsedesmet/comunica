@@ -2892,6 +2892,61 @@ WHERE { }
           ]),
         ]);
       });
+
+      it('should keep the zero-length matches of sources without the predicate', async() => {
+        const store1 = RdfStore.createDefault();
+        store1.addQuad(DF.quad(
+          DF.namedNode('ex:a'),
+          DF.namedNode('ex:q'),
+          DF.namedNode('ex:b'),
+          DF.namedNode('http://example.org/g1'),
+        ));
+        store1.addQuad(DF.quad(DF.namedNode('ex:x'), DF.namedNode('ex:p'), DF.namedNode('ex:y')));
+        const store2 = RdfStore.createDefault();
+        store2.addQuad(DF.quad(DF.namedNode('ex:c'), DF.namedNode('ex:q'), DF.namedNode('ex:d')));
+
+        const bindingsNamed = await (await engine.queryBindings(
+          `SELECT * { GRAPH <http://example.org/g1> { ?s <ex:p>* ?o } }`,
+          { sources: [ store1, store2 ]},
+        )).toArray();
+        expect(bindingsNamed).toEqualBindingsArray([
+          BF.bindings([
+            [ DF.variable('s'), DF.namedNode('ex:a') ],
+            [ DF.variable('o'), DF.namedNode('ex:a') ],
+          ]),
+          BF.bindings([
+            [ DF.variable('s'), DF.namedNode('ex:b') ],
+            [ DF.variable('o'), DF.namedNode('ex:b') ],
+          ]),
+        ], true);
+
+        const bindingsDefault = await (await engine.queryBindings(
+          `SELECT * { ?s <ex:p>? ?o }`,
+          { sources: [ store1, store2 ]},
+        )).toArray();
+        expect(bindingsDefault).toEqualBindingsArray([
+          BF.bindings([
+            [ DF.variable('s'), DF.namedNode('ex:x') ],
+            [ DF.variable('o'), DF.namedNode('ex:x') ],
+          ]),
+          BF.bindings([
+            [ DF.variable('s'), DF.namedNode('ex:y') ],
+            [ DF.variable('o'), DF.namedNode('ex:y') ],
+          ]),
+          BF.bindings([
+            [ DF.variable('s'), DF.namedNode('ex:c') ],
+            [ DF.variable('o'), DF.namedNode('ex:c') ],
+          ]),
+          BF.bindings([
+            [ DF.variable('s'), DF.namedNode('ex:d') ],
+            [ DF.variable('o'), DF.namedNode('ex:d') ],
+          ]),
+          BF.bindings([
+            [ DF.variable('s'), DF.namedNode('ex:x') ],
+            [ DF.variable('o'), DF.namedNode('ex:y') ],
+          ]),
+        ], true);
+      });
     });
 
     describe('for a complex query', () => {
