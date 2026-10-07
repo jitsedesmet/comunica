@@ -2554,6 +2554,26 @@ describe('QuerySourceSparql', () => {
     });
   });
 
+  describe('operationToNormalizedCountQuery', () => {
+    it('should normalize the variables of a pattern in the default graph', async() => {
+      await expect(source.operationToNormalizedCountQuery(
+        AF.createPattern(DF.variable('a'), iriP, DF.variable('b')),
+      )).resolves.toBe(`SELECT ( COUNT( * ) AS ?count ) WHERE { ?s <${testUrl('p')}> ?o . }`);
+    });
+
+    it('should keep the named graph of a pattern', async() => {
+      await expect(source.operationToNormalizedCountQuery(
+        AF.createPattern(DF.variable('a'), iriP, DF.variable('b'), DF.namedNode(testUrl('g'))),
+      )).resolves.toBe(`SELECT ( COUNT( * ) AS ?count ) WHERE { GRAPH <${testUrl('g')}> { ?s <${testUrl('p')}> ?o . } }`);
+    });
+
+    it('should normalize the graph variable of a pattern', async() => {
+      await expect(source.operationToNormalizedCountQuery(
+        AF.createPattern(DF.variable('a'), iriP, DF.variable('b'), DF.variable('a')),
+      )).resolves.toBe(`SELECT ( COUNT( * ) AS ?count ) WHERE { GRAPH ?g { ?s <${testUrl('p')}> ?o . } }`);
+    });
+  });
+
   describe('getOperationUndefs', () => {
     it('should be empty for a triple pattern', () => {
       expect(QuerySourceSparql.getOperationUndefs(

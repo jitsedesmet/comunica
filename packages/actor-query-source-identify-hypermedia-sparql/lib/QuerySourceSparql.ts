@@ -406,7 +406,7 @@ export class QuerySourceSparql implements IQuerySource {
 
   /**
    * Convert an algebra operation into a query string, and if the operation is a simple triple pattern,
-   * then also replace any variables with s, p, and o to increase the chance of cache hits.
+   * then also replace any variables with s, p, o, and g to increase the chance of cache hits.
    * @param {Algebra.Operation} operation The operation to convert into a query string.
    * @returns {string} Query string for a COUNT query over the operation.
    */
@@ -416,6 +416,7 @@ export class QuerySourceSparql implements IQuerySource {
         operation.subject.termType === 'Variable' ? this.dataFactory.variable('s') : operation.subject,
         operation.predicate.termType === 'Variable' ? this.dataFactory.variable('p') : operation.predicate,
         operation.object.termType === 'Variable' ? this.dataFactory.variable('o') : operation.object,
+        operation.graph.termType === 'Variable' ? this.dataFactory.variable('g') : operation.graph,
       ) :
       operation;
     return await this.operationToCountQuery(

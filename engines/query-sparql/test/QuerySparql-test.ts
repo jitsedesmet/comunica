@@ -2866,6 +2866,32 @@ WHERE { }
           ]),
         ]);
       });
+
+      it('should not prune SPARQL endpoints that only have the predicate in a named graph', async() => {
+        const endpointNamed = 'http://example.org/named/sparql';
+        const endpointDefault = 'http://example.org/default/sparql';
+        const storeNamed = RdfStore.createDefault();
+        storeNamed.addQuad(DF.quad(
+          DF.namedNode('ex:s1'),
+          DF.namedNode('ex:p'),
+          DF.namedNode('ex:o1'),
+          DF.namedNode('http://example.org/g1'),
+        ));
+        const storeDefault = RdfStore.createDefault();
+        storeDefault.addQuad(DF.quad(DF.namedNode('ex:s2'), DF.namedNode('ex:p'), DF.namedNode('ex:o2')));
+
+        const bindings = await (await engine.queryBindings(`SELECT * { GRAPH ?g { ?s <ex:p>+ ?o } }`, {
+          sources: [ endpointNamed, endpointDefault ],
+          fetch: createSparqlEndpointsFetch({ [endpointNamed]: storeNamed, [endpointDefault]: storeDefault }),
+        })).toArray();
+        expect(bindings).toEqualBindingsArray([
+          BF.bindings([
+            [ DF.variable('s'), DF.namedNode('ex:s1') ],
+            [ DF.variable('o'), DF.namedNode('ex:o1') ],
+            [ DF.variable('g'), DF.namedNode('http://example.org/g1') ],
+          ]),
+        ]);
+      });
     });
 
     describe('for a complex query', () => {
