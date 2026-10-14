@@ -1,0 +1,2782 @@
+{
+  "description": "Runs that failed, timed out, or crashed; their measurements are partial.",
+  "commits": {
+    "before": "6bb507369fc3212750bf01c212f9dc922e66238d",
+    "after": "7bad75f1e7155793296cf3d37cb775f246e76761"
+  },
+  "date": "2026-10-14T08:32:50.252Z",
+  "node": "v22.23.2",
+  "platform": "linux 7.2.9-201.fc44.x86_64",
+  "repetitions": 5,
+  "timeoutMs": 300000,
+  "discardedWarmupRunsPerVariant": 1,
+  "warmupTimeoutMs": 60000,
+  "httpCache": ".measure-federated-cache",
+  "queriesSource": "https://raw.githubusercontent.com/comunica/jQuery-Widget.js/c256d8a8259d7754e708c430e06775e4fff3fe55",
+  "queries": {
+    "federation/rhea-arachidonate.sparql": {
+      "sources": [
+        "https://sparql.uniprot.org/sparql",
+        "https://sparql.rhea-db.org/sparql"
+      ],
+      "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX dc: <http://purl.org/dc/terms/>\nPREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX dbpedia: <http://dbpedia.org/resource/>\nPREFIX dbpedia-owl: <http://dbpedia.org/ontology/>\nPREFIX dbpprop: <http://dbpedia.org/property/>\nPREFIX wdprop: <http://www.wikidata.org/prop/direct/>\nPREFIX ruben: <https://ruben.verborgh.org/profile/#>\nPREFIX rubent: <https://www.rubensworks.net/#>\nPREFIX schema: <http://schema.org/>\nPREFIX bow: <https://betweenourworlds.org/ontology/>\nPREFIX lc: <http://semweb.mmlab.be/ns/linkedconnections#>\n# Find all proteins linked to arachidonate (CHEBI:32395)\n# Datasources: https://sparql.uniprot.org/sparql https://sparql.rhea-db.org/sparql\n\nPREFIX CHEBI: <http://purl.obolibrary.org/obo/CHEBI_>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX up: <http://purl.uniprot.org/core/>\n\n\nSELECT \n    DISTINCT\n        ?uniprot\n        ?uniprotID\n        ?recname\n        ?gene\n        ?chebi\n        ?uniprotName\nWHERE {\n#  SERVICE <https://sparql.rhea-db.org/sparql> {\n     VALUES (?chebi) { (CHEBI:32395) }\n     ?rhea rh:side/rh:contains/rh:compound ?compound .\n     ?compound rh:chebi ?chebi .\n     ?chebi up:name ?uniprotName .\n # }\n  ?uniprot up:annotation/up:catalyticActivity/up:catalyzedReaction ?rhea .\n  ?uniprot up:mnemonic ?uniprotID .\n  ?uniprot up:recommendedName/up:fullName ?recname .\n  OPTIONAL {?uniprot up:encodedBy/skos:prefLabel ?gene .}\n}\n",
+      "before": {
+        "runs": [
+          {
+            "variantCheck": "before",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 300000.3,
+            "timedOut": true,
+            "error": null,
+            "requests": 33,
+            "requestsPerHost": {
+              "sparql.uniprot.org": 19,
+              "sparql.rhea-db.org": 14
+            },
+            "cache": {
+              "hits": 29,
+              "misses": 4,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              8
+            ],
+            "requestUrls": [
+              "GET https://sparql.uniprot.org/sparql",
+              "GET https://sparql.rhea-db.org/sparql",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fchebi%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fchebi%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fname%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fname%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fside%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fside%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fcontains%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fcontains%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fcompound%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fcompound%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyzedReaction%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyzedReaction%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyticActivity%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyticActivity%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fannotation%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fannotation%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fmnemonic%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fmnemonic%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FrecommendedName%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FrecommendedName%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FfullName%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FfullName%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FencodedBy%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FencodedBy%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.w3.org%2F2004%2F02%2Fskos%2Fcore%23prefLabel%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.w3.org%2F2004%2F02%2Fskos%2Fcore%23prefLabel%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Funiprot%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FencodedBy%3E%20%3Fvar5%20.%20%3Fvar5%20%3Chttp%3A%2F%2Fwww.w3.org%2F2004%2F02%2Fskos%2Fcore%23prefLabel%3E%20%3Fgene%20.%20%7D",
+              "POST https://sparql.uniprot.org/sparql",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Funiprot%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FencodedBy%3E%20%3Fvar5%20.%20%3Fvar5%20%3Chttp%3A%2F%2Fwww.w3.org%2F2004%2F02%2Fskos%2Fcore%23prefLabel%3E%20%3Fgene%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20%3Funiprot%20%3Fvar5%20%3Fgene%20WHERE%20%7B%20%3Funiprot%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FencodedBy%3E%20%3Fvar5%20.%20%3Fvar5%20%3Chttp%3A%2F%2Fwww.w3.org%2F2004%2F02%2Fskos%2Fcore%23prefLabel%3E%20%3Fgene%20.%20%7D",
+              "POST https://sparql.uniprot.org/sparql"
+            ]
+          },
+          {
+            "variantCheck": "before",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 299999.6,
+            "timedOut": true,
+            "error": null,
+            "requests": 31,
+            "requestsPerHost": {
+              "sparql.uniprot.org": 17,
+              "sparql.rhea-db.org": 14
+            },
+            "cache": {
+              "hits": 30,
+              "misses": 1,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              8
+            ]
+          },
+          {
+            "variantCheck": "before",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 299999.8,
+            "timedOut": true,
+            "error": null,
+            "requests": 31,
+            "requestsPerHost": {
+              "sparql.uniprot.org": 17,
+              "sparql.rhea-db.org": 14
+            },
+            "cache": {
+              "hits": 30,
+              "misses": 1,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              8
+            ]
+          },
+          {
+            "variantCheck": "before",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 299999.9,
+            "timedOut": true,
+            "error": null,
+            "requests": 31,
+            "requestsPerHost": {
+              "sparql.uniprot.org": 17,
+              "sparql.rhea-db.org": 14
+            },
+            "cache": {
+              "hits": 30,
+              "misses": 1,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              8
+            ]
+          },
+          {
+            "variantCheck": "before",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 299999.8,
+            "timedOut": true,
+            "error": null,
+            "requests": 31,
+            "requestsPerHost": {
+              "sparql.uniprot.org": 17,
+              "sparql.rhea-db.org": 14
+            },
+            "cache": {
+              "hits": 30,
+              "misses": 1,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              8
+            ]
+          }
+        ],
+        "logicalPlanFailures": []
+      },
+      "after": {
+        "runs": [
+          {
+            "variantCheck": "after",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 299999.4,
+            "timedOut": true,
+            "error": null,
+            "requests": 31,
+            "requestsPerHost": {
+              "sparql.uniprot.org": 17,
+              "sparql.rhea-db.org": 14
+            },
+            "cache": {
+              "hits": 30,
+              "misses": 1,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              8
+            ],
+            "requestUrls": [
+              "GET https://sparql.uniprot.org/sparql",
+              "GET https://sparql.rhea-db.org/sparql",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fchebi%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fchebi%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fname%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fname%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fside%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fside%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fcontains%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fcontains%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fcompound%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fcompound%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyzedReaction%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyzedReaction%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyticActivity%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyticActivity%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fannotation%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fannotation%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fmnemonic%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fmnemonic%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FrecommendedName%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FrecommendedName%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FfullName%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FfullName%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FencodedBy%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FencodedBy%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.w3.org%2F2004%2F02%2Fskos%2Fcore%23prefLabel%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.w3.org%2F2004%2F02%2Fskos%2Fcore%23prefLabel%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Funiprot%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FencodedBy%3E%20%3Fvar5%20.%20%3Fvar5%20%3Chttp%3A%2F%2Fwww.w3.org%2F2004%2F02%2Fskos%2Fcore%23prefLabel%3E%20%3Fgene%20.%20%7D",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql"
+            ]
+          },
+          {
+            "variantCheck": "after",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 299999.6,
+            "timedOut": true,
+            "error": null,
+            "requests": 31,
+            "requestsPerHost": {
+              "sparql.uniprot.org": 17,
+              "sparql.rhea-db.org": 14
+            },
+            "cache": {
+              "hits": 30,
+              "misses": 1,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              8
+            ]
+          },
+          {
+            "variantCheck": "after",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 299999.9,
+            "timedOut": true,
+            "error": null,
+            "requests": 31,
+            "requestsPerHost": {
+              "sparql.uniprot.org": 17,
+              "sparql.rhea-db.org": 14
+            },
+            "cache": {
+              "hits": 30,
+              "misses": 1,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              8
+            ]
+          },
+          {
+            "variantCheck": "after",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 300001.4,
+            "timedOut": true,
+            "error": null,
+            "requests": 31,
+            "requestsPerHost": {
+              "sparql.uniprot.org": 17,
+              "sparql.rhea-db.org": 14
+            },
+            "cache": {
+              "hits": 30,
+              "misses": 1,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              8
+            ]
+          },
+          {
+            "variantCheck": "after",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 299999.9,
+            "timedOut": true,
+            "error": null,
+            "requests": 31,
+            "requestsPerHost": {
+              "sparql.uniprot.org": 17,
+              "sparql.rhea-db.org": 14
+            },
+            "cache": {
+              "hits": 30,
+              "misses": 1,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              8
+            ]
+          }
+        ],
+        "logicalPlanFailures": []
+      }
+    },
+    "federation/rhea-enzymes-transporters.sparql": {
+      "sources": [
+        "https://sparql.uniprot.org/sparql",
+        "https://sparql.rhea-db.org/sparql"
+      ],
+      "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX dc: <http://purl.org/dc/terms/>\nPREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX dbpedia: <http://dbpedia.org/resource/>\nPREFIX dbpedia-owl: <http://dbpedia.org/ontology/>\nPREFIX dbpprop: <http://dbpedia.org/property/>\nPREFIX wdprop: <http://www.wikidata.org/prop/direct/>\nPREFIX ruben: <https://ruben.verborgh.org/profile/#>\nPREFIX rubent: <https://www.rubensworks.net/#>\nPREFIX schema: <http://schema.org/>\nPREFIX bow: <https://betweenourworlds.org/ontology/>\nPREFIX lc: <http://semweb.mmlab.be/ns/linkedconnections#>\n# Select all Rhea reactions linked to protein sequences (enzymes and transporters) in UniProtKB\n# Datasources: https://sparql.uniprot.org/sparql https://sparql.rhea-db.org/sparql\n\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\n# Query 12\n# Select all Rhea reactions used to annotate enzyme sequences in UniProtKB\n# return the number of UniProtKB entries\n# Federated query using a service to UniProt SPARQL endpoint\n# \n# This query corresponds to the Rhea website query:\n# https://www.rhea-db.org/rhea?query=uniprot:*\n# \nSELECT ?uniprotCount ?rhea ?accession ?equation \nWHERE {\n  { \n  \tSELECT ?rhea (count(?uniprot) as ?uniprotCount) {\n      ?uniprot up:annotation/up:catalyticActivity/up:catalyzedReaction ?rhea . \n  \t}\n  \tGROUP BY ?rhea\n  }\n  ?rhea rh:accession ?accession .\n  ?rhea rh:equation ?equation .\n}\n",
+      "before": {
+        "runs": [],
+        "logicalPlanFailures": []
+      },
+      "after": {
+        "runs": [],
+        "logicalPlanFailures": []
+      }
+    },
+    "federation/rhea-organism.sparql": {
+      "sources": [
+        "https://sparql.uniprot.org/sparql",
+        "https://sparql.rhea-db.org/sparql"
+      ],
+      "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX dc: <http://purl.org/dc/terms/>\nPREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX dbpedia: <http://dbpedia.org/resource/>\nPREFIX dbpedia-owl: <http://dbpedia.org/ontology/>\nPREFIX dbpprop: <http://dbpedia.org/property/>\nPREFIX wdprop: <http://www.wikidata.org/prop/direct/>\nPREFIX ruben: <https://ruben.verborgh.org/profile/#>\nPREFIX rubent: <https://www.rubensworks.net/#>\nPREFIX schema: <http://schema.org/>\nPREFIX bow: <https://betweenourworlds.org/ontology/>\nPREFIX lc: <http://semweb.mmlab.be/ns/linkedconnections#>\n# Select all Rhea reactions used in UniProtKB/Swiss-Prot for a given organism (NCBI taxonomy ID)\n# Datasources: https://sparql.uniprot.org/sparql https://sparql.rhea-db.org/sparql\n\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX up: <http://purl.uniprot.org/core/>\nPREFIX taxon: <http://purl.uniprot.org/taxonomy/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\n# Query 13\n# Select all Rhea reactions used to annotate Escherichia coli (taxid=83333) in UniProtKB/Swiss-Prot\n# return the number of UniProtKB entries\n# \n# Federated query using a service to UniProt SPARQL endpoint\n# \n# This query cannot be performed using the Rhea search website\nSELECT ?uniprot ?mnemo ?rhea ?accession ?equation \nWHERE {\n  { \n    VALUES (?taxid) { (taxon:83333) }\n    GRAPH <http://sparql.uniprot.org/uniprot> {\n      ?uniprot up:reviewed true . \n      ?uniprot up:mnemonic ?mnemo . \n      ?uniprot up:organism ?taxid .\n      ?uniprot up:annotation/up:catalyticActivity/up:catalyzedReaction ?rhea . \n    }\n  }\n  ?rhea rh:accession ?accession .\n  ?rhea rh:equation ?equation .\n}\n",
+      "before": {
+        "runs": [
+          {
+            "variantCheck": "before",
+            "results": 212,
+            "timeToFirstResultMs": 1911.9,
+            "totalTimeMs": 2957,
+            "timedOut": false,
+            "error": "fetch failed",
+            "requests": 508,
+            "requestsPerHost": {
+              "sparql.uniprot.org": 497,
+              "sparql.rhea-db.org": 11
+            },
+            "cache": {
+              "hits": 315,
+              "misses": 193,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              6
+            ],
+            "requestUrls": [
+              "GET https://sparql.uniprot.org/sparql",
+              "GET https://sparql.rhea-db.org/sparql",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Forganism%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Forganism%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fannotation%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fannotation%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyticActivity%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyticActivity%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyzedReaction%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyzedReaction%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Faccession%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Faccession%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fequation%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fequation%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Freviewed%3E%20%22true%22%5E%5E%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23boolean%3E%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Freviewed%3E%20%22true%22%5E%5E%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23boolean%3E%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fmnemonic%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fmnemonic%3E%20%3Fo%20.%20%7D",
+              "POST https://sparql.uniprot.org/sparql",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20%3Frhea%20%3Fequation%20WHERE%20%7B%20%3Frhea%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fequation%3E%20%3Fequation%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20%3Frhea%20%3Fequation%20WHERE%20%7B%20%3Frhea%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fequation%3E%20%3Fequation%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20%3Frhea%20%3Faccession%20WHERE%20%7B%20%3Frhea%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Faccession%3E%20%3Faccession%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20%3Frhea%20%3Faccession%20WHERE%20%7B%20%3Frhea%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Faccession%3E%20%3Faccession%20.%20%7D",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql"
+            ]
+          },
+          {
+            "variantCheck": "before",
+            "results": 560,
+            "timeToFirstResultMs": 1867,
+            "totalTimeMs": 3990.2,
+            "timedOut": false,
+            "error": "fetch failed",
+            "requests": 1270,
+            "requestsPerHost": {
+              "sparql.uniprot.org": 1259,
+              "sparql.rhea-db.org": 11
+            },
+            "cache": {
+              "hits": 941,
+              "misses": 329,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              6
+            ]
+          },
+          {
+            "variantCheck": "before",
+            "results": 632,
+            "timeToFirstResultMs": 1823.8,
+            "totalTimeMs": 4125.8,
+            "timedOut": false,
+            "error": "fetch failed",
+            "requests": 1312,
+            "requestsPerHost": {
+              "sparql.uniprot.org": 1301,
+              "sparql.rhea-db.org": 11
+            },
+            "cache": {
+              "hits": 1120,
+              "misses": 192,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              6
+            ]
+          },
+          {
+            "variantCheck": "before",
+            "results": 1086,
+            "timeToFirstResultMs": 1847.5,
+            "totalTimeMs": 5171.7,
+            "timedOut": false,
+            "error": "fetch failed",
+            "requests": 2121,
+            "requestsPerHost": {
+              "sparql.uniprot.org": 2110,
+              "sparql.rhea-db.org": 11
+            },
+            "cache": {
+              "hits": 1808,
+              "misses": 313,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              6
+            ]
+          },
+          {
+            "variantCheck": "before",
+            "results": 1242,
+            "timeToFirstResultMs": 1943.5,
+            "totalTimeMs": 5263.1,
+            "timedOut": false,
+            "error": "fetch failed",
+            "requests": 2294,
+            "requestsPerHost": {
+              "sparql.uniprot.org": 2283,
+              "sparql.rhea-db.org": 11
+            },
+            "cache": {
+              "hits": 2116,
+              "misses": 178,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              6
+            ]
+          }
+        ],
+        "logicalPlanFailures": []
+      },
+      "after": {
+        "runs": [
+          {
+            "variantCheck": "after",
+            "results": 318,
+            "timeToFirstResultMs": 1976.3,
+            "totalTimeMs": 3531.1,
+            "timedOut": false,
+            "error": "fetch failed",
+            "requests": 762,
+            "requestsPerHost": {
+              "sparql.uniprot.org": 751,
+              "sparql.rhea-db.org": 11
+            },
+            "cache": {
+              "hits": 515,
+              "misses": 247,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              6
+            ],
+            "requestUrls": [
+              "GET https://sparql.uniprot.org/sparql",
+              "GET https://sparql.rhea-db.org/sparql",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Forganism%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Forganism%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fannotation%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fannotation%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyticActivity%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyticActivity%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyzedReaction%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyzedReaction%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Faccession%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Faccession%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fequation%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fequation%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Freviewed%3E%20%22true%22%5E%5E%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23boolean%3E%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Freviewed%3E%20%22true%22%5E%5E%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23boolean%3E%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fmnemonic%3E%20%3Fo%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fmnemonic%3E%20%3Fo%20.%20%7D",
+              "POST https://sparql.uniprot.org/sparql",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20%3Frhea%20%3Fequation%20WHERE%20%7B%20%3Frhea%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fequation%3E%20%3Fequation%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20%3Frhea%20%3Fequation%20WHERE%20%7B%20%3Frhea%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fequation%3E%20%3Fequation%20.%20%7D",
+              "GET https://sparql.uniprot.org/sparql?query=SELECT%20%3Frhea%20%3Faccession%20WHERE%20%7B%20%3Frhea%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Faccession%3E%20%3Faccession%20.%20%7D",
+              "GET https://sparql.rhea-db.org/sparql?query=SELECT%20%3Frhea%20%3Faccession%20WHERE%20%7B%20%3Frhea%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Faccession%3E%20%3Faccession%20.%20%7D",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql",
+              "POST https://sparql.uniprot.org/sparql"
+            ]
+          },
+          {
+            "variantCheck": "after",
+            "results": 484,
+            "timeToFirstResultMs": 1867.2,
+            "totalTimeMs": 4058,
+            "timedOut": false,
+            "error": "fetch failed",
+            "requests": 1166,
+            "requestsPerHost": {
+              "sparql.uniprot.org": 1155,
+              "sparql.rhea-db.org": 11
+            },
+            "cache": {
+              "hits": 751,
+              "misses": 415,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              6
+            ]
+          },
+          {
+            "variantCheck": "after",
+            "results": 780,
+            "timeToFirstResultMs": 2598.6,
+            "totalTimeMs": 5012,
+            "timedOut": false,
+            "error": "fetch failed",
+            "requests": 1490,
+            "requestsPerHost": {
+              "sparql.uniprot.org": 1479,
+              "sparql.rhea-db.org": 11
+            },
+            "cache": {
+              "hits": 1297,
+              "misses": 193,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              6
+            ]
+          },
+          {
+            "variantCheck": "after",
+            "results": 906,
+            "timeToFirstResultMs": 1885.4,
+            "totalTimeMs": 5097.4,
+            "timedOut": false,
+            "error": "fetch failed",
+            "requests": 1925,
+            "requestsPerHost": {
+              "sparql.uniprot.org": 1914,
+              "sparql.rhea-db.org": 11
+            },
+            "cache": {
+              "hits": 1533,
+              "misses": 392,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              6
+            ]
+          },
+          {
+            "variantCheck": "after",
+            "results": 1340,
+            "timeToFirstResultMs": 1851.4,
+            "totalTimeMs": 6576.1,
+            "timedOut": false,
+            "error": "fetch failed",
+            "requests": 2597,
+            "requestsPerHost": {
+              "sparql.uniprot.org": 2586,
+              "sparql.rhea-db.org": 11
+            },
+            "cache": {
+              "hits": 2295,
+              "misses": 302,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              6
+            ]
+          }
+        ],
+        "logicalPlanFailures": []
+      }
+    },
+    "federation/wikidata-dbpedia-cats.sparql": {
+      "sources": [
+        "https://dbpedia.org/sparql",
+        "https://query.wikidata.org/sparql"
+      ],
+      "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX dc: <http://purl.org/dc/terms/>\nPREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX dbpedia: <http://dbpedia.org/resource/>\nPREFIX dbpedia-owl: <http://dbpedia.org/ontology/>\nPREFIX dbpprop: <http://dbpedia.org/property/>\nPREFIX wdprop: <http://www.wikidata.org/prop/direct/>\nPREFIX ruben: <https://ruben.verborgh.org/profile/#>\nPREFIX rubent: <https://www.rubensworks.net/#>\nPREFIX schema: <http://schema.org/>\nPREFIX bow: <https://betweenourworlds.org/ontology/>\nPREFIX lc: <http://semweb.mmlab.be/ns/linkedconnections#>\n# The names of cats in DBpedia and Wikidata\n# Datasources: https://dbpedia.org/sparql https://query.wikidata.org/sparql\nPREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nSELECT * WHERE {\n  ?cat wdt:P31 wd:Q146 ;\n       wdt:P19 [ wdt:P17 wd:Q30 ] ; # wd:Q695511\n       rdfs:label ?name .\n  FILTER(LANG(?name) = \"en\")\n}\n\n",
+      "before": {
+        "runs": [
+          {
+            "variantCheck": "before",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 67821.4,
+            "timedOut": false,
+            "error": "Unexpected \"S\" at position 180813822 in state STOP",
+            "requests": 16,
+            "requestsPerHost": {
+              "dbpedia.org": 7,
+              "query.wikidata.org": 9
+            },
+            "cache": {
+              "hits": 13,
+              "misses": 3,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              3
+            ],
+            "requestUrls": [
+              "GET https://dbpedia.org/sparql",
+              "GET https://query.wikidata.org/sparql",
+              "GET https://dbpedia.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2FP31%3E%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fentity%2FQ146%3E%20.%20%7D",
+              "GET https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2FP31%3E%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fentity%2FQ146%3E%20.%20%7D",
+              "GET https://dbpedia.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2FP19%3E%20%3Fo%20.%20%7D",
+              "GET https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2FP19%3E%20%3Fo%20.%20%7D",
+              "GET https://dbpedia.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label%3E%20%3Fo%20.%20%7D",
+              "GET https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label%3E%20%3Fo%20.%20%7D",
+              "GET https://dbpedia.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2FP17%3E%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fentity%2FQ30%3E%20.%20%7D",
+              "GET https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2FP17%3E%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fentity%2FQ30%3E%20.%20%7D",
+              "GET https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fcat%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2FP31%3E%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fentity%2FQ146%3E%20.%20%3Fcat%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2FP19%3E%20%3Fg_0%20.%20%3Fg_0%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2FP17%3E%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fentity%2FQ30%3E%20.%20%7D",
+              "GET https://dbpedia.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fcat%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label%3E%20%3Fname%20.%20FILTER%20(%20(%20LANG(%20%3Fname%20)%20%3D%20%22en%22%5E%5E%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23string%3E%20)%20)%20%7D",
+              "GET https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fcat%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label%3E%20%3Fname%20.%20FILTER%20(%20(%20LANG(%20%3Fname%20)%20%3D%20%22en%22%5E%5E%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23string%3E%20)%20)%20%7D",
+              "GET https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fcat%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label%3E%20%3Fname%20.%20FILTER%20(%20(%20LANG(%20%3Fname%20)%20%3D%20%22en%22%5E%5E%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23string%3E%20)%20)%20%7D",
+              "GET https://dbpedia.org/sparql?query=SELECT%20%3Fcat%20%3Fname%20WHERE%20%7B%20%3Fcat%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label%3E%20%3Fname%20.%20FILTER%20(%20(%20LANG(%20%3Fname%20)%20%3D%20%22en%22%5E%5E%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23string%3E%20)%20)%20%7D",
+              "GET https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=SELECT%20%3Fcat%20%3Fname%20WHERE%20%7B%20%3Fcat%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label%3E%20%3Fname%20.%20FILTER%20(%20(%20LANG(%20%3Fname%20)%20%3D%20%22en%22%5E%5E%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23string%3E%20)%20)%20%7D"
+            ]
+          },
+          {
+            "variantCheck": "before",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 7034,
+            "timedOut": false,
+            "error": "Unexpected \"S\" at position 180813822 in state STOP",
+            "requests": 16,
+            "requestsPerHost": {
+              "dbpedia.org": 7,
+              "query.wikidata.org": 9
+            },
+            "cache": {
+              "hits": 14,
+              "misses": 2,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              3
+            ]
+          },
+          {
+            "variantCheck": "before",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 6624.9,
+            "timedOut": false,
+            "error": "Unexpected \"S\" at position 180813822 in state STOP",
+            "requests": 16,
+            "requestsPerHost": {
+              "dbpedia.org": 7,
+              "query.wikidata.org": 9
+            },
+            "cache": {
+              "hits": 14,
+              "misses": 2,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              3
+            ]
+          },
+          {
+            "variantCheck": "before",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 7014.9,
+            "timedOut": false,
+            "error": "Unexpected \"S\" at position 180813822 in state STOP",
+            "requests": 16,
+            "requestsPerHost": {
+              "dbpedia.org": 7,
+              "query.wikidata.org": 9
+            },
+            "cache": {
+              "hits": 14,
+              "misses": 2,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              3
+            ]
+          },
+          {
+            "variantCheck": "before",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 6608.9,
+            "timedOut": false,
+            "error": "Unexpected \"S\" at position 180813822 in state STOP",
+            "requests": 16,
+            "requestsPerHost": {
+              "dbpedia.org": 7,
+              "query.wikidata.org": 9
+            },
+            "cache": {
+              "hits": 14,
+              "misses": 2,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              3
+            ]
+          }
+        ],
+        "logicalPlanFailures": []
+      },
+      "after": {
+        "runs": [
+          {
+            "variantCheck": "after",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 7191.3,
+            "timedOut": false,
+            "error": "Unexpected \"S\" at position 180813822 in state STOP",
+            "requests": 16,
+            "requestsPerHost": {
+              "dbpedia.org": 7,
+              "query.wikidata.org": 9
+            },
+            "cache": {
+              "hits": 14,
+              "misses": 2,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              3
+            ],
+            "requestUrls": [
+              "GET https://dbpedia.org/sparql",
+              "GET https://query.wikidata.org/sparql",
+              "GET https://dbpedia.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2FP31%3E%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fentity%2FQ146%3E%20.%20%7D",
+              "GET https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2FP31%3E%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fentity%2FQ146%3E%20.%20%7D",
+              "GET https://dbpedia.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2FP19%3E%20%3Fo%20.%20%7D",
+              "GET https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2FP19%3E%20%3Fo%20.%20%7D",
+              "GET https://dbpedia.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label%3E%20%3Fo%20.%20%7D",
+              "GET https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label%3E%20%3Fo%20.%20%7D",
+              "GET https://dbpedia.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2FP17%3E%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fentity%2FQ30%3E%20.%20%7D",
+              "GET https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2FP17%3E%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fentity%2FQ30%3E%20.%20%7D",
+              "GET https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fcat%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2FP31%3E%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fentity%2FQ146%3E%20.%20%3Fcat%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2FP19%3E%20%3Fg_0%20.%20%3Fg_0%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2FP17%3E%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fentity%2FQ30%3E%20.%20%7D",
+              "GET https://dbpedia.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fcat%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label%3E%20%3Fname%20.%20FILTER%20(%20(%20LANG(%20%3Fname%20)%20%3D%20%22en%22%5E%5E%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23string%3E%20)%20)%20%7D",
+              "GET https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fcat%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label%3E%20%3Fname%20.%20FILTER%20(%20(%20LANG(%20%3Fname%20)%20%3D%20%22en%22%5E%5E%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23string%3E%20)%20)%20%7D",
+              "GET https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fcat%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label%3E%20%3Fname%20.%20FILTER%20(%20(%20LANG(%20%3Fname%20)%20%3D%20%22en%22%5E%5E%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23string%3E%20)%20)%20%7D",
+              "GET https://dbpedia.org/sparql?query=SELECT%20%3Fcat%20%3Fname%20WHERE%20%7B%20%3Fcat%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label%3E%20%3Fname%20.%20FILTER%20(%20(%20LANG(%20%3Fname%20)%20%3D%20%22en%22%5E%5E%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23string%3E%20)%20)%20%7D",
+              "GET https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=SELECT%20%3Fcat%20%3Fname%20WHERE%20%7B%20%3Fcat%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label%3E%20%3Fname%20.%20FILTER%20(%20(%20LANG(%20%3Fname%20)%20%3D%20%22en%22%5E%5E%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23string%3E%20)%20)%20%7D"
+            ]
+          },
+          {
+            "variantCheck": "after",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 6519.6,
+            "timedOut": false,
+            "error": "Unexpected \"S\" at position 180813822 in state STOP",
+            "requests": 16,
+            "requestsPerHost": {
+              "dbpedia.org": 7,
+              "query.wikidata.org": 9
+            },
+            "cache": {
+              "hits": 14,
+              "misses": 2,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              3
+            ]
+          },
+          {
+            "variantCheck": "after",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 7150,
+            "timedOut": false,
+            "error": "Unexpected \"S\" at position 180813822 in state STOP",
+            "requests": 16,
+            "requestsPerHost": {
+              "dbpedia.org": 7,
+              "query.wikidata.org": 9
+            },
+            "cache": {
+              "hits": 14,
+              "misses": 2,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              3
+            ]
+          },
+          {
+            "variantCheck": "after",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 6570.7,
+            "timedOut": false,
+            "error": "Unexpected \"S\" at position 180813822 in state STOP",
+            "requests": 16,
+            "requestsPerHost": {
+              "dbpedia.org": 7,
+              "query.wikidata.org": 9
+            },
+            "cache": {
+              "hits": 14,
+              "misses": 2,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              3
+            ]
+          },
+          {
+            "variantCheck": "after",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 7088.1,
+            "timedOut": false,
+            "error": "Unexpected \"S\" at position 180813822 in state STOP",
+            "requests": 16,
+            "requestsPerHost": {
+              "dbpedia.org": 7,
+              "query.wikidata.org": 9
+            },
+            "cache": {
+              "hits": 14,
+              "misses": 2,
+              "uncacheable": 0
+            },
+            "prunedOperations": [
+              3
+            ]
+          }
+        ],
+        "logicalPlanFailures": []
+      }
+    },
+    "heterogeneous/betweenourworlds.sparql": {
+      "sources": [
+        "https://data.betweenourworlds.org/2018-06",
+        "https://dbpedia.org/sparql"
+      ],
+      "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX dc: <http://purl.org/dc/terms/>\nPREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX dbpedia: <http://dbpedia.org/resource/>\nPREFIX dbpedia-owl: <http://dbpedia.org/ontology/>\nPREFIX dbpprop: <http://dbpedia.org/property/>\nPREFIX wdprop: <http://www.wikidata.org/prop/direct/>\nPREFIX ruben: <https://ruben.verborgh.org/profile/#>\nPREFIX rubent: <https://www.rubensworks.net/#>\nPREFIX schema: <http://schema.org/>\nPREFIX bow: <https://betweenourworlds.org/ontology/>\nPREFIX lc: <http://semweb.mmlab.be/ns/linkedconnections#>\n# 3. Find Anime TV series and their available streaming services\n# Datasources: https://data.betweenourworlds.org/2018-06 https://dbpedia.org/sparql\nSELECT ?animeName ?providerName WHERE {\n  ?stream a bow:Stream.\n  ?stream bow:object ?anime.\n  ?stream bow:providedBy ?provider.\n\n  ?anime a schema:TVSeries .\n  ?anime schema:name ?animeName .\n\n  ?provider foaf:name ?providerName\n\n  FILTER (lang(?animeName) = 'en')\n}\nLIMIT 10\n",
+      "before": {
+        "runs": [
+          {
+            "variantCheck": "before",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 243.8,
+            "timedOut": false,
+            "error": "Could not retrieve https://data.betweenourworlds.org/2018-06 (HTTP status 404):",
+            "requests": 2,
+            "requestsPerHost": {
+              "data.betweenourworlds.org": 1,
+              "dbpedia.org": 1
+            },
+            "cache": {
+              "hits": 1,
+              "misses": 1,
+              "uncacheable": 0
+            },
+            "prunedOperations": [],
+            "requestUrls": [
+              "GET https://data.betweenourworlds.org/2018-06",
+              "GET https://dbpedia.org/sparql"
+            ]
+          },
+          {
+            "variantCheck": "before",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 245.4,
+            "timedOut": false,
+            "error": "Could not retrieve https://data.betweenourworlds.org/2018-06 (HTTP status 404):",
+            "requests": 2,
+            "requestsPerHost": {
+              "data.betweenourworlds.org": 1,
+              "dbpedia.org": 1
+            },
+            "cache": {
+              "hits": 1,
+              "misses": 1,
+              "uncacheable": 0
+            },
+            "prunedOperations": []
+          },
+          {
+            "variantCheck": "before",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 227.1,
+            "timedOut": false,
+            "error": "Could not retrieve https://data.betweenourworlds.org/2018-06 (HTTP status 404):",
+            "requests": 2,
+            "requestsPerHost": {
+              "data.betweenourworlds.org": 1,
+              "dbpedia.org": 1
+            },
+            "cache": {
+              "hits": 1,
+              "misses": 1,
+              "uncacheable": 0
+            },
+            "prunedOperations": []
+          },
+          {
+            "variantCheck": "before",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 226,
+            "timedOut": false,
+            "error": "Could not retrieve https://data.betweenourworlds.org/2018-06 (HTTP status 404):",
+            "requests": 2,
+            "requestsPerHost": {
+              "data.betweenourworlds.org": 1,
+              "dbpedia.org": 1
+            },
+            "cache": {
+              "hits": 1,
+              "misses": 1,
+              "uncacheable": 0
+            },
+            "prunedOperations": []
+          },
+          {
+            "variantCheck": "before",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 235.1,
+            "timedOut": false,
+            "error": "Could not retrieve https://data.betweenourworlds.org/2018-06 (HTTP status 404):",
+            "requests": 2,
+            "requestsPerHost": {
+              "data.betweenourworlds.org": 1,
+              "dbpedia.org": 1
+            },
+            "cache": {
+              "hits": 1,
+              "misses": 1,
+              "uncacheable": 0
+            },
+            "prunedOperations": []
+          }
+        ],
+        "logicalPlanFailures": [
+          {
+            "error": "Could not retrieve https://data.betweenourworlds.org/2018-06 (HTTP status 404):",
+            "planningRequests": 2,
+            "cache": {
+              "hits": 1,
+              "misses": 1,
+              "uncacheable": 0
+            }
+          },
+          {
+            "error": "Could not retrieve https://data.betweenourworlds.org/2018-06 (HTTP status 404):",
+            "planningRequests": 2,
+            "cache": {
+              "hits": 1,
+              "misses": 1,
+              "uncacheable": 0
+            }
+          },
+          {
+            "error": "Could not retrieve https://data.betweenourworlds.org/2018-06 (HTTP status 404):",
+            "planningRequests": 2,
+            "cache": {
+              "hits": 1,
+              "misses": 1,
+              "uncacheable": 0
+            }
+          },
+          {
+            "error": "Could not retrieve https://data.betweenourworlds.org/2018-06 (HTTP status 404):",
+            "planningRequests": 2,
+            "cache": {
+              "hits": 1,
+              "misses": 1,
+              "uncacheable": 0
+            }
+          },
+          {
+            "error": "Could not retrieve https://data.betweenourworlds.org/2018-06 (HTTP status 404):",
+            "planningRequests": 2,
+            "cache": {
+              "hits": 1,
+              "misses": 1,
+              "uncacheable": 0
+            }
+          }
+        ]
+      },
+      "after": {
+        "runs": [
+          {
+            "variantCheck": "after",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 228.2,
+            "timedOut": false,
+            "error": "Could not retrieve https://data.betweenourworlds.org/2018-06 (HTTP status 404):",
+            "requests": 2,
+            "requestsPerHost": {
+              "data.betweenourworlds.org": 1,
+              "dbpedia.org": 1
+            },
+            "cache": {
+              "hits": 1,
+              "misses": 1,
+              "uncacheable": 0
+            },
+            "prunedOperations": [],
+            "requestUrls": [
+              "GET https://data.betweenourworlds.org/2018-06",
+              "GET https://dbpedia.org/sparql"
+            ]
+          },
+          {
+            "variantCheck": "after",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 234.1,
+            "timedOut": false,
+            "error": "Could not retrieve https://data.betweenourworlds.org/2018-06 (HTTP status 404):",
+            "requests": 2,
+            "requestsPerHost": {
+              "data.betweenourworlds.org": 1,
+              "dbpedia.org": 1
+            },
+            "cache": {
+              "hits": 1,
+              "misses": 1,
+              "uncacheable": 0
+            },
+            "prunedOperations": []
+          },
+          {
+            "variantCheck": "after",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 238.6,
+            "timedOut": false,
+            "error": "Could not retrieve https://data.betweenourworlds.org/2018-06 (HTTP status 404):",
+            "requests": 2,
+            "requestsPerHost": {
+              "data.betweenourworlds.org": 1,
+              "dbpedia.org": 1
+            },
+            "cache": {
+              "hits": 1,
+              "misses": 1,
+              "uncacheable": 0
+            },
+            "prunedOperations": []
+          },
+          {
+            "variantCheck": "after",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 264.3,
+            "timedOut": false,
+            "error": "Could not retrieve https://data.betweenourworlds.org/2018-06 (HTTP status 404):",
+            "requests": 2,
+            "requestsPerHost": {
+              "data.betweenourworlds.org": 1,
+              "dbpedia.org": 1
+            },
+            "cache": {
+              "hits": 1,
+              "misses": 1,
+              "uncacheable": 0
+            },
+            "prunedOperations": []
+          },
+          {
+            "variantCheck": "after",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 240,
+            "timedOut": false,
+            "error": "Could not retrieve https://data.betweenourworlds.org/2018-06 (HTTP status 404):",
+            "requests": 2,
+            "requestsPerHost": {
+              "data.betweenourworlds.org": 1,
+              "dbpedia.org": 1
+            },
+            "cache": {
+              "hits": 1,
+              "misses": 1,
+              "uncacheable": 0
+            },
+            "prunedOperations": []
+          }
+        ],
+        "logicalPlanFailures": [
+          {
+            "error": "Could not retrieve https://data.betweenourworlds.org/2018-06 (HTTP status 404):",
+            "planningRequests": 2,
+            "cache": {
+              "hits": 1,
+              "misses": 1,
+              "uncacheable": 0
+            }
+          },
+          {
+            "error": "Could not retrieve https://data.betweenourworlds.org/2018-06 (HTTP status 404):",
+            "planningRequests": 2,
+            "cache": {
+              "hits": 1,
+              "misses": 1,
+              "uncacheable": 0
+            }
+          },
+          {
+            "error": "Could not retrieve https://data.betweenourworlds.org/2018-06 (HTTP status 404):",
+            "planningRequests": 2,
+            "cache": {
+              "hits": 1,
+              "misses": 1,
+              "uncacheable": 0
+            }
+          },
+          {
+            "error": "Could not retrieve https://data.betweenourworlds.org/2018-06 (HTTP status 404):",
+            "planningRequests": 2,
+            "cache": {
+              "hits": 1,
+              "misses": 1,
+              "uncacheable": 0
+            }
+          },
+          {
+            "error": "Could not retrieve https://data.betweenourworlds.org/2018-06 (HTTP status 404):",
+            "planningRequests": 2,
+            "cache": {
+              "hits": 1,
+              "misses": 1,
+              "uncacheable": 0
+            }
+          }
+        ]
+      }
+    },
+    "heterogeneous/claimants-spratly-islands.sparql": {
+      "sources": [
+        "https://raw.githubusercontent.com/rubensworks/rdf-12-examples/refs/heads/master/territories/data.ttl",
+        "https://fragments.dbpedia.org/2016-04/en"
+      ],
+      "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX dc: <http://purl.org/dc/terms/>\nPREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX dbpedia: <http://dbpedia.org/resource/>\nPREFIX dbpedia-owl: <http://dbpedia.org/ontology/>\nPREFIX dbpprop: <http://dbpedia.org/property/>\nPREFIX wdprop: <http://www.wikidata.org/prop/direct/>\nPREFIX ruben: <https://ruben.verborgh.org/profile/#>\nPREFIX rubent: <https://www.rubensworks.net/#>\nPREFIX schema: <http://schema.org/>\nPREFIX bow: <https://betweenourworlds.org/ontology/>\nPREFIX lc: <http://semweb.mmlab.be/ns/linkedconnections#>\n# Claimants of the disputed Spratly Islands (RDF 1.2)\n# Datasource: https://raw.githubusercontent.com/rubensworks/rdf-12-examples/refs/heads/master/territories/data.ttl //fragments.dbpedia.org/*/en\nVERSION \"1.2\"\nPREFIX dbr:  <http://dbpedia.org/resource/>\nPREFIX geo:  <http://example.org/ontology/geo/>\nPREFIX prov: <http://www.w3.org/ns/prov#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n\nSELECT ?country ?claimantName ?claimDate\nWHERE {\n    << dbr:Spratly_Islands geo:partOf ?country >> prov:wasAttributedTo ?claimantResource ;\n        geo:claimDate ?claimDate .\n    ?claimantResource rdfs:label ?claimantName .\n}\nORDER BY ?claimDate\n",
+      "before": {
+        "runs": [],
+        "logicalPlanFailures": []
+      },
+      "after": {
+        "runs": [],
+        "logicalPlanFailures": []
+      }
+    },
+    "heterogeneous/closed-stations.sparql": {
+      "sources": [
+        "https://graph.irail.be/sncb/connections",
+        "https://query.wikidata.org/bigdata/ldf"
+      ],
+      "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX dc: <http://purl.org/dc/terms/>\nPREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX dbpedia: <http://dbpedia.org/resource/>\nPREFIX dbpedia-owl: <http://dbpedia.org/ontology/>\nPREFIX dbpprop: <http://dbpedia.org/property/>\nPREFIX wdprop: <http://www.wikidata.org/prop/direct/>\nPREFIX ruben: <https://ruben.verborgh.org/profile/#>\nPREFIX rubent: <https://www.rubensworks.net/#>\nPREFIX schema: <http://schema.org/>\nPREFIX bow: <https://betweenourworlds.org/ontology/>\nPREFIX lc: <http://semweb.mmlab.be/ns/linkedconnections#>\n# Closed stations that have been reopened after 2000\n# Datasources: https://graph.irail.be/sncb/connections https://query.wikidata.org/bigdata/ldf\n\nSELECT ?officialOpening ?departureStop ?label ?wikidataDepartureStop WHERE {\n GRAPH ?g {\n   \t?connection lc:departureStop ?departureStop.\n  }\n  \n  ?wikidataDepartureStop wdprop:P2888 ?departureStop ;                 \n                         rdfs:label ?label;\n                         wdprop:P1619 ?officialOpening .\n\n  FILTER(YEAR(?officialOpening) > 2000)\n}\n",
+      "before": {
+        "runs": [
+          {
+            "variantCheck": "before",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 116.3,
+            "timedOut": false,
+            "error": "Could not retrieve https://query.wikidata.org/bigdata/ldf (HTTP status 404):",
+            "requests": 2,
+            "requestsPerHost": {
+              "graph.irail.be": 1,
+              "query.wikidata.org": 1
+            },
+            "cache": {
+              "hits": 0,
+              "misses": 2,
+              "uncacheable": 0
+            },
+            "prunedOperations": [],
+            "requestUrls": [
+              "GET https://graph.irail.be/sncb/connections",
+              "GET https://query.wikidata.org/bigdata/ldf"
+            ]
+          },
+          {
+            "variantCheck": "before",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 118.2,
+            "timedOut": false,
+            "error": "Could not retrieve https://query.wikidata.org/bigdata/ldf (HTTP status 404):",
+            "requests": 2,
+            "requestsPerHost": {
+              "graph.irail.be": 1,
+              "query.wikidata.org": 1
+            },
+            "cache": {
+              "hits": 0,
+              "misses": 2,
+              "uncacheable": 0
+            },
+            "prunedOperations": []
+          },
+          {
+            "variantCheck": "before",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 123.9,
+            "timedOut": false,
+            "error": "Could not retrieve https://query.wikidata.org/bigdata/ldf (HTTP status 404):",
+            "requests": 2,
+            "requestsPerHost": {
+              "graph.irail.be": 1,
+              "query.wikidata.org": 1
+            },
+            "cache": {
+              "hits": 0,
+              "misses": 2,
+              "uncacheable": 0
+            },
+            "prunedOperations": []
+          },
+          {
+            "variantCheck": "before",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 117.9,
+            "timedOut": false,
+            "error": "Could not retrieve https://query.wikidata.org/bigdata/ldf (HTTP status 404):",
+            "requests": 2,
+            "requestsPerHost": {
+              "graph.irail.be": 1,
+              "query.wikidata.org": 1
+            },
+            "cache": {
+              "hits": 0,
+              "misses": 2,
+              "uncacheable": 0
+            },
+            "prunedOperations": []
+          },
+          {
+            "variantCheck": "before",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 123.9,
+            "timedOut": false,
+            "error": "Could not retrieve https://query.wikidata.org/bigdata/ldf (HTTP status 404):",
+            "requests": 2,
+            "requestsPerHost": {
+              "graph.irail.be": 1,
+              "query.wikidata.org": 1
+            },
+            "cache": {
+              "hits": 0,
+              "misses": 2,
+              "uncacheable": 0
+            },
+            "prunedOperations": []
+          }
+        ],
+        "logicalPlanFailures": [
+          {
+            "error": "Could not retrieve https://query.wikidata.org/bigdata/ldf (HTTP status 404):",
+            "planningRequests": 2,
+            "cache": {
+              "hits": 0,
+              "misses": 2,
+              "uncacheable": 0
+            }
+          },
+          {
+            "error": "Could not retrieve https://query.wikidata.org/bigdata/ldf (HTTP status 404):",
+            "planningRequests": 2,
+            "cache": {
+              "hits": 0,
+              "misses": 2,
+              "uncacheable": 0
+            }
+          },
+          {
+            "error": "Could not retrieve https://query.wikidata.org/bigdata/ldf (HTTP status 404):",
+            "planningRequests": 2,
+            "cache": {
+              "hits": 0,
+              "misses": 2,
+              "uncacheable": 0
+            }
+          },
+          {
+            "error": "Could not retrieve https://query.wikidata.org/bigdata/ldf (HTTP status 404):",
+            "planningRequests": 2,
+            "cache": {
+              "hits": 0,
+              "misses": 2,
+              "uncacheable": 0
+            }
+          },
+          {
+            "error": "Could not retrieve https://query.wikidata.org/bigdata/ldf (HTTP status 404):",
+            "planningRequests": 2,
+            "cache": {
+              "hits": 0,
+              "misses": 2,
+              "uncacheable": 0
+            }
+          }
+        ]
+      },
+      "after": {
+        "runs": [
+          {
+            "variantCheck": "after",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 126.6,
+            "timedOut": false,
+            "error": "Could not retrieve https://query.wikidata.org/bigdata/ldf (HTTP status 404):",
+            "requests": 2,
+            "requestsPerHost": {
+              "graph.irail.be": 1,
+              "query.wikidata.org": 1
+            },
+            "cache": {
+              "hits": 0,
+              "misses": 2,
+              "uncacheable": 0
+            },
+            "prunedOperations": [],
+            "requestUrls": [
+              "GET https://graph.irail.be/sncb/connections",
+              "GET https://query.wikidata.org/bigdata/ldf"
+            ]
+          },
+          {
+            "variantCheck": "after",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 122.4,
+            "timedOut": false,
+            "error": "Could not retrieve https://query.wikidata.org/bigdata/ldf (HTTP status 404):",
+            "requests": 2,
+            "requestsPerHost": {
+              "graph.irail.be": 1,
+              "query.wikidata.org": 1
+            },
+            "cache": {
+              "hits": 0,
+              "misses": 2,
+              "uncacheable": 0
+            },
+            "prunedOperations": []
+          },
+          {
+            "variantCheck": "after",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 118.3,
+            "timedOut": false,
+            "error": "Could not retrieve https://query.wikidata.org/bigdata/ldf (HTTP status 404):",
+            "requests": 2,
+            "requestsPerHost": {
+              "graph.irail.be": 1,
+              "query.wikidata.org": 1
+            },
+            "cache": {
+              "hits": 0,
+              "misses": 2,
+              "uncacheable": 0
+            },
+            "prunedOperations": []
+          },
+          {
+            "variantCheck": "after",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 127.1,
+            "timedOut": false,
+            "error": "Could not retrieve https://query.wikidata.org/bigdata/ldf (HTTP status 404):",
+            "requests": 2,
+            "requestsPerHost": {
+              "graph.irail.be": 1,
+              "query.wikidata.org": 1
+            },
+            "cache": {
+              "hits": 0,
+              "misses": 2,
+              "uncacheable": 0
+            },
+            "prunedOperations": []
+          },
+          {
+            "variantCheck": "after",
+            "results": 0,
+            "timeToFirstResultMs": null,
+            "totalTimeMs": 134.6,
+            "timedOut": false,
+            "error": "Could not retrieve https://query.wikidata.org/bigdata/ldf (HTTP status 404):",
+            "requests": 2,
+            "requestsPerHost": {
+              "graph.irail.be": 1,
+              "query.wikidata.org": 1
+            },
+            "cache": {
+              "hits": 0,
+              "misses": 2,
+              "uncacheable": 0
+            },
+            "prunedOperations": []
+          }
+        ],
+        "logicalPlanFailures": [
+          {
+            "error": "Could not retrieve https://query.wikidata.org/bigdata/ldf (HTTP status 404):",
+            "planningRequests": 2,
+            "cache": {
+              "hits": 0,
+              "misses": 2,
+              "uncacheable": 0
+            }
+          },
+          {
+            "error": "Could not retrieve https://query.wikidata.org/bigdata/ldf (HTTP status 404):",
+            "planningRequests": 2,
+            "cache": {
+              "hits": 0,
+              "misses": 2,
+              "uncacheable": 0
+            }
+          },
+          {
+            "error": "Could not retrieve https://query.wikidata.org/bigdata/ldf (HTTP status 404):",
+            "planningRequests": 2,
+            "cache": {
+              "hits": 0,
+              "misses": 2,
+              "uncacheable": 0
+            }
+          },
+          {
+            "error": "Could not retrieve https://query.wikidata.org/bigdata/ldf (HTTP status 404):",
+            "planningRequests": 2,
+            "cache": {
+              "hits": 0,
+              "misses": 2,
+              "uncacheable": 0
+            }
+          },
+          {
+            "error": "Could not retrieve https://query.wikidata.org/bigdata/ldf (HTTP status 404):",
+            "planningRequests": 2,
+            "cache": {
+              "hits": 0,
+              "misses": 2,
+              "uncacheable": 0
+            }
+          }
+        ]
+      }
+    },
+    "heterogeneous/common-interests.sparql": {
+      "sources": [
+        "https://ruben.verborgh.org/profile/",
+        "https://www.rubensworks.net/",
+        "https://fragments.dbpedia.org/2016-04/en"
+      ],
+      "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX dc: <http://purl.org/dc/terms/>\nPREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX dbpedia: <http://dbpedia.org/resource/>\nPREFIX dbpedia-owl: <http://dbpedia.org/ontology/>\nPREFIX dbpprop: <http://dbpedia.org/property/>\nPREFIX wdprop: <http://www.wikidata.org/prop/direct/>\nPREFIX ruben: <https://ruben.verborgh.org/profile/#>\nPREFIX rubent: <https://www.rubensworks.net/#>\nPREFIX schema: <http://schema.org/>\nPREFIX bow: <https://betweenourworlds.org/ontology/>\nPREFIX lc: <http://semweb.mmlab.be/ns/linkedconnections#>\n# 2. All common interests of Ruben V and Ruben T\n# Datasources: https://ruben.verborgh.org/profile/ https://www.rubensworks.net/ //fragments.dbpedia.org/*/en\nSELECT ?interestName\nWHERE {\n  ruben:me foaf:topic_interest ?interest.\n  rubent:me foaf:topic_interest ?interest.\n  ?interest rdfs:label ?interestName.\n  FILTER LANGMATCHES(LANG(?interestName),  \"EN\")\n}\n",
+      "before": {
+        "runs": [],
+        "logicalPlanFailures": []
+      },
+      "after": {
+        "runs": [],
+        "logicalPlanFailures": []
+      }
+    },
+    "heterogeneous/disputed-territories.sparql": {
+      "sources": [
+        "https://raw.githubusercontent.com/rubensworks/rdf-12-examples/refs/heads/master/territories/data.ttl",
+        "https://fragments.dbpedia.org/2016-04/en"
+      ],
+      "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX dc: <http://purl.org/dc/terms/>\nPREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX dbpedia: <http://dbpedia.org/resource/>\nPREFIX dbpedia-owl: <http://dbpedia.org/ontology/>\nPREFIX dbpprop: <http://dbpedia.org/property/>\nPREFIX wdprop: <http://www.wikidata.org/prop/direct/>\nPREFIX ruben: <https://ruben.verborgh.org/profile/#>\nPREFIX rubent: <https://www.rubensworks.net/#>\nPREFIX schema: <http://schema.org/>\nPREFIX bow: <https://betweenourworlds.org/ontology/>\nPREFIX lc: <http://semweb.mmlab.be/ns/linkedconnections#>\n# Disputed territories and claimants (RDF 1.2)\n# Datasource: https://raw.githubusercontent.com/rubensworks/rdf-12-examples/refs/heads/master/territories/data.ttl //fragments.dbpedia.org/*/en\nVERSION \"1.2\"\nPREFIX dbr:  <http://dbpedia.org/resource/>\nPREFIX geo:  <http://example.org/ontology/geo/>\nPREFIX prov: <http://www.w3.org/ns/prov#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n\nSELECT ?territoryName\n       (COUNT(?claimant) AS ?claimantsCount)\n       (GROUP_CONCAT(?claimantName; separator=\", \") AS ?claimants)\nWHERE {\n    << ?territory geo:partOf ?country >> prov:wasAttributedTo ?claimant .\n    ?claimant rdfs:label ?claimantName .\n    ?territory rdfs:label ?territoryName .\n}\nGROUP BY ?territoryName\nHAVING (COUNT(?claimant) > 1)\nORDER BY DESC(?claimantsCount)\n",
+      "before": {
+        "runs": [],
+        "logicalPlanFailures": []
+      },
+      "after": {
+        "runs": [],
+        "logicalPlanFailures": []
+      }
+    },
+    "heterogeneous/ruben-interests.sparql": {
+      "sources": [
+        "https://ruben.verborgh.org/profile/",
+        "https://dbpedia.org/sparql"
+      ],
+      "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX dc: <http://purl.org/dc/terms/>\nPREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX dbpedia: <http://dbpedia.org/resource/>\nPREFIX dbpedia-owl: <http://dbpedia.org/ontology/>\nPREFIX dbpprop: <http://dbpedia.org/property/>\nPREFIX wdprop: <http://www.wikidata.org/prop/direct/>\nPREFIX ruben: <https://ruben.verborgh.org/profile/#>\nPREFIX rubent: <https://www.rubensworks.net/#>\nPREFIX schema: <http://schema.org/>\nPREFIX bow: <https://betweenourworlds.org/ontology/>\nPREFIX lc: <http://semweb.mmlab.be/ns/linkedconnections#>\n# 2. All interests of Ruben\n# Datasources: https://ruben.verborgh.org/profile/ https://dbpedia.org/sparql\nSELECT ?interestName\nWHERE {\n  ruben:me foaf:topic_interest ?interest.\n  ?interest rdfs:label ?interestName.\n  FILTER LANGMATCHES(LANG(?interestName),  \"EN\")\n}\n",
+      "before": {
+        "runs": [],
+        "logicalPlanFailures": []
+      },
+      "after": {
+        "runs": [],
+        "logicalPlanFailures": []
+      }
+    },
+    "heterogeneous/younger-than-ruben.sparql": {
+      "sources": [
+        "https://fragments.dbpedia.org/2016-04/en",
+        "https://ruben.verborgh.org/profile/"
+      ],
+      "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX dc: <http://purl.org/dc/terms/>\nPREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX dbpedia: <http://dbpedia.org/resource/>\nPREFIX dbpedia-owl: <http://dbpedia.org/ontology/>\nPREFIX dbpprop: <http://dbpedia.org/property/>\nPREFIX wdprop: <http://www.wikidata.org/prop/direct/>\nPREFIX ruben: <https://ruben.verborgh.org/profile/#>\nPREFIX rubent: <https://www.rubensworks.net/#>\nPREFIX schema: <http://schema.org/>\nPREFIX bow: <https://betweenourworlds.org/ontology/>\nPREFIX lc: <http://semweb.mmlab.be/ns/linkedconnections#>\n# 1. People on DBpedia younger than Ruben Verborgh born in the same place\n# Datasources: //fragments.dbpedia.org/*/en https://ruben.verborgh.org/profile/\nSELECT ?person ?date\nWHERE {\n  ruben:me dbpedia-owl:birthPlace ?place;\n           dbpedia-owl:birthDate  ?dateR.\n  ?person  dbpedia-owl:birthPlace ?place;\n           dbpedia-owl:birthDate  ?date.\n  FILTER(?date > ?dateR)\n}\n",
+      "before": {
+        "runs": [],
+        "logicalPlanFailures": []
+      },
+      "after": {
+        "runs": [],
+        "logicalPlanFailures": []
+      }
+    }
+  }
+}

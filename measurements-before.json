@@ -1,0 +1,1521 @@
+{
+  "variant": "before",
+  "commit": "6bb507369fc3212750bf01c212f9dc922e66238d",
+  "date": "2026-10-14T08:32:50.252Z",
+  "node": "v22.23.2",
+  "platform": "linux 7.2.9-201.fc44.x86_64",
+  "repetitions": 5,
+  "timeoutMs": 300000,
+  "discardedWarmupRunsPerVariant": 1,
+  "warmupTimeoutMs": 60000,
+  "httpCache": ".measure-federated-cache",
+  "queriesSource": "https://raw.githubusercontent.com/comunica/jQuery-Widget.js/c256d8a8259d7754e708c430e06775e4fff3fe55",
+  "queries": {
+    "federation/rhea-arachidonate.sparql": {
+      "sources": [
+        "https://sparql.uniprot.org/sparql",
+        "https://sparql.rhea-db.org/sparql"
+      ],
+      "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX dc: <http://purl.org/dc/terms/>\nPREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX dbpedia: <http://dbpedia.org/resource/>\nPREFIX dbpedia-owl: <http://dbpedia.org/ontology/>\nPREFIX dbpprop: <http://dbpedia.org/property/>\nPREFIX wdprop: <http://www.wikidata.org/prop/direct/>\nPREFIX ruben: <https://ruben.verborgh.org/profile/#>\nPREFIX rubent: <https://www.rubensworks.net/#>\nPREFIX schema: <http://schema.org/>\nPREFIX bow: <https://betweenourworlds.org/ontology/>\nPREFIX lc: <http://semweb.mmlab.be/ns/linkedconnections#>\n# Find all proteins linked to arachidonate (CHEBI:32395)\n# Datasources: https://sparql.uniprot.org/sparql https://sparql.rhea-db.org/sparql\n\nPREFIX CHEBI: <http://purl.obolibrary.org/obo/CHEBI_>\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX up: <http://purl.uniprot.org/core/>\n\n\nSELECT \n    DISTINCT\n        ?uniprot\n        ?uniprotID\n        ?recname\n        ?gene\n        ?chebi\n        ?uniprotName\nWHERE {\n#  SERVICE <https://sparql.rhea-db.org/sparql> {\n     VALUES (?chebi) { (CHEBI:32395) }\n     ?rhea rh:side/rh:contains/rh:compound ?compound .\n     ?compound rh:chebi ?chebi .\n     ?chebi up:name ?uniprotName .\n # }\n  ?uniprot up:annotation/up:catalyticActivity/up:catalyzedReaction ?rhea .\n  ?uniprot up:mnemonic ?uniprotID .\n  ?uniprot up:recommendedName/up:fullName ?recname .\n  OPTIONAL {?uniprot up:encodedBy/skos:prefLabel ?gene .}\n}\n",
+      "summary": {
+        "successfulRuns": 0,
+        "note": "No run was successful, see measurements-failed.json.",
+        "failedRuns": 5
+      },
+      "runs": [],
+      "logicalPlan": {
+        "identicalAcrossSuccessfulRunsOfBothVariants": true,
+        "discardedWarmupRuns": 1,
+        "successfulRuns": 5,
+        "failedRuns": 0,
+        "planningRequests": [
+          28,
+          28,
+          28,
+          28,
+          28
+        ],
+        "planningCacheMisses": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "plan": "distinct{input=project{input=leftjoin{input=[join{input=[join{input=[values{variables=[?chebi] bindings=[{chebi=<http://purl.obolibrary.org/obo/CHEBI_32395>}]}, union{input=[pattern@<https://sparql.uniprot.org/sparql>{subject=?compound predicate=<http://rdf.rhea-db.org/chebi> object=?chebi graph=DefaultGraph()}, pattern@<https://sparql.rhea-db.org/sparql>{subject=?compound predicate=<http://rdf.rhea-db.org/chebi> object=?chebi graph=DefaultGraph()}]}, union{input=[pattern@<https://sparql.uniprot.org/sparql>{subject=?chebi predicate=<http://purl.uniprot.org/core/name> object=?uniprotName graph=DefaultGraph()}, pattern@<https://sparql.rhea-db.org/sparql>{subject=?chebi predicate=<http://purl.uniprot.org/core/name> object=?uniprotName graph=DefaultGraph()}]}, union{input=[pattern@<https://sparql.uniprot.org/sparql>{subject=?rhea predicate=<http://rdf.rhea-db.org/side> object=?var0 graph=DefaultGraph()}, pattern@<https://sparql.rhea-db.org/sparql>{subject=?rhea predicate=<http://rdf.rhea-db.org/side> object=?var0 graph=DefaultGraph()}]}, union{input=[pattern@<https://sparql.uniprot.org/sparql>{subject=?var0 predicate=<http://rdf.rhea-db.org/contains> object=?var1 graph=DefaultGraph()}, pattern@<https://sparql.rhea-db.org/sparql>{subject=?var0 predicate=<http://rdf.rhea-db.org/contains> object=?var1 graph=DefaultGraph()}]}, union{input=[pattern@<https://sparql.uniprot.org/sparql>{subject=?var1 predicate=<http://rdf.rhea-db.org/compound> object=?compound graph=DefaultGraph()}, pattern@<https://sparql.rhea-db.org/sparql>{subject=?var1 predicate=<http://rdf.rhea-db.org/compound> object=?compound graph=DefaultGraph()}]}]}, join@<https://sparql.uniprot.org/sparql>{input=[pattern{subject=?var3 predicate=<http://purl.uniprot.org/core/catalyzedReaction> object=?rhea graph=DefaultGraph()}, pattern{subject=?var2 predicate=<http://purl.uniprot.org/core/catalyticActivity> object=?var3 graph=DefaultGraph()}, pattern{subject=?uniprot predicate=<http://purl.uniprot.org/core/annotation> object=?var2 graph=DefaultGraph()}, pattern{subject=?uniprot predicate=<http://purl.uniprot.org/core/mnemonic> object=?uniprotID graph=DefaultGraph()}, pattern{subject=?uniprot predicate=<http://purl.uniprot.org/core/recommendedName> object=?var4 graph=DefaultGraph()}, pattern{subject=?var4 predicate=<http://purl.uniprot.org/core/fullName> object=?recname graph=DefaultGraph()}]}]}, join@<https://sparql.uniprot.org/sparql>{input=[pattern{subject=?uniprot predicate=<http://purl.uniprot.org/core/encodedBy> object=?var5 graph=DefaultGraph()}, pattern{subject=?var5 predicate=<http://www.w3.org/2004/02/skos/core#prefLabel> object=?gene graph=DefaultGraph()}]}]} variables=[?uniprot, ?uniprotID, ?recname, ?gene, ?chebi, ?uniprotName]}}",
+        "planningRequestUrls": [
+          "GET https://sparql.uniprot.org/sparql",
+          "GET https://sparql.rhea-db.org/sparql",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fchebi%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fchebi%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fname%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fname%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fside%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fside%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fcontains%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fcontains%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fcompound%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fcompound%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyzedReaction%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyzedReaction%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyticActivity%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyticActivity%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fannotation%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fannotation%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fmnemonic%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fmnemonic%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FrecommendedName%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FrecommendedName%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FfullName%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FfullName%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FencodedBy%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FencodedBy%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.w3.org%2F2004%2F02%2Fskos%2Fcore%23prefLabel%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.w3.org%2F2004%2F02%2Fskos%2Fcore%23prefLabel%3E%20%3Fo%20.%20%7D"
+        ]
+      }
+    },
+    "federation/rhea-enzymes-transporters.sparql": {
+      "sources": [
+        "https://sparql.uniprot.org/sparql",
+        "https://sparql.rhea-db.org/sparql"
+      ],
+      "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX dc: <http://purl.org/dc/terms/>\nPREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX dbpedia: <http://dbpedia.org/resource/>\nPREFIX dbpedia-owl: <http://dbpedia.org/ontology/>\nPREFIX dbpprop: <http://dbpedia.org/property/>\nPREFIX wdprop: <http://www.wikidata.org/prop/direct/>\nPREFIX ruben: <https://ruben.verborgh.org/profile/#>\nPREFIX rubent: <https://www.rubensworks.net/#>\nPREFIX schema: <http://schema.org/>\nPREFIX bow: <https://betweenourworlds.org/ontology/>\nPREFIX lc: <http://semweb.mmlab.be/ns/linkedconnections#>\n# Select all Rhea reactions linked to protein sequences (enzymes and transporters) in UniProtKB\n# Datasources: https://sparql.uniprot.org/sparql https://sparql.rhea-db.org/sparql\n\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\n# Query 12\n# Select all Rhea reactions used to annotate enzyme sequences in UniProtKB\n# return the number of UniProtKB entries\n# Federated query using a service to UniProt SPARQL endpoint\n# \n# This query corresponds to the Rhea website query:\n# https://www.rhea-db.org/rhea?query=uniprot:*\n# \nSELECT ?uniprotCount ?rhea ?accession ?equation \nWHERE {\n  { \n  \tSELECT ?rhea (count(?uniprot) as ?uniprotCount) {\n      ?uniprot up:annotation/up:catalyticActivity/up:catalyzedReaction ?rhea . \n  \t}\n  \tGROUP BY ?rhea\n  }\n  ?rhea rh:accession ?accession .\n  ?rhea rh:equation ?equation .\n}\n",
+      "summary": {
+        "successfulRuns": 5,
+        "results": [
+          56656
+        ],
+        "requests": {
+          "median": 18,
+          "mean": 18,
+          "min": 18,
+          "max": 18
+        },
+        "totalTimeMs": {
+          "median": 3165,
+          "mean": 3156.4,
+          "min": 3075.9,
+          "max": 3206
+        },
+        "timeToFirstResultMs": {
+          "median": 2072.5,
+          "mean": 2070.2,
+          "min": 2006.2,
+          "max": 2163.6
+        },
+        "cacheMisses": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "failedRuns": 0
+      },
+      "runs": [
+        {
+          "variantCheck": "before",
+          "results": 56656,
+          "timeToFirstResultMs": 2008.9,
+          "totalTimeMs": 3134,
+          "timedOut": false,
+          "error": null,
+          "requests": 18,
+          "requestsPerHost": {
+            "sparql.uniprot.org": 10,
+            "sparql.rhea-db.org": 8
+          },
+          "cache": {
+            "hits": 18,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            3
+          ],
+          "requestUrls": [
+            "GET https://sparql.uniprot.org/sparql",
+            "GET https://sparql.rhea-db.org/sparql",
+            "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fannotation%3E%20%3Fo%20.%20%7D",
+            "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fannotation%3E%20%3Fo%20.%20%7D",
+            "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyticActivity%3E%20%3Fo%20.%20%7D",
+            "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyticActivity%3E%20%3Fo%20.%20%7D",
+            "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyzedReaction%3E%20%3Fo%20.%20%7D",
+            "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyzedReaction%3E%20%3Fo%20.%20%7D",
+            "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Faccession%3E%20%3Fo%20.%20%7D",
+            "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Faccession%3E%20%3Fo%20.%20%7D",
+            "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fequation%3E%20%3Fo%20.%20%7D",
+            "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fequation%3E%20%3Fo%20.%20%7D",
+            "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20SELECT%20%3Frhea%20(%20COUNT(%20%3Funiprot%20)%20AS%20%3FuniprotCount%20)%20WHERE%20%7B%20%3Funiprot%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fannotation%3E%20%3Fvar0%20.%20%3Fvar0%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyticActivity%3E%20%3Fvar1%20.%20%3Fvar1%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyzedReaction%3E%20%3Frhea%20.%20%7D%20GROUP%20BY%20%3Frhea%20%7D",
+            "GET https://sparql.uniprot.org/sparql?query=SELECT%20%3Frhea%20%3Fequation%20WHERE%20%7B%20%3Frhea%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fequation%3E%20%3Fequation%20.%20%7D",
+            "GET https://sparql.rhea-db.org/sparql?query=SELECT%20%3Frhea%20%3Fequation%20WHERE%20%7B%20%3Frhea%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fequation%3E%20%3Fequation%20.%20%7D",
+            "GET https://sparql.uniprot.org/sparql?query=SELECT%20%3Frhea%20%3FuniprotCount%20WHERE%20%7B%20SELECT%20%3Frhea%20(%20COUNT(%20%3Funiprot%20)%20AS%20%3FuniprotCount%20)%20WHERE%20%7B%20%3Funiprot%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fannotation%3E%20%3Fvar0%20.%20%3Fvar0%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyticActivity%3E%20%3Fvar1%20.%20%3Fvar1%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyzedReaction%3E%20%3Frhea%20.%20%7D%20GROUP%20BY%20%3Frhea%20%7D",
+            "GET https://sparql.uniprot.org/sparql?query=SELECT%20%3Frhea%20%3Faccession%20WHERE%20%7B%20%3Frhea%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Faccession%3E%20%3Faccession%20.%20%7D",
+            "GET https://sparql.rhea-db.org/sparql?query=SELECT%20%3Frhea%20%3Faccession%20WHERE%20%7B%20%3Frhea%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Faccession%3E%20%3Faccession%20.%20%7D"
+          ]
+        },
+        {
+          "variantCheck": "before",
+          "results": 56656,
+          "timeToFirstResultMs": 2163.6,
+          "totalTimeMs": 3206,
+          "timedOut": false,
+          "error": null,
+          "requests": 18,
+          "requestsPerHost": {
+            "sparql.uniprot.org": 10,
+            "sparql.rhea-db.org": 8
+          },
+          "cache": {
+            "hits": 18,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            3
+          ]
+        },
+        {
+          "variantCheck": "before",
+          "results": 56656,
+          "timeToFirstResultMs": 2006.2,
+          "totalTimeMs": 3075.9,
+          "timedOut": false,
+          "error": null,
+          "requests": 18,
+          "requestsPerHost": {
+            "sparql.uniprot.org": 10,
+            "sparql.rhea-db.org": 8
+          },
+          "cache": {
+            "hits": 18,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            3
+          ]
+        },
+        {
+          "variantCheck": "before",
+          "results": 56656,
+          "timeToFirstResultMs": 2072.5,
+          "totalTimeMs": 3165,
+          "timedOut": false,
+          "error": null,
+          "requests": 18,
+          "requestsPerHost": {
+            "sparql.uniprot.org": 10,
+            "sparql.rhea-db.org": 8
+          },
+          "cache": {
+            "hits": 18,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            3
+          ]
+        },
+        {
+          "variantCheck": "before",
+          "results": 56656,
+          "timeToFirstResultMs": 2099.8,
+          "totalTimeMs": 3201.1,
+          "timedOut": false,
+          "error": null,
+          "requests": 18,
+          "requestsPerHost": {
+            "sparql.uniprot.org": 10,
+            "sparql.rhea-db.org": 8
+          },
+          "cache": {
+            "hits": 18,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            3
+          ]
+        }
+      ],
+      "logicalPlan": {
+        "identicalAcrossSuccessfulRunsOfBothVariants": true,
+        "discardedWarmupRuns": 1,
+        "successfulRuns": 5,
+        "failedRuns": 0,
+        "planningRequests": [
+          12,
+          12,
+          12,
+          12,
+          12
+        ],
+        "planningCacheMisses": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "plan": "project{input=join{input=[join{input=[union{input=[pattern@<https://sparql.uniprot.org/sparql>{subject=?rhea predicate=<http://rdf.rhea-db.org/accession> object=?accession graph=DefaultGraph()}, pattern@<https://sparql.rhea-db.org/sparql>{subject=?rhea predicate=<http://rdf.rhea-db.org/accession> object=?accession graph=DefaultGraph()}]}, union{input=[pattern@<https://sparql.uniprot.org/sparql>{subject=?rhea predicate=<http://rdf.rhea-db.org/equation> object=?equation graph=DefaultGraph()}, pattern@<https://sparql.rhea-db.org/sparql>{subject=?rhea predicate=<http://rdf.rhea-db.org/equation> object=?equation graph=DefaultGraph()}]}]}, join@<https://sparql.uniprot.org/sparql>{input=[project{input=extend{input=group{input=join{input=[pattern{subject=?uniprot predicate=<http://purl.uniprot.org/core/annotation> object=?var0 graph=DefaultGraph()}, pattern{subject=?var0 predicate=<http://purl.uniprot.org/core/catalyticActivity> object=?var1 graph=DefaultGraph()}, pattern{subject=?var1 predicate=<http://purl.uniprot.org/core/catalyzedReaction> object=?rhea graph=DefaultGraph()}]} variables=[?rhea] aggregates=[expression{subType=aggregate aggregator=count expression=expression{subType=term term=?uniprot} distinct=false variable=?var2}]} variable=?uniprotCount expression=expression{subType=term term=?var2}} variables=[?rhea, ?uniprotCount]}]}]} variables=[?uniprotCount, ?rhea, ?accession, ?equation]}",
+        "planningRequestUrls": [
+          "GET https://sparql.uniprot.org/sparql",
+          "GET https://sparql.rhea-db.org/sparql",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fannotation%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fannotation%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyticActivity%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyticActivity%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyzedReaction%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyzedReaction%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Faccession%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Faccession%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fequation%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fequation%3E%20%3Fo%20.%20%7D"
+        ]
+      }
+    },
+    "federation/rhea-organism.sparql": {
+      "sources": [
+        "https://sparql.uniprot.org/sparql",
+        "https://sparql.rhea-db.org/sparql"
+      ],
+      "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX dc: <http://purl.org/dc/terms/>\nPREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX dbpedia: <http://dbpedia.org/resource/>\nPREFIX dbpedia-owl: <http://dbpedia.org/ontology/>\nPREFIX dbpprop: <http://dbpedia.org/property/>\nPREFIX wdprop: <http://www.wikidata.org/prop/direct/>\nPREFIX ruben: <https://ruben.verborgh.org/profile/#>\nPREFIX rubent: <https://www.rubensworks.net/#>\nPREFIX schema: <http://schema.org/>\nPREFIX bow: <https://betweenourworlds.org/ontology/>\nPREFIX lc: <http://semweb.mmlab.be/ns/linkedconnections#>\n# Select all Rhea reactions used in UniProtKB/Swiss-Prot for a given organism (NCBI taxonomy ID)\n# Datasources: https://sparql.uniprot.org/sparql https://sparql.rhea-db.org/sparql\n\nPREFIX rh: <http://rdf.rhea-db.org/>\nPREFIX up: <http://purl.uniprot.org/core/>\nPREFIX taxon: <http://purl.uniprot.org/taxonomy/>\nPREFIX up: <http://purl.uniprot.org/core/>\n\n# Query 13\n# Select all Rhea reactions used to annotate Escherichia coli (taxid=83333) in UniProtKB/Swiss-Prot\n# return the number of UniProtKB entries\n# \n# Federated query using a service to UniProt SPARQL endpoint\n# \n# This query cannot be performed using the Rhea search website\nSELECT ?uniprot ?mnemo ?rhea ?accession ?equation \nWHERE {\n  { \n    VALUES (?taxid) { (taxon:83333) }\n    GRAPH <http://sparql.uniprot.org/uniprot> {\n      ?uniprot up:reviewed true . \n      ?uniprot up:mnemonic ?mnemo . \n      ?uniprot up:organism ?taxid .\n      ?uniprot up:annotation/up:catalyticActivity/up:catalyzedReaction ?rhea . \n    }\n  }\n  ?rhea rh:accession ?accession .\n  ?rhea rh:equation ?equation .\n}\n",
+      "summary": {
+        "successfulRuns": 0,
+        "note": "No run was successful, see measurements-failed.json.",
+        "failedRuns": 5
+      },
+      "runs": [],
+      "logicalPlan": {
+        "identicalAcrossSuccessfulRunsOfBothVariants": true,
+        "discardedWarmupRuns": 1,
+        "successfulRuns": 5,
+        "failedRuns": 0,
+        "planningRequests": [
+          18,
+          18,
+          18,
+          18,
+          18
+        ],
+        "planningCacheMisses": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "plan": "project{input=join{input=[join{input=[values{variables=[?taxid] bindings=[{taxid=<http://purl.uniprot.org/taxonomy/83333>}]}, union{input=[pattern@<https://sparql.uniprot.org/sparql>{subject=?rhea predicate=<http://rdf.rhea-db.org/accession> object=?accession graph=DefaultGraph()}, pattern@<https://sparql.rhea-db.org/sparql>{subject=?rhea predicate=<http://rdf.rhea-db.org/accession> object=?accession graph=DefaultGraph()}]}, union{input=[pattern@<https://sparql.uniprot.org/sparql>{subject=?rhea predicate=<http://rdf.rhea-db.org/equation> object=?equation graph=DefaultGraph()}, pattern@<https://sparql.rhea-db.org/sparql>{subject=?rhea predicate=<http://rdf.rhea-db.org/equation> object=?equation graph=DefaultGraph()}]}]}, join@<https://sparql.uniprot.org/sparql>{input=[pattern{subject=?uniprot predicate=<http://purl.uniprot.org/core/organism> object=?taxid graph=<http://sparql.uniprot.org/uniprot>}, pattern{subject=?uniprot predicate=<http://purl.uniprot.org/core/annotation> object=?var0 graph=<http://sparql.uniprot.org/uniprot>}, pattern{subject=?var0 predicate=<http://purl.uniprot.org/core/catalyticActivity> object=?var1 graph=<http://sparql.uniprot.org/uniprot>}, pattern{subject=?var1 predicate=<http://purl.uniprot.org/core/catalyzedReaction> object=?rhea graph=<http://sparql.uniprot.org/uniprot>}, pattern{subject=?uniprot predicate=<http://purl.uniprot.org/core/reviewed> object=\"true\" graph=<http://sparql.uniprot.org/uniprot>}, pattern{subject=?uniprot predicate=<http://purl.uniprot.org/core/mnemonic> object=?mnemo graph=<http://sparql.uniprot.org/uniprot>}]}]} variables=[?uniprot, ?mnemo, ?rhea, ?accession, ?equation]}",
+        "planningRequestUrls": [
+          "GET https://sparql.uniprot.org/sparql",
+          "GET https://sparql.rhea-db.org/sparql",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Forganism%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Forganism%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fannotation%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fannotation%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyticActivity%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyticActivity%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyzedReaction%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2FcatalyzedReaction%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Faccession%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Faccession%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fequation%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Frdf.rhea-db.org%2Fequation%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Freviewed%3E%20%22true%22%5E%5E%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23boolean%3E%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Freviewed%3E%20%22true%22%5E%5E%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23boolean%3E%20.%20%7D",
+          "GET https://sparql.uniprot.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fmnemonic%3E%20%3Fo%20.%20%7D",
+          "GET https://sparql.rhea-db.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fpurl.uniprot.org%2Fcore%2Fmnemonic%3E%20%3Fo%20.%20%7D"
+        ]
+      }
+    },
+    "federation/wikidata-dbpedia-cats.sparql": {
+      "sources": [
+        "https://dbpedia.org/sparql",
+        "https://query.wikidata.org/sparql"
+      ],
+      "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX dc: <http://purl.org/dc/terms/>\nPREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX dbpedia: <http://dbpedia.org/resource/>\nPREFIX dbpedia-owl: <http://dbpedia.org/ontology/>\nPREFIX dbpprop: <http://dbpedia.org/property/>\nPREFIX wdprop: <http://www.wikidata.org/prop/direct/>\nPREFIX ruben: <https://ruben.verborgh.org/profile/#>\nPREFIX rubent: <https://www.rubensworks.net/#>\nPREFIX schema: <http://schema.org/>\nPREFIX bow: <https://betweenourworlds.org/ontology/>\nPREFIX lc: <http://semweb.mmlab.be/ns/linkedconnections#>\n# The names of cats in DBpedia and Wikidata\n# Datasources: https://dbpedia.org/sparql https://query.wikidata.org/sparql\nPREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nSELECT * WHERE {\n  ?cat wdt:P31 wd:Q146 ;\n       wdt:P19 [ wdt:P17 wd:Q30 ] ; # wd:Q695511\n       rdfs:label ?name .\n  FILTER(LANG(?name) = \"en\")\n}\n\n",
+      "summary": {
+        "successfulRuns": 0,
+        "note": "No run was successful, see measurements-failed.json.",
+        "failedRuns": 5
+      },
+      "runs": [],
+      "logicalPlan": {
+        "identicalAcrossSuccessfulRunsOfBothVariants": true,
+        "discardedWarmupRuns": 1,
+        "successfulRuns": 5,
+        "failedRuns": 0,
+        "planningRequests": [
+          10,
+          10,
+          10,
+          10,
+          10
+        ],
+        "planningCacheMisses": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "plan": "project{input=join{input=[join{input=[union{input=[filter@<https://dbpedia.org/sparql>{input=pattern{subject=?cat predicate=<http://www.w3.org/2000/01/rdf-schema#label> object=?name graph=DefaultGraph()} expression=expression{subType=operator operator== args=[expression{subType=operator operator=lang args=[expression{subType=term term=?name}]}, expression{subType=term term=\"en\"}]}}, filter@<https://query.wikidata.org/sparql>{input=pattern{subject=?cat predicate=<http://www.w3.org/2000/01/rdf-schema#label> object=?name graph=DefaultGraph()} expression=expression{subType=operator operator== args=[expression{subType=operator operator=lang args=[expression{subType=term term=?name}]}, expression{subType=term term=\"en\"}]}}]}]}, join@<https://query.wikidata.org/sparql>{input=[pattern{subject=?cat predicate=<http://www.wikidata.org/prop/direct/P31> object=<http://www.wikidata.org/entity/Q146> graph=DefaultGraph()}, pattern{subject=?cat predicate=<http://www.wikidata.org/prop/direct/P19> object=?g_0 graph=DefaultGraph()}, pattern{subject=?g_0 predicate=<http://www.wikidata.org/prop/direct/P17> object=<http://www.wikidata.org/entity/Q30> graph=DefaultGraph()}]}]} variables=[?cat, ?name]}",
+        "planningRequestUrls": [
+          "GET https://dbpedia.org/sparql",
+          "GET https://query.wikidata.org/sparql",
+          "GET https://dbpedia.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2FP31%3E%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fentity%2FQ146%3E%20.%20%7D",
+          "GET https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2FP31%3E%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fentity%2FQ146%3E%20.%20%7D",
+          "GET https://dbpedia.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2FP19%3E%20%3Fo%20.%20%7D",
+          "GET https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2FP19%3E%20%3Fo%20.%20%7D",
+          "GET https://dbpedia.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label%3E%20%3Fo%20.%20%7D",
+          "GET https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label%3E%20%3Fo%20.%20%7D",
+          "GET https://dbpedia.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2FP17%3E%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fentity%2FQ30%3E%20.%20%7D",
+          "GET https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2FP17%3E%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fentity%2FQ30%3E%20.%20%7D"
+        ]
+      }
+    },
+    "heterogeneous/betweenourworlds.sparql": {
+      "sources": [
+        "https://data.betweenourworlds.org/2018-06",
+        "https://dbpedia.org/sparql"
+      ],
+      "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX dc: <http://purl.org/dc/terms/>\nPREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX dbpedia: <http://dbpedia.org/resource/>\nPREFIX dbpedia-owl: <http://dbpedia.org/ontology/>\nPREFIX dbpprop: <http://dbpedia.org/property/>\nPREFIX wdprop: <http://www.wikidata.org/prop/direct/>\nPREFIX ruben: <https://ruben.verborgh.org/profile/#>\nPREFIX rubent: <https://www.rubensworks.net/#>\nPREFIX schema: <http://schema.org/>\nPREFIX bow: <https://betweenourworlds.org/ontology/>\nPREFIX lc: <http://semweb.mmlab.be/ns/linkedconnections#>\n# 3. Find Anime TV series and their available streaming services\n# Datasources: https://data.betweenourworlds.org/2018-06 https://dbpedia.org/sparql\nSELECT ?animeName ?providerName WHERE {\n  ?stream a bow:Stream.\n  ?stream bow:object ?anime.\n  ?stream bow:providedBy ?provider.\n\n  ?anime a schema:TVSeries .\n  ?anime schema:name ?animeName .\n\n  ?provider foaf:name ?providerName\n\n  FILTER (lang(?animeName) = 'en')\n}\nLIMIT 10\n",
+      "summary": {
+        "successfulRuns": 0,
+        "note": "No run was successful, see measurements-failed.json.",
+        "failedRuns": 5
+      },
+      "runs": [],
+      "logicalPlan": {
+        "identicalAcrossSuccessfulRunsOfBothVariants": false,
+        "discardedWarmupRuns": 1,
+        "successfulRuns": 0,
+        "failedRuns": 5,
+        "planningRequests": [],
+        "planningCacheMisses": []
+      }
+    },
+    "heterogeneous/claimants-spratly-islands.sparql": {
+      "sources": [
+        "https://raw.githubusercontent.com/rubensworks/rdf-12-examples/refs/heads/master/territories/data.ttl",
+        "https://fragments.dbpedia.org/2016-04/en"
+      ],
+      "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX dc: <http://purl.org/dc/terms/>\nPREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX dbpedia: <http://dbpedia.org/resource/>\nPREFIX dbpedia-owl: <http://dbpedia.org/ontology/>\nPREFIX dbpprop: <http://dbpedia.org/property/>\nPREFIX wdprop: <http://www.wikidata.org/prop/direct/>\nPREFIX ruben: <https://ruben.verborgh.org/profile/#>\nPREFIX rubent: <https://www.rubensworks.net/#>\nPREFIX schema: <http://schema.org/>\nPREFIX bow: <https://betweenourworlds.org/ontology/>\nPREFIX lc: <http://semweb.mmlab.be/ns/linkedconnections#>\n# Claimants of the disputed Spratly Islands (RDF 1.2)\n# Datasource: https://raw.githubusercontent.com/rubensworks/rdf-12-examples/refs/heads/master/territories/data.ttl //fragments.dbpedia.org/*/en\nVERSION \"1.2\"\nPREFIX dbr:  <http://dbpedia.org/resource/>\nPREFIX geo:  <http://example.org/ontology/geo/>\nPREFIX prov: <http://www.w3.org/ns/prov#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n\nSELECT ?country ?claimantName ?claimDate\nWHERE {\n    << dbr:Spratly_Islands geo:partOf ?country >> prov:wasAttributedTo ?claimantResource ;\n        geo:claimDate ?claimDate .\n    ?claimantResource rdfs:label ?claimantName .\n}\nORDER BY ?claimDate\n",
+      "summary": {
+        "successfulRuns": 5,
+        "results": [
+          4
+        ],
+        "requests": {
+          "median": 10,
+          "mean": 10,
+          "min": 10,
+          "max": 10
+        },
+        "totalTimeMs": {
+          "median": 78.4,
+          "mean": 85.6,
+          "min": 77.1,
+          "max": 101.2
+        },
+        "timeToFirstResultMs": {
+          "median": 78.3,
+          "mean": 85.5,
+          "min": 77,
+          "max": 101.1
+        },
+        "cacheMisses": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "failedRuns": 0
+      },
+      "runs": [
+        {
+          "variantCheck": "before",
+          "results": 4,
+          "timeToFirstResultMs": 78.3,
+          "totalTimeMs": 78.4,
+          "timedOut": false,
+          "error": null,
+          "requests": 10,
+          "requestsPerHost": {
+            "raw.githubusercontent.com": 1,
+            "fragments.dbpedia.org": 9
+          },
+          "cache": {
+            "hits": 10,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            4
+          ],
+          "requestUrls": [
+            "GET https://raw.githubusercontent.com/rubensworks/rdf-12-examples/refs/heads/master/territories/data.ttl",
+            "GET https://fragments.dbpedia.org/2016-04/en",
+            "GET https://fragments.dbpedia.org/2016-04/en?predicate=http%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23reifies",
+            "GET https://fragments.dbpedia.org/2016-04/en?predicate=http%3A%2F%2Fwww.w3.org%2Fns%2Fprov%23wasAttributedTo",
+            "GET https://fragments.dbpedia.org/2016-04/en?predicate=http%3A%2F%2Fexample.org%2Fontology%2Fgeo%2FclaimDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_China&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Philippines&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Vietnam&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Taiwan&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label"
+          ]
+        },
+        {
+          "variantCheck": "before",
+          "results": 4,
+          "timeToFirstResultMs": 93.4,
+          "totalTimeMs": 93.5,
+          "timedOut": false,
+          "error": null,
+          "requests": 10,
+          "requestsPerHost": {
+            "raw.githubusercontent.com": 1,
+            "fragments.dbpedia.org": 9
+          },
+          "cache": {
+            "hits": 10,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            4
+          ]
+        },
+        {
+          "variantCheck": "before",
+          "results": 4,
+          "timeToFirstResultMs": 77.9,
+          "totalTimeMs": 78,
+          "timedOut": false,
+          "error": null,
+          "requests": 10,
+          "requestsPerHost": {
+            "raw.githubusercontent.com": 1,
+            "fragments.dbpedia.org": 9
+          },
+          "cache": {
+            "hits": 10,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            4
+          ]
+        },
+        {
+          "variantCheck": "before",
+          "results": 4,
+          "timeToFirstResultMs": 101.1,
+          "totalTimeMs": 101.2,
+          "timedOut": false,
+          "error": null,
+          "requests": 10,
+          "requestsPerHost": {
+            "raw.githubusercontent.com": 1,
+            "fragments.dbpedia.org": 9
+          },
+          "cache": {
+            "hits": 10,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            4
+          ]
+        },
+        {
+          "variantCheck": "before",
+          "results": 4,
+          "timeToFirstResultMs": 77,
+          "totalTimeMs": 77.1,
+          "timedOut": false,
+          "error": null,
+          "requests": 10,
+          "requestsPerHost": {
+            "raw.githubusercontent.com": 1,
+            "fragments.dbpedia.org": 9
+          },
+          "cache": {
+            "hits": 10,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            4
+          ]
+        }
+      ],
+      "logicalPlan": {
+        "identicalAcrossSuccessfulRunsOfBothVariants": true,
+        "discardedWarmupRuns": 1,
+        "successfulRuns": 5,
+        "failedRuns": 0,
+        "planningRequests": [
+          6,
+          6,
+          6,
+          6,
+          6
+        ],
+        "planningCacheMisses": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "plan": "project{input=orderby{input=join{input=[pattern@<https://raw.githubusercontent.com/rubensworks/rdf-12-examples/refs/heads/master/territories/data.ttl>{subject=?g_0 predicate=<http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> object=Quad{subject=<http://dbpedia.org/resource/Spratly_Islands> predicate=<http://example.org/ontology/geo/partOf> object=?country graph=DefaultGraph()} graph=DefaultGraph()}, pattern@<https://raw.githubusercontent.com/rubensworks/rdf-12-examples/refs/heads/master/territories/data.ttl>{subject=?g_0 predicate=<http://www.w3.org/ns/prov#wasAttributedTo> object=?claimantResource graph=DefaultGraph()}, pattern@<https://raw.githubusercontent.com/rubensworks/rdf-12-examples/refs/heads/master/territories/data.ttl>{subject=?g_0 predicate=<http://example.org/ontology/geo/claimDate> object=?claimDate graph=DefaultGraph()}, pattern@<https://fragments.dbpedia.org/2016-04/en>{subject=?claimantResource predicate=<http://www.w3.org/2000/01/rdf-schema#label> object=?claimantName graph=DefaultGraph()}]} expressions=[expression{subType=term term=?claimDate}]} variables=[?country, ?claimantName, ?claimDate]}",
+        "planningRequestUrls": [
+          "GET https://raw.githubusercontent.com/rubensworks/rdf-12-examples/refs/heads/master/territories/data.ttl",
+          "GET https://fragments.dbpedia.org/2016-04/en",
+          "GET https://fragments.dbpedia.org/2016-04/en?predicate=http%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23reifies",
+          "GET https://fragments.dbpedia.org/2016-04/en?predicate=http%3A%2F%2Fwww.w3.org%2Fns%2Fprov%23wasAttributedTo",
+          "GET https://fragments.dbpedia.org/2016-04/en?predicate=http%3A%2F%2Fexample.org%2Fontology%2Fgeo%2FclaimDate",
+          "GET https://fragments.dbpedia.org/2016-04/en?predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label"
+        ]
+      }
+    },
+    "heterogeneous/closed-stations.sparql": {
+      "sources": [
+        "https://graph.irail.be/sncb/connections",
+        "https://query.wikidata.org/bigdata/ldf"
+      ],
+      "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX dc: <http://purl.org/dc/terms/>\nPREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX dbpedia: <http://dbpedia.org/resource/>\nPREFIX dbpedia-owl: <http://dbpedia.org/ontology/>\nPREFIX dbpprop: <http://dbpedia.org/property/>\nPREFIX wdprop: <http://www.wikidata.org/prop/direct/>\nPREFIX ruben: <https://ruben.verborgh.org/profile/#>\nPREFIX rubent: <https://www.rubensworks.net/#>\nPREFIX schema: <http://schema.org/>\nPREFIX bow: <https://betweenourworlds.org/ontology/>\nPREFIX lc: <http://semweb.mmlab.be/ns/linkedconnections#>\n# Closed stations that have been reopened after 2000\n# Datasources: https://graph.irail.be/sncb/connections https://query.wikidata.org/bigdata/ldf\n\nSELECT ?officialOpening ?departureStop ?label ?wikidataDepartureStop WHERE {\n GRAPH ?g {\n   \t?connection lc:departureStop ?departureStop.\n  }\n  \n  ?wikidataDepartureStop wdprop:P2888 ?departureStop ;                 \n                         rdfs:label ?label;\n                         wdprop:P1619 ?officialOpening .\n\n  FILTER(YEAR(?officialOpening) > 2000)\n}\n",
+      "summary": {
+        "successfulRuns": 0,
+        "note": "No run was successful, see measurements-failed.json.",
+        "failedRuns": 5
+      },
+      "runs": [],
+      "logicalPlan": {
+        "identicalAcrossSuccessfulRunsOfBothVariants": false,
+        "discardedWarmupRuns": 1,
+        "successfulRuns": 0,
+        "failedRuns": 5,
+        "planningRequests": [],
+        "planningCacheMisses": []
+      }
+    },
+    "heterogeneous/common-interests.sparql": {
+      "sources": [
+        "https://ruben.verborgh.org/profile/",
+        "https://www.rubensworks.net/",
+        "https://fragments.dbpedia.org/2016-04/en"
+      ],
+      "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX dc: <http://purl.org/dc/terms/>\nPREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX dbpedia: <http://dbpedia.org/resource/>\nPREFIX dbpedia-owl: <http://dbpedia.org/ontology/>\nPREFIX dbpprop: <http://dbpedia.org/property/>\nPREFIX wdprop: <http://www.wikidata.org/prop/direct/>\nPREFIX ruben: <https://ruben.verborgh.org/profile/#>\nPREFIX rubent: <https://www.rubensworks.net/#>\nPREFIX schema: <http://schema.org/>\nPREFIX bow: <https://betweenourworlds.org/ontology/>\nPREFIX lc: <http://semweb.mmlab.be/ns/linkedconnections#>\n# 2. All common interests of Ruben V and Ruben T\n# Datasources: https://ruben.verborgh.org/profile/ https://www.rubensworks.net/ //fragments.dbpedia.org/*/en\nSELECT ?interestName\nWHERE {\n  ruben:me foaf:topic_interest ?interest.\n  rubent:me foaf:topic_interest ?interest.\n  ?interest rdfs:label ?interestName.\n  FILTER LANGMATCHES(LANG(?interestName),  \"EN\")\n}\n",
+      "summary": {
+        "successfulRuns": 5,
+        "results": [
+          4
+        ],
+        "requests": {
+          "median": 14,
+          "mean": 14,
+          "min": 14,
+          "max": 14
+        },
+        "totalTimeMs": {
+          "median": 261.8,
+          "mean": 305.5,
+          "min": 249.6,
+          "max": 427.9
+        },
+        "timeToFirstResultMs": {
+          "median": 257.8,
+          "mean": 299.2,
+          "min": 244.4,
+          "max": 419.2
+        },
+        "cacheMisses": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "failedRuns": 0
+      },
+      "runs": [
+        {
+          "variantCheck": "before",
+          "results": 4,
+          "timeToFirstResultMs": 244.4,
+          "totalTimeMs": 249.6,
+          "timedOut": false,
+          "error": null,
+          "requests": 14,
+          "requestsPerHost": {
+            "ruben.verborgh.org": 1,
+            "www.rubensworks.net": 1,
+            "fragments.dbpedia.org": 10,
+            "schema.org": 2
+          },
+          "cache": {
+            "hits": 14,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            2
+          ],
+          "requestUrls": [
+            "GET https://ruben.verborgh.org/profile/",
+            "GET https://www.rubensworks.net/",
+            "GET https://fragments.dbpedia.org/2016-04/en",
+            "GET https://schema.org",
+            "GET https://schema.org//docs/jsonldcontext.jsonld",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=https%3A%2F%2Fruben.verborgh.org%2Fprofile%2F%23me&predicate=http%3A%2F%2Fxmlns.com%2Ffoaf%2F0.1%2Ftopic_interest",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=https%3A%2F%2Fwww.rubensworks.net%2F%23me&predicate=http%3A%2F%2Fxmlns.com%2Ffoaf%2F0.1%2Ftopic_interest",
+            "GET https://fragments.dbpedia.org/2016-04/en?predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FLinked_Data&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FSemantic_Web&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FWorld_Wide_Web&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FDecentralization&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FHypermedia&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FRepresentational_state_transfer&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label"
+          ]
+        },
+        {
+          "variantCheck": "before",
+          "results": 4,
+          "timeToFirstResultMs": 257.8,
+          "totalTimeMs": 261.8,
+          "timedOut": false,
+          "error": null,
+          "requests": 14,
+          "requestsPerHost": {
+            "ruben.verborgh.org": 1,
+            "www.rubensworks.net": 1,
+            "fragments.dbpedia.org": 10,
+            "schema.org": 2
+          },
+          "cache": {
+            "hits": 14,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            2
+          ]
+        },
+        {
+          "variantCheck": "before",
+          "results": 4,
+          "timeToFirstResultMs": 419.2,
+          "totalTimeMs": 427.9,
+          "timedOut": false,
+          "error": null,
+          "requests": 14,
+          "requestsPerHost": {
+            "ruben.verborgh.org": 1,
+            "www.rubensworks.net": 1,
+            "fragments.dbpedia.org": 10,
+            "schema.org": 2
+          },
+          "cache": {
+            "hits": 14,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            2
+          ]
+        },
+        {
+          "variantCheck": "before",
+          "results": 4,
+          "timeToFirstResultMs": 251.8,
+          "totalTimeMs": 256,
+          "timedOut": false,
+          "error": null,
+          "requests": 14,
+          "requestsPerHost": {
+            "ruben.verborgh.org": 1,
+            "www.rubensworks.net": 1,
+            "fragments.dbpedia.org": 10,
+            "schema.org": 2
+          },
+          "cache": {
+            "hits": 14,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            2
+          ]
+        },
+        {
+          "variantCheck": "before",
+          "results": 4,
+          "timeToFirstResultMs": 323.1,
+          "totalTimeMs": 332.2,
+          "timedOut": false,
+          "error": null,
+          "requests": 14,
+          "requestsPerHost": {
+            "ruben.verborgh.org": 1,
+            "www.rubensworks.net": 1,
+            "fragments.dbpedia.org": 10,
+            "schema.org": 2
+          },
+          "cache": {
+            "hits": 14,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            2
+          ]
+        }
+      ],
+      "logicalPlan": {
+        "identicalAcrossSuccessfulRunsOfBothVariants": true,
+        "discardedWarmupRuns": 1,
+        "successfulRuns": 5,
+        "failedRuns": 0,
+        "planningRequests": [
+          8,
+          8,
+          8,
+          8,
+          8
+        ],
+        "planningCacheMisses": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "plan": "project{input=filter{input=join{input=[union{input=[pattern@<https://fragments.dbpedia.org/2016-04/en>{subject=?interest predicate=<http://www.w3.org/2000/01/rdf-schema#label> object=?interestName graph=DefaultGraph()}, pattern@<https://ruben.verborgh.org/profile/\nhttps://www.rubensworks.net/>{subject=?interest predicate=<http://www.w3.org/2000/01/rdf-schema#label> object=?interestName graph=DefaultGraph()}]}, pattern@<https://ruben.verborgh.org/profile/\nhttps://www.rubensworks.net/>{subject=<https://ruben.verborgh.org/profile/#me> predicate=<http://xmlns.com/foaf/0.1/topic_interest> object=?interest graph=DefaultGraph()}, pattern@<https://ruben.verborgh.org/profile/\nhttps://www.rubensworks.net/>{subject=<https://www.rubensworks.net/#me> predicate=<http://xmlns.com/foaf/0.1/topic_interest> object=?interest graph=DefaultGraph()}]} expression=expression{subType=operator operator=langmatches args=[expression{subType=operator operator=lang args=[expression{subType=term term=?interestName}]}, expression{subType=term term=\"EN\"}]}} variables=[?interestName]}",
+        "planningRequestUrls": [
+          "GET https://ruben.verborgh.org/profile/",
+          "GET https://www.rubensworks.net/",
+          "GET https://fragments.dbpedia.org/2016-04/en",
+          "GET https://schema.org",
+          "GET https://schema.org//docs/jsonldcontext.jsonld",
+          "GET https://fragments.dbpedia.org/2016-04/en?subject=https%3A%2F%2Fruben.verborgh.org%2Fprofile%2F%23me&predicate=http%3A%2F%2Fxmlns.com%2Ffoaf%2F0.1%2Ftopic_interest",
+          "GET https://fragments.dbpedia.org/2016-04/en?subject=https%3A%2F%2Fwww.rubensworks.net%2F%23me&predicate=http%3A%2F%2Fxmlns.com%2Ffoaf%2F0.1%2Ftopic_interest",
+          "GET https://fragments.dbpedia.org/2016-04/en?predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label"
+        ]
+      }
+    },
+    "heterogeneous/disputed-territories.sparql": {
+      "sources": [
+        "https://raw.githubusercontent.com/rubensworks/rdf-12-examples/refs/heads/master/territories/data.ttl",
+        "https://fragments.dbpedia.org/2016-04/en"
+      ],
+      "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX dc: <http://purl.org/dc/terms/>\nPREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX dbpedia: <http://dbpedia.org/resource/>\nPREFIX dbpedia-owl: <http://dbpedia.org/ontology/>\nPREFIX dbpprop: <http://dbpedia.org/property/>\nPREFIX wdprop: <http://www.wikidata.org/prop/direct/>\nPREFIX ruben: <https://ruben.verborgh.org/profile/#>\nPREFIX rubent: <https://www.rubensworks.net/#>\nPREFIX schema: <http://schema.org/>\nPREFIX bow: <https://betweenourworlds.org/ontology/>\nPREFIX lc: <http://semweb.mmlab.be/ns/linkedconnections#>\n# Disputed territories and claimants (RDF 1.2)\n# Datasource: https://raw.githubusercontent.com/rubensworks/rdf-12-examples/refs/heads/master/territories/data.ttl //fragments.dbpedia.org/*/en\nVERSION \"1.2\"\nPREFIX dbr:  <http://dbpedia.org/resource/>\nPREFIX geo:  <http://example.org/ontology/geo/>\nPREFIX prov: <http://www.w3.org/ns/prov#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n\nSELECT ?territoryName\n       (COUNT(?claimant) AS ?claimantsCount)\n       (GROUP_CONCAT(?claimantName; separator=\", \") AS ?claimants)\nWHERE {\n    << ?territory geo:partOf ?country >> prov:wasAttributedTo ?claimant .\n    ?claimant rdfs:label ?claimantName .\n    ?territory rdfs:label ?territoryName .\n}\nGROUP BY ?territoryName\nHAVING (COUNT(?claimant) > 1)\nORDER BY DESC(?claimantsCount)\n",
+      "summary": {
+        "successfulRuns": 5,
+        "results": [
+          12
+        ],
+        "requests": {
+          "median": 107,
+          "mean": 107,
+          "min": 107,
+          "max": 107
+        },
+        "totalTimeMs": {
+          "median": 343,
+          "mean": 358.4,
+          "min": 299.1,
+          "max": 432.5
+        },
+        "timeToFirstResultMs": {
+          "median": 342.9,
+          "mean": 358.2,
+          "min": 298.9,
+          "max": 432.3
+        },
+        "cacheMisses": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "failedRuns": 0
+      },
+      "runs": [
+        {
+          "variantCheck": "before",
+          "results": 12,
+          "timeToFirstResultMs": 403.1,
+          "totalTimeMs": 403.4,
+          "timedOut": false,
+          "error": null,
+          "requests": 107,
+          "requestsPerHost": {
+            "raw.githubusercontent.com": 1,
+            "fragments.dbpedia.org": 106
+          },
+          "cache": {
+            "hits": 107,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            4
+          ],
+          "requestUrls": [
+            "GET https://raw.githubusercontent.com/rubensworks/rdf-12-examples/refs/heads/master/territories/data.ttl",
+            "GET https://fragments.dbpedia.org/2016-04/en",
+            "GET https://fragments.dbpedia.org/2016-04/en?predicate=http%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23reifies",
+            "GET https://fragments.dbpedia.org/2016-04/en?predicate=http%3A%2F%2Fwww.w3.org%2Fns%2Fprov%23wasAttributedTo",
+            "GET https://fragments.dbpedia.org/2016-04/en?predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FCrimea&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FKuril_Islands&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FRussia&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Ukraine&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Russia&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FWestern_Sahara&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FNorthern_Cyprus&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Morocco&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FPolisario_Front&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Northern_Cyprus&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Cyprus&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FTaiwan&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FSpratly_Islands&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FParacel_Islands&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Taiwan&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_China&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FChina&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FSouth_Ossetia&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_South_Ossetia&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FAbkhazia&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FKosovo&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Georgia&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Abkhazia&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Kosovo&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FSomaliland&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Serbia&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Somaliland&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Somalia&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Philippines&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FPhilippines&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FVietnam&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Vietnam&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Japan&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FJapan&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FFrance&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGermany&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_France&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FCanada&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Germany&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Canada&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FBrazil&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FAustralia&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FNew_Zealand&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Brazil&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Australia&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FNorway&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_New_Zealand&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Norway&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FSweden&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FFinland&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FPortugal&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Sweden&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Finland&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FNetherlands&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Portugal&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_the_Netherlands&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FBelgium&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FAustria&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FSwitzerland&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Belgium&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Austria&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FIreland&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Switzerland&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Ireland&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FItaly&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FSpain&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FPoland&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Italy&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Spain&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FCzech_Republic&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Poland&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Czech_Republic&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FUnited_States&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FIndia&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FArgentina&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_the_United_States&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_India&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FChile&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Argentina&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Chile&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FMexico&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FEgypt&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FSouth_Africa&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Mexico&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Egypt&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FKenya&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_South_Africa&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Kenya&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FSaudi_Arabia&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FIran&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FTurkey&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Saudi_Arabia&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Iran&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FEthiopia&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Turkey&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Ethiopia&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FIndonesia&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FMalaysia&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FThailand&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Indonesia&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Malaysia&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGovernment_of_Thailand&predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label"
+          ]
+        },
+        {
+          "variantCheck": "before",
+          "results": 12,
+          "timeToFirstResultMs": 432.3,
+          "totalTimeMs": 432.5,
+          "timedOut": false,
+          "error": null,
+          "requests": 107,
+          "requestsPerHost": {
+            "raw.githubusercontent.com": 1,
+            "fragments.dbpedia.org": 106
+          },
+          "cache": {
+            "hits": 107,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            4
+          ]
+        },
+        {
+          "variantCheck": "before",
+          "results": 12,
+          "timeToFirstResultMs": 298.9,
+          "totalTimeMs": 299.1,
+          "timedOut": false,
+          "error": null,
+          "requests": 107,
+          "requestsPerHost": {
+            "raw.githubusercontent.com": 1,
+            "fragments.dbpedia.org": 106
+          },
+          "cache": {
+            "hits": 107,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            4
+          ]
+        },
+        {
+          "variantCheck": "before",
+          "results": 12,
+          "timeToFirstResultMs": 313.7,
+          "totalTimeMs": 313.9,
+          "timedOut": false,
+          "error": null,
+          "requests": 107,
+          "requestsPerHost": {
+            "raw.githubusercontent.com": 1,
+            "fragments.dbpedia.org": 106
+          },
+          "cache": {
+            "hits": 107,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            4
+          ]
+        },
+        {
+          "variantCheck": "before",
+          "results": 12,
+          "timeToFirstResultMs": 342.9,
+          "totalTimeMs": 343,
+          "timedOut": false,
+          "error": null,
+          "requests": 107,
+          "requestsPerHost": {
+            "raw.githubusercontent.com": 1,
+            "fragments.dbpedia.org": 106
+          },
+          "cache": {
+            "hits": 107,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            4
+          ]
+        }
+      ],
+      "logicalPlan": {
+        "identicalAcrossSuccessfulRunsOfBothVariants": true,
+        "discardedWarmupRuns": 1,
+        "successfulRuns": 5,
+        "failedRuns": 0,
+        "planningRequests": [
+          5,
+          5,
+          5,
+          5,
+          5
+        ],
+        "planningCacheMisses": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "plan": "project{input=orderby{input=extend{input=extend{input=filter{input=group{input=join{input=[pattern@<https://raw.githubusercontent.com/rubensworks/rdf-12-examples/refs/heads/master/territories/data.ttl>{subject=?g_0 predicate=<http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> object=Quad{subject=?territory predicate=<http://example.org/ontology/geo/partOf> object=?country graph=DefaultGraph()} graph=DefaultGraph()}, pattern@<https://raw.githubusercontent.com/rubensworks/rdf-12-examples/refs/heads/master/territories/data.ttl>{subject=?g_0 predicate=<http://www.w3.org/ns/prov#wasAttributedTo> object=?claimant graph=DefaultGraph()}, pattern@<https://fragments.dbpedia.org/2016-04/en>{subject=?claimant predicate=<http://www.w3.org/2000/01/rdf-schema#label> object=?claimantName graph=DefaultGraph()}, pattern@<https://fragments.dbpedia.org/2016-04/en>{subject=?territory predicate=<http://www.w3.org/2000/01/rdf-schema#label> object=?territoryName graph=DefaultGraph()}]} variables=[?territoryName] aggregates=[expression{subType=aggregate aggregator=count expression=expression{subType=term term=?claimant} distinct=false variable=?var0}, expression{subType=aggregate aggregator=group_concat expression=expression{subType=term term=?claimantName} separator=,  distinct=false variable=?var1}]} expression=expression{subType=operator operator=> args=[expression{subType=term term=?var0}, expression{subType=term term=\"1\"}]}} variable=?claimantsCount expression=expression{subType=term term=?var0}} variable=?claimants expression=expression{subType=term term=?var1}} expressions=[expression{subType=operator operator=desc args=[expression{subType=term term=?claimantsCount}]}]} variables=[?territoryName, ?claimantsCount, ?claimants]}",
+        "planningRequestUrls": [
+          "GET https://raw.githubusercontent.com/rubensworks/rdf-12-examples/refs/heads/master/territories/data.ttl",
+          "GET https://fragments.dbpedia.org/2016-04/en",
+          "GET https://fragments.dbpedia.org/2016-04/en?predicate=http%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23reifies",
+          "GET https://fragments.dbpedia.org/2016-04/en?predicate=http%3A%2F%2Fwww.w3.org%2Fns%2Fprov%23wasAttributedTo",
+          "GET https://fragments.dbpedia.org/2016-04/en?predicate=http%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label"
+        ]
+      }
+    },
+    "heterogeneous/ruben-interests.sparql": {
+      "sources": [
+        "https://ruben.verborgh.org/profile/",
+        "https://dbpedia.org/sparql"
+      ],
+      "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX dc: <http://purl.org/dc/terms/>\nPREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX dbpedia: <http://dbpedia.org/resource/>\nPREFIX dbpedia-owl: <http://dbpedia.org/ontology/>\nPREFIX dbpprop: <http://dbpedia.org/property/>\nPREFIX wdprop: <http://www.wikidata.org/prop/direct/>\nPREFIX ruben: <https://ruben.verborgh.org/profile/#>\nPREFIX rubent: <https://www.rubensworks.net/#>\nPREFIX schema: <http://schema.org/>\nPREFIX bow: <https://betweenourworlds.org/ontology/>\nPREFIX lc: <http://semweb.mmlab.be/ns/linkedconnections#>\n# 2. All interests of Ruben\n# Datasources: https://ruben.verborgh.org/profile/ https://dbpedia.org/sparql\nSELECT ?interestName\nWHERE {\n  ruben:me foaf:topic_interest ?interest.\n  ?interest rdfs:label ?interestName.\n  FILTER LANGMATCHES(LANG(?interestName),  \"EN\")\n}\n",
+      "summary": {
+        "successfulRuns": 5,
+        "results": [
+          0
+        ],
+        "requests": {
+          "median": 7,
+          "mean": 7,
+          "min": 7,
+          "max": 7
+        },
+        "totalTimeMs": {
+          "median": 6162.9,
+          "mean": 6192.9,
+          "min": 6147.6,
+          "max": 6252.8
+        },
+        "timeToFirstResultMs": {
+          "median": null,
+          "mean": null,
+          "min": null,
+          "max": null
+        },
+        "cacheMisses": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "failedRuns": 0
+      },
+      "runs": [
+        {
+          "variantCheck": "before",
+          "results": 0,
+          "timeToFirstResultMs": null,
+          "totalTimeMs": 6158.8,
+          "timedOut": false,
+          "error": null,
+          "requests": 7,
+          "requestsPerHost": {
+            "ruben.verborgh.org": 1,
+            "dbpedia.org": 6
+          },
+          "cache": {
+            "hits": 5,
+            "misses": 2,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            1
+          ],
+          "requestUrls": [
+            "GET https://ruben.verborgh.org/profile/",
+            "GET https://dbpedia.org/sparql",
+            "GET https://dbpedia.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Chttps%3A%2F%2Fruben.verborgh.org%2Fprofile%2F%23me%3E%20%3Chttp%3A%2F%2Fxmlns.com%2Ffoaf%2F0.1%2Ftopic_interest%3E%20%3Fo%20.%20%7D",
+            "GET https://dbpedia.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label%3E%20%3Fo%20.%20%7D",
+            "GET https://dbpedia.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Finterest%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label%3E%20%3FinterestName%20.%20FILTER%20(%20LANGMATCHES(%20LANG(%20%3FinterestName%20)%20%2C%20%22EN%22%5E%5E%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23string%3E%20)%20)%20%7D",
+            "GET https://dbpedia.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Finterest%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label%3E%20%3FinterestName%20.%20FILTER%20(%20LANGMATCHES(%20LANG(%20%3FinterestName%20)%20%2C%20%22EN%22%5E%5E%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23string%3E%20)%20)%20%7D",
+            "GET https://dbpedia.org/sparql?query=SELECT%20%3Finterest%20%3FinterestName%20WHERE%20%7B%20%3Finterest%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label%3E%20%3FinterestName%20.%20FILTER%20(%20LANGMATCHES(%20LANG(%20%3FinterestName%20)%20%2C%20%22EN%22%5E%5E%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23string%3E%20)%20)%20%7D"
+          ]
+        },
+        {
+          "variantCheck": "before",
+          "results": 0,
+          "timeToFirstResultMs": null,
+          "totalTimeMs": 6252.8,
+          "timedOut": false,
+          "error": null,
+          "requests": 7,
+          "requestsPerHost": {
+            "ruben.verborgh.org": 1,
+            "dbpedia.org": 6
+          },
+          "cache": {
+            "hits": 5,
+            "misses": 2,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            1
+          ]
+        },
+        {
+          "variantCheck": "before",
+          "results": 0,
+          "timeToFirstResultMs": null,
+          "totalTimeMs": 6147.6,
+          "timedOut": false,
+          "error": null,
+          "requests": 7,
+          "requestsPerHost": {
+            "ruben.verborgh.org": 1,
+            "dbpedia.org": 6
+          },
+          "cache": {
+            "hits": 5,
+            "misses": 2,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            1
+          ]
+        },
+        {
+          "variantCheck": "before",
+          "results": 0,
+          "timeToFirstResultMs": null,
+          "totalTimeMs": 6242.4,
+          "timedOut": false,
+          "error": null,
+          "requests": 7,
+          "requestsPerHost": {
+            "ruben.verborgh.org": 1,
+            "dbpedia.org": 6
+          },
+          "cache": {
+            "hits": 5,
+            "misses": 2,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            1
+          ]
+        },
+        {
+          "variantCheck": "before",
+          "results": 0,
+          "timeToFirstResultMs": null,
+          "totalTimeMs": 6162.9,
+          "timedOut": false,
+          "error": null,
+          "requests": 7,
+          "requestsPerHost": {
+            "ruben.verborgh.org": 1,
+            "dbpedia.org": 6
+          },
+          "cache": {
+            "hits": 5,
+            "misses": 2,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            1
+          ]
+        }
+      ],
+      "logicalPlan": {
+        "identicalAcrossSuccessfulRunsOfBothVariants": true,
+        "discardedWarmupRuns": 1,
+        "successfulRuns": 5,
+        "failedRuns": 0,
+        "planningRequests": [
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "planningCacheMisses": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "plan": "project{input=join{input=[union{input=[filter{input=pattern@<https://ruben.verborgh.org/profile/>{subject=?interest predicate=<http://www.w3.org/2000/01/rdf-schema#label> object=?interestName graph=DefaultGraph()} expression=expression{subType=operator operator=langmatches args=[expression{subType=operator operator=lang args=[expression{subType=term term=?interestName}]}, expression{subType=term term=\"EN\"}]}}, filter@<https://dbpedia.org/sparql>{input=pattern{subject=?interest predicate=<http://www.w3.org/2000/01/rdf-schema#label> object=?interestName graph=DefaultGraph()} expression=expression{subType=operator operator=langmatches args=[expression{subType=operator operator=lang args=[expression{subType=term term=?interestName}]}, expression{subType=term term=\"EN\"}]}}]}, pattern@<https://ruben.verborgh.org/profile/>{subject=<https://ruben.verborgh.org/profile/#me> predicate=<http://xmlns.com/foaf/0.1/topic_interest> object=?interest graph=DefaultGraph()}]} variables=[?interestName]}",
+        "planningRequestUrls": [
+          "GET https://ruben.verborgh.org/profile/",
+          "GET https://dbpedia.org/sparql",
+          "GET https://dbpedia.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Chttps%3A%2F%2Fruben.verborgh.org%2Fprofile%2F%23me%3E%20%3Chttp%3A%2F%2Fxmlns.com%2Ffoaf%2F0.1%2Ftopic_interest%3E%20%3Fo%20.%20%7D",
+          "GET https://dbpedia.org/sparql?query=SELECT%20(%20COUNT(%20*%20)%20AS%20%3Fcount%20)%20WHERE%20%7B%20%3Fs%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23label%3E%20%3Fo%20.%20%7D"
+        ]
+      }
+    },
+    "heterogeneous/younger-than-ruben.sparql": {
+      "sources": [
+        "https://fragments.dbpedia.org/2016-04/en",
+        "https://ruben.verborgh.org/profile/"
+      ],
+      "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX skos: <http://www.w3.org/2004/02/skos/core#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX dc: <http://purl.org/dc/terms/>\nPREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX dbpedia: <http://dbpedia.org/resource/>\nPREFIX dbpedia-owl: <http://dbpedia.org/ontology/>\nPREFIX dbpprop: <http://dbpedia.org/property/>\nPREFIX wdprop: <http://www.wikidata.org/prop/direct/>\nPREFIX ruben: <https://ruben.verborgh.org/profile/#>\nPREFIX rubent: <https://www.rubensworks.net/#>\nPREFIX schema: <http://schema.org/>\nPREFIX bow: <https://betweenourworlds.org/ontology/>\nPREFIX lc: <http://semweb.mmlab.be/ns/linkedconnections#>\n# 1. People on DBpedia younger than Ruben Verborgh born in the same place\n# Datasources: //fragments.dbpedia.org/*/en https://ruben.verborgh.org/profile/\nSELECT ?person ?date\nWHERE {\n  ruben:me dbpedia-owl:birthPlace ?place;\n           dbpedia-owl:birthDate  ?dateR.\n  ?person  dbpedia-owl:birthPlace ?place;\n           dbpedia-owl:birthDate  ?date.\n  FILTER(?date > ?dateR)\n}\n",
+      "summary": {
+        "successfulRuns": 5,
+        "results": [
+          9
+        ],
+        "requests": {
+          "median": 66,
+          "mean": 66,
+          "min": 66,
+          "max": 66
+        },
+        "totalTimeMs": {
+          "median": 252,
+          "mean": 286.7,
+          "min": 230.4,
+          "max": 401.1
+        },
+        "timeToFirstResultMs": {
+          "median": 179.7,
+          "mean": 189.5,
+          "min": 149.6,
+          "max": 260.3
+        },
+        "cacheMisses": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "failedRuns": 0
+      },
+      "runs": [
+        {
+          "variantCheck": "before",
+          "results": 9,
+          "timeToFirstResultMs": 149.6,
+          "totalTimeMs": 230.4,
+          "timedOut": false,
+          "error": null,
+          "requests": 66,
+          "requestsPerHost": {
+            "fragments.dbpedia.org": 65,
+            "ruben.verborgh.org": 1
+          },
+          "cache": {
+            "hits": 66,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            2
+          ],
+          "requestUrls": [
+            "GET https://fragments.dbpedia.org/2016-04/en",
+            "GET https://ruben.verborgh.org/profile/",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=https%3A%2F%2Fruben.verborgh.org%2Fprofile%2F%23me&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthPlace",
+            "GET https://fragments.dbpedia.org/2016-04/en?predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthPlace",
+            "GET https://fragments.dbpedia.org/2016-04/en?predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=https%3A%2F%2Fruben.verborgh.org%2Fprofile%2F%23me&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthPlace&object=http%3A%2F%2Fdbpedia.org%2Fresource%2FOstend",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FAlfred_Belpaire&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FAndy_Cappelle&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FAnthony_Portier&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FArno_%28singer%29&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FAston_Chichester&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FAuguste_Beernaert&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FBart_Van_den_Bossche&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FBirger_Verstraete&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FBrecht_Capon&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FBrigitte_Becue&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FDanielle_Godderis-TJonck&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FDieter_Wittesaele&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FDivock_Origi&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FFernande_Caroen&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGeert_Lambert&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGeorges_De_Moor&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGerard_Brackx&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FGustaaf_Van_Slembrouck&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FHenri_Baels&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FHenri_Storck&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FIgor_Vetokele&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FJama%C3%AFque_Vandamme&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FJames_Ensor&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FJean_Bourgain&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FJelle_Florizoone&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FJo_Vermast&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FJohan_Verstreken&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FJohn_Crombez&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FJoris_Minne_%28artist%29&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FJulien_Klener&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FJulius_Mac_Leod&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FKatrien_Vermeire&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FKimmer_Coppejans&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FKristien_Mortelmans&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FL%C3%A9on_Spilliaert&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FManu_Beuselinck&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FMarie_Jos%C3%A9_of_Belgium&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FMarino_Vanhoenacker&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FMaxime_Annys&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FMich%C3%A8le_George&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FMimi_Lamote&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FMonica_De_Coninck&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FNiels_Coussement&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FOliver_Naesen&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FPaul_Valcke&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FPeter_Cr%C3%A8ve&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FPieter_Ghyllebert&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FRaoul_Servais&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FRenaat_Bosschaert&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FRen%C3%A9_Goormaghtigh&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FRobert_Lamoot&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FRobert_Van_de_Walle&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FRoger_Lenaers&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FRoger_Remaut&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FStefaan_Maene&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FTilman-Fran%C3%A7ois_Suys&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FWannes_Van_Laer&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FWilfried_Puis&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+            "GET https://fragments.dbpedia.org/2016-04/en?subject=http%3A%2F%2Fdbpedia.org%2Fresource%2FWouter_De_Vriendt&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate"
+          ]
+        },
+        {
+          "variantCheck": "before",
+          "results": 9,
+          "timeToFirstResultMs": 164.8,
+          "totalTimeMs": 251.9,
+          "timedOut": false,
+          "error": null,
+          "requests": 66,
+          "requestsPerHost": {
+            "fragments.dbpedia.org": 65,
+            "ruben.verborgh.org": 1
+          },
+          "cache": {
+            "hits": 66,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            2
+          ]
+        },
+        {
+          "variantCheck": "before",
+          "results": 9,
+          "timeToFirstResultMs": 260.3,
+          "totalTimeMs": 401.1,
+          "timedOut": false,
+          "error": null,
+          "requests": 66,
+          "requestsPerHost": {
+            "fragments.dbpedia.org": 65,
+            "ruben.verborgh.org": 1
+          },
+          "cache": {
+            "hits": 66,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            2
+          ]
+        },
+        {
+          "variantCheck": "before",
+          "results": 9,
+          "timeToFirstResultMs": 179.7,
+          "totalTimeMs": 252,
+          "timedOut": false,
+          "error": null,
+          "requests": 66,
+          "requestsPerHost": {
+            "fragments.dbpedia.org": 65,
+            "ruben.verborgh.org": 1
+          },
+          "cache": {
+            "hits": 66,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            2
+          ]
+        },
+        {
+          "variantCheck": "before",
+          "results": 9,
+          "timeToFirstResultMs": 193.3,
+          "totalTimeMs": 298,
+          "timedOut": false,
+          "error": null,
+          "requests": 66,
+          "requestsPerHost": {
+            "fragments.dbpedia.org": 65,
+            "ruben.verborgh.org": 1
+          },
+          "cache": {
+            "hits": 66,
+            "misses": 0,
+            "uncacheable": 0
+          },
+          "prunedOperations": [
+            2
+          ]
+        }
+      ],
+      "logicalPlan": {
+        "identicalAcrossSuccessfulRunsOfBothVariants": true,
+        "discardedWarmupRuns": 1,
+        "successfulRuns": 5,
+        "failedRuns": 0,
+        "planningRequests": [
+          6,
+          6,
+          6,
+          6,
+          6
+        ],
+        "planningCacheMisses": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "plan": "project{input=filter{input=join{input=[join{input=[union{input=[pattern@<https://fragments.dbpedia.org/2016-04/en>{subject=?person predicate=<http://dbpedia.org/ontology/birthPlace> object=?place graph=DefaultGraph()}, pattern@<https://ruben.verborgh.org/profile/>{subject=?person predicate=<http://dbpedia.org/ontology/birthPlace> object=?place graph=DefaultGraph()}]}, union{input=[pattern@<https://fragments.dbpedia.org/2016-04/en>{subject=?person predicate=<http://dbpedia.org/ontology/birthDate> object=?date graph=DefaultGraph()}, pattern@<https://ruben.verborgh.org/profile/>{subject=?person predicate=<http://dbpedia.org/ontology/birthDate> object=?date graph=DefaultGraph()}]}, pattern@<https://ruben.verborgh.org/profile/>{subject=<https://ruben.verborgh.org/profile/#me> predicate=<http://dbpedia.org/ontology/birthPlace> object=?place graph=DefaultGraph()}]}, pattern@<https://ruben.verborgh.org/profile/>{subject=<https://ruben.verborgh.org/profile/#me> predicate=<http://dbpedia.org/ontology/birthDate> object=?dateR graph=DefaultGraph()}]} expression=expression{subType=operator operator=> args=[expression{subType=term term=?date}, expression{subType=term term=?dateR}]}} variables=[?person, ?date]}",
+        "planningRequestUrls": [
+          "GET https://fragments.dbpedia.org/2016-04/en",
+          "GET https://ruben.verborgh.org/profile/",
+          "GET https://fragments.dbpedia.org/2016-04/en?subject=https%3A%2F%2Fruben.verborgh.org%2Fprofile%2F%23me&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthPlace",
+          "GET https://fragments.dbpedia.org/2016-04/en?predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthPlace",
+          "GET https://fragments.dbpedia.org/2016-04/en?predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate",
+          "GET https://fragments.dbpedia.org/2016-04/en?subject=https%3A%2F%2Fruben.verborgh.org%2Fprofile%2F%23me&predicate=http%3A%2F%2Fdbpedia.org%2Fontology%2FbirthDate"
+        ]
+      }
+    }
+  }
+}
