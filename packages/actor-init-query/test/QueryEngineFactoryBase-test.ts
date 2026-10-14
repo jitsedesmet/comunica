@@ -4,7 +4,7 @@ import { QueryEngineFactoryBase } from '../lib/QueryEngineFactoryBase';
 
 // Every test in this file instantiates a full engine from the Components.js config,
 // which requires a scan of the whole module tree, and can take a while on slower CI machines.
-jest.setTimeout(60_000);
+vi.setConfig({ testTimeout: 60_000, hookTimeout: 60_000 });
 
 describe('QueryEngineFactoryBase', () => {
   let factory: QueryEngineFactoryBase<any>;
