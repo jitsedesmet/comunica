@@ -16,7 +16,6 @@ import { ArrayIterator } from 'asynciterator';
 import { DataFactory } from 'rdf-data-factory';
 import { ActorQueryOperationUnion } from '../lib/ActorQueryOperationUnion';
 import '@comunica/utils-jest';
-import 'jest-rdf';
 
 const DF = new DataFactory();
 const BF = new BindingsFactory(DF);
@@ -477,7 +476,7 @@ describe('ActorQueryOperationUnion', () => {
 
       const metadata = await ActorQueryOperationUnion
         .unionMetadata(metadatas, false, context, mediatorRdfMetadataAccumulate);
-      const invalidListener = jest.fn();
+      const invalidListener = vi.fn();
       metadata.state.addInvalidateListener(invalidListener);
       expect(metadata.state.valid).toBeTruthy();
 
