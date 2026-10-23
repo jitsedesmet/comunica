@@ -5,3 +5,4 @@ export * from './FragmentSelectorShapes';
 export * from './MaterializeBindings';
 export * from './PhysicalQueryPlan';
 export * from './Utils';
+export * from './Variables';

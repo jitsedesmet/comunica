@@ -15,9 +15,16 @@ import {
   isKnownOperation,
   isKnownSubType,
 } from '@comunica/utils-algebra';
-import { doesShapeAcceptOperation, getExpressionVariables, getOperationSource } from '@comunica/utils-query-operation';
+import {
+  doesShapeAcceptOperation,
+  getCertainlyBoundVariables,
+  getExpressionVariables,
+  getOperationSource,
+} from '@comunica/utils-query-operation';
 import type * as RDF from '@rdfjs/types';
 import { mapTermsNested } from 'rdf-terms';
+
+const XSD_BOOLEAN = 'http://www.w3.org/2001/XMLSchema#boolean';
 
 /**
  * A comunica Filter Pushdown Optimize Query Operation Actor.
@@ -239,25 +246,52 @@ export class ActorOptimizeQueryOperationFilterPushdown extends ActorOptimizeQuer
     return found;
   }
 
+  /**
+   * Group the entries of a join by how they overlap with the variables of an expression.
+   * An entry overlaps fully if it determines the value of each variable in the join's results,
+   * because it certainly binds the variable, or because no other entry can bind it.
+   * @param operation A join operation.
+   * @param expressionVariables The variables inside an expression.
+   * @return The fully, partially, and not overlapping join entries.
+   */
   protected getOverlappingOperations(
-    operation: Algebra.Union | Algebra.Join,
+    operation: Algebra.Join,
     expressionVariables: RDF.Variable[],
   ): {
       fullyOverlapping: Algebra.Operation[];
       partiallyOverlapping: Algebra.Operation[];
       notOverlapping: Algebra.Operation[];
     } {
+    const entriesVariables = operation.input.map(input => algebraUtils.inScopeVariables(input));
+    const entryCountPerVariableName = new Map<string, number>();
+    for (const variable of entriesVariables.flat()) {
+      entryCountPerVariableName.set(variable.value, (entryCountPerVariableName.get(variable.value) ?? 0) + 1);
+    }
+
     const fullyOverlapping: Algebra.Operation[] = [];
     const partiallyOverlapping: Algebra.Operation[] = [];
     const notOverlapping: Algebra.Operation[] = [];
-    for (const input of operation.input) {
-      const inputVariables = algebraUtils.inScopeVariables(input);
-      if (this.variablesSubSetOf(expressionVariables, inputVariables)) {
-        fullyOverlapping.push(input);
-      } else if (this.variablesIntersect(expressionVariables, inputVariables)) {
-        partiallyOverlapping.push(input);
-      } else {
+    for (const [ entryIndex, input ] of operation.input.entries()) {
+      const entryVariableNames = new Set(entriesVariables[entryIndex].map(variable => variable.value));
+      if (expressionVariables.length > 0 &&
+        !expressionVariables.some(variable => entryVariableNames.has(variable.value))) {
         notOverlapping.push(input);
+        continue;
+      }
+
+      let certainlyBoundVariableNames: Set<string> | undefined;
+      const determinesVariable = (variable: RDF.Variable): boolean => {
+        const entryCount = entryCountPerVariableName.get(variable.value) ?? 0;
+        if (entryCount === 0 || (entryCount === 1 && entryVariableNames.has(variable.value))) {
+          return true;
+        }
+        certainlyBoundVariableNames ??= new Set(getCertainlyBoundVariables(input).map(bound => bound.value));
+        return certainlyBoundVariableNames.has(variable.value);
+      };
+      if (expressionVariables.every(determinesVariable)) {
+        fullyOverlapping.push(input);
+      } else {
+        partiallyOverlapping.push(input);
       }
     }
 
@@ -272,8 +306,6 @@ export class ActorOptimizeQueryOperationFilterPushdown extends ActorOptimizeQuer
    * Recursively push down the given expression into the given operation if possible.
    * Different operators have different semantics for choosing whether or not to push down,
    * and how this pushdown is done.
-   * For every passed operator, it is checked whether or not the filter will have any effect on the operation.
-   * If not, the filter is voided.
    * @param expression An expression to push down.
    * @param expressionVariables The variables inside the given expression.
    * @param operation The operation to push down into.
@@ -316,11 +348,6 @@ export class ActorOptimizeQueryOperationFilterPushdown extends ActorOptimizeQuer
       return [ isModified, factory.createFilter(result, operation.expression) ];
     }
     if (isKnownOperation(operation, Algebra.Types.JOIN)) {
-      // Don't push down for empty join
-      if (operation.input.length === 0) {
-        return [ false, factory.createFilter(operation, expression) ];
-      }
-
       // Don't push down into an entry that must be bound by this join, such as a SERVICE clause with a variable
       // target. Wrapping such an entry in a filter would leave no join actor able to bind it.
       if (operation.input
@@ -335,87 +362,51 @@ export class ActorOptimizeQueryOperationFilterPushdown extends ActorOptimizeQuer
         notOverlapping,
       } = this.getOverlappingOperations(operation, expressionVariables);
 
-      const joins: Algebra.Operation[] = [];
-      let isModified = false;
-      if (fullyOverlapping.length > 0) {
-        isModified = true;
-        joins.push(factory.createJoin(fullyOverlapping
-          .map(input => this.filterPushdown(expression, expressionVariables, input, factory, context)[1])));
-      }
-      if (partiallyOverlapping.length > 0) {
-        joins.push(factory.createFilter(factory.createJoin(partiallyOverlapping, false), expression));
-      }
-      if (notOverlapping.length > 0) {
-        joins.push(...notOverlapping);
+      // Don't push down if no entry binds any of the variables, as they would then always be unbound
+      if (fullyOverlapping.length === 0 && partiallyOverlapping.length === 0) {
+        return [ false, factory.createFilter(operation, expression) ];
       }
 
-      if (joins.length > 1) {
-        isModified = true;
-      }
-
+      // Filtering the fully overlapping entries is sufficient, so the other entries can remain unfiltered
+      const joins: Algebra.Operation[] = fullyOverlapping.length > 0 ?
+          [
+            ...fullyOverlapping
+              .map(input => this.filterPushdown(expression, expressionVariables, input, factory, context)[1]),
+            ...partiallyOverlapping,
+            ...notOverlapping,
+          ] :
+          [
+            factory.createFilter(factory.createJoin(partiallyOverlapping, false), expression),
+            ...notOverlapping,
+          ];
+      const isModified = fullyOverlapping.length > 0 || notOverlapping.length > 0;
       if (isModified) {
         this.logDebug(context, `Push down filter across join entries with ${fullyOverlapping.length} fully overlapping, ${partiallyOverlapping.length} partially overlapping, and ${notOverlapping.length} not overlapping`);
       }
 
       return [ isModified, joins.length === 1 ? joins[0] : factory.createJoin(joins) ];
     }
-    if (isKnownOperation(operation, Algebra.Types.NOP)) {
-      return [ true, operation ];
-    }
     if (isKnownOperation(operation, Algebra.Types.PROJECT)) {
-      // Push down if variables overlap
-      if (this.variablesIntersect(operation.variables, expressionVariables)) {
+      // Push down if all variables are projected, as the others are always unbound outside the projection
+      if (this.variablesSubSetOf(expressionVariables, operation.variables)) {
         return [ true, factory.createProject(
           this.filterPushdown(expression, expressionVariables, operation.input, factory, context)[1],
           operation.variables,
         ) ];
       }
-      // Void expression otherwise
-      return [ true, operation ];
+      return [ false, factory.createFilter(operation, expression) ];
     }
     if (isKnownOperation(operation, Algebra.Types.UNION)) {
-      // Determine overlapping operations
-      const {
-        fullyOverlapping,
-        partiallyOverlapping,
-        notOverlapping,
-      } = this.getOverlappingOperations(operation, expressionVariables);
-
       if (operation.input
         .some(input => ActorOptimizeQueryOperationFilterPushdown.hasVariableServiceTarget(input))) {
         return [ false, factory.createFilter(operation, expression) ];
       }
 
-      const unions: Algebra.Operation[] = [];
-      let isModified = false;
-      if (fullyOverlapping.length > 0) {
-        isModified = true;
-        unions.push(factory.createUnion(fullyOverlapping
-          .map(input => this.filterPushdown(expression, expressionVariables, input, factory, context)[1])));
-      }
-      if (partiallyOverlapping.length > 0) {
-        unions.push(factory.createFilter(factory.createUnion(partiallyOverlapping, false), expression));
-      }
-      if (notOverlapping.length > 0) {
-        unions.push(...notOverlapping);
-      }
-
-      if (unions.length > 1) {
-        isModified = true;
-      }
-
-      if (isModified) {
-        this.logDebug(context, `Push down filter across union entries with ${fullyOverlapping.length} fully overlapping, ${partiallyOverlapping.length} partially overlapping, and ${notOverlapping.length} not overlapping`);
-      }
-
-      return [ isModified, unions.length === 1 ? unions[0] : factory.createUnion(unions) ];
-    }
-    if (isKnownOperation(operation, Algebra.Types.VALUES)) {
-      // Only keep filter if it overlaps with the variables
-      if (this.variablesIntersect(operation.variables, expressionVariables)) {
-        return [ false, factory.createFilter(operation, expression) ];
-      }
-      return [ true, operation ];
+      // Push down into all entries, including the ones that don't bind the variables,
+      // as the filter must also be evaluated over their unbound variables.
+      this.logDebug(context, `Push down filter across ${operation.input.length} union entries`);
+      return [ true, factory.createUnion(operation.input
+        .map(input => this.filterPushdown(expression, expressionVariables, input, factory, context)[1])) ];
     }
     if (isKnownOperation(operation, Algebra.Types.LEFT_JOIN)) {
       if (this.pushIntoLeftJoins) {
@@ -473,15 +464,13 @@ export class ActorOptimizeQueryOperationFilterPushdown extends ActorOptimizeQuer
         if (pushableResult &&
           (operation.subject.equals(pushableResult.variable) || operation.object.equals(pushableResult.variable))) {
           this.logDebug(context, `Push down filter into path for ?${pushableResult.variable.value}`);
-          const originalMetadata = operation.metadata;
-          operation = factory.createPath(
-            operation.subject.equals(pushableResult.variable) ? pushableResult.term : operation.subject,
-            operation.predicate,
-            operation.object.equals(pushableResult.variable) ? pushableResult.term : operation.object,
-          );
-          operation.metadata = originalMetadata;
+          const path: Algebra.Path = {
+            ...operation,
+            subject: operation.subject.equals(pushableResult.variable) ? pushableResult.term : operation.subject,
+            object: operation.object.equals(pushableResult.variable) ? pushableResult.term : operation.object,
+          };
           return [ true, factory.createJoin([
-            operation,
+            path,
             factory.createValues(
               [ pushableResult.variable ],
               [{ [pushableResult.variable.value]: <RDF.NamedNode | RDF.Literal> pushableResult.term }],
@@ -578,12 +567,13 @@ export class ActorOptimizeQueryOperationFilterPushdown extends ActorOptimizeQuer
   }
 
   /**
-   * Check if an expression is simply 'false'.
+   * Check if an expression is the boolean false.
    * @param expression An expression.
    */
   public isExpressionFalse(expression: Algebra.Expression): boolean {
     const casted = <Extract<Algebra.KnownExpression, { term?: unknown }>> expression;
-    return (casted.term && casted.term.termType === 'Literal' && casted.term.value === 'false');
+    return (casted.term && casted.term.termType === 'Literal' &&
+      casted.term.datatype.value === XSD_BOOLEAN && [ 'false', '0' ].includes(casted.term.value.trim()));
   }
 
   /**
