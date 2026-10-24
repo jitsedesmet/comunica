@@ -7,9 +7,10 @@ import { ActorOptimizeQueryOperation } from '@comunica/bus-optimize-query-operat
 import { KeysInitQuery, KeysQueryOperation } from '@comunica/context-entries';
 import type { IActorTest, TestResult } from '@comunica/core';
 import { ActionContext, passTestVoid } from '@comunica/core';
-import type { ComunicaDataFactory, IQuerySourceWrapper } from '@comunica/types';
+import type { ComunicaDataFactory, IActionContext, IQuerySourceWrapper } from '@comunica/types';
 import { Algebra, AlgebraFactory, algebraUtils } from '@comunica/utils-algebra';
 import {
+  assignOperationEquivalentQueryString,
   assignOperationSource,
   passFullOperationToSource,
 } from '@comunica/utils-query-operation';
@@ -33,21 +34,37 @@ export class ActorOptimizeQueryOperationAssignSourcesExhaustive extends ActorOpt
     const sources = action.context.get(KeysQueryOperation.querySources) ?? [];
     const serviceSources = action.context.get(KeysQueryOperation.serviceSources) ?? {};
     if (sources.length === 0 && Object.keys(serviceSources).length === 0) {
-      return { operation: action.operation, context: action.context };
+      // Sources identified later on, such as variable SERVICE targets, may not receive the full queryString.
+      // TODO: next/major - stop deleting the queryString, see KeysInitQuery.queryString.
+      return { operation: action.operation, context: action.context.delete(KeysInitQuery.queryString) };
     }
     if (await passFullOperationToSource(action.operation, sources, action.context)) {
-      return {
-        operation: assignOperationSource(action.operation, sources[0]),
-        context: action.context,
-      };
+      const operation = assignOperationSource(action.operation, sources[0]);
+      return { operation: this.assignEquivalentQueryString(operation, action.context), context: action.context };
     }
     return {
       operation: this.assignExhaustive(algebraFactory, action.operation, sources, serviceSources),
       // We only keep queryString in the context if we only have a single source that accepts the full operation.
       // In that case, the queryString can be sent to the source as-is.
+      // TODO: next/major - stop deleting the queryString, see KeysInitQuery.queryString.
       context: action.context
         .delete(KeysInitQuery.queryString),
     };
+  }
+
+  /**
+   * Attach the original SPARQL query string to the given full operation as its equivalent query string.
+   * @param operation The full operation, which the original query string was parsed into.
+   * @param context The action context.
+   * @return The operation, with the equivalent query string attached if available.
+   */
+  public assignEquivalentQueryString(operation: Algebra.Operation, context: IActionContext): Algebra.Operation {
+    // TODO: next/major - skip this if initial bindings are set, see KeysInitQuery.queryString.
+    const queryString = context.get(KeysInitQuery.queryString);
+    if (!queryString || context.get(KeysInitQuery.queryFormat)?.language !== 'sparql') {
+      return operation;
+    }
+    return assignOperationEquivalentQueryString(operation, queryString);
   }
 
   /**
