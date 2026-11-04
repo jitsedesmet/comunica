@@ -11,6 +11,7 @@
  * Usage: node measure-pages-limits.js manifest-url...
  * Env: LEVELS (comma-separated, 0 = unlimited), PAUSE_MS, PROBE_INTERVAL_MS, PROBE_MAX_MS
  */
+const { appendFileSync } = require('node:fs');
 const { Parser } = require('n3');
 
 const LEVELS = (process.env.LEVELS ?? '16,32,64,128,0').split(',').map(Number);
@@ -152,13 +153,18 @@ async function main() {
     }
   }
 
-  log('SUMMARY');
-  console.log('| concurrency | requests | duration (s) | req/s | p50 (ms) | p95 (ms) | statuses | errors | first 429 after |');
-  console.log('|-|-|-|-|-|-|-|-|-|');
-  for (const r of results) {
-    console.log(`| ${r.level} | ${r.requests} | ${(r.durationMs / 1000).toFixed(1)} | ${r.requestsPerSecond} | ` +
-      `${r.latencyMs.p50} | ${r.latencyMs.p95} | ${JSON.stringify(r.statuses)} | ${JSON.stringify(r.errors)} | ` +
-      `${r.first429 ? `${r.first429.afterRequests} req / ${r.first429.afterMs} ms` : '-'} |`);
+  const table = [
+    '| concurrency | requests | duration (s) | req/s | p50 (ms) | p95 (ms) | statuses | errors | first 429 after |',
+    '|-|-|-|-|-|-|-|-|-|',
+    ...results.map(r => `| ${r.level} | ${r.requests} | ${(r.durationMs / 1000).toFixed(1)} | ` +
+      `${r.requestsPerSecond} | ${r.latencyMs.p50} | ${r.latencyMs.p95} | ${JSON.stringify(r.statuses)} | ` +
+      `${JSON.stringify(r.errors)} | ${r.first429 ? `${r.first429.afterRequests} req / ${r.first429.afterMs} ms` : '-'} |`),
+  ].join('\n');
+  log(`SUMMARY\n${table}`);
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    const blocks = results.filter(r => r.first429).map(r => `\n\nFirst 429 at ${r.level}:\n\n` +
+      `\`\`\`json\n${JSON.stringify({ first429: r.first429, block: r.block }, null, 2)}\n\`\`\``);
+    appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${table}${blocks.join('')}\n`);
   }
 }
 
