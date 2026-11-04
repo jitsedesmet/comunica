@@ -16,7 +16,10 @@ jobs:
         with:
           node-version: 22
       - run: npm install --no-save --no-package-lock n3@1.26.0
-      - run: >-
+      - env:
+          # The first 128 meets a cold cache, the last one is a warm baseline for the other levels
+          LEVELS: 128,192,256,512,128
+        run: >-
           node measure-pages-limits.js
           https://sparql-manifest-xpath-tests.jitsedesmet.be/manifest.ttl
           https://sparql-manifest-xpath-tests.jitsedesmet.be/extensions.ttl
