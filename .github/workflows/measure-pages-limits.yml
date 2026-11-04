@@ -1,0 +1,23 @@
+# Temporary: measures the request limits of GitHub Pages to pick defaults for rdf-test-suite.js.
+name: Measure GitHub Pages limits
+on:
+  push:
+    branches:
+      - claude/pr-merge-runner-link-xvsrcq
+permissions:
+  contents: read
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save --no-package-lock n3@1.26.0
+      - run: >-
+          node measure-pages-limits.js
+          https://sparql-manifest-xpath-tests.jitsedesmet.be/manifest.ttl
+          https://sparql-manifest-xpath-tests.jitsedesmet.be/extensions.ttl
+          https://sparql-manifest-xpath-tests.jitsedesmet.be/errors.ttl
