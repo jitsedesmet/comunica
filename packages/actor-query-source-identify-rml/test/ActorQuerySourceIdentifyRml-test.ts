@@ -1,8 +1,9 @@
 import type { IActionDereference, MediatorDereference } from '@comunica/bus-dereference';
 import type { IActionQuerySourceIdentify, MediatorQuerySourceIdentify } from '@comunica/bus-query-source-identify';
 import type { IActionRdfParseHandle, MediatorRdfParseHandle } from '@comunica/bus-rdf-parse';
+import { KeysDereference } from '@comunica/context-entries';
 import { ActionContext, Bus } from '@comunica/core';
-import { stringify as streamToString } from '@jeswr/stream-to-string';
+import type * as RDF from '@rdfjs/types';
 import { DataFactory } from 'rdf-data-factory';
 import { Readable } from 'readable-stream';
 import { streamifyArray } from 'streamify-array';
@@ -11,10 +12,12 @@ import '@comunica/utils-jest';
 
 const DF = new DataFactory();
 const RML_SOURCE = DF.namedNode('http://semweb.mmlab.be/ns/rml#source');
+const MAPPING_URL = 'http://example.org/dir/mapping.ttl';
 
 describe('ActorQuerySourceIdentifyRml', () => {
   let bus: any;
-  let documents: Record<string, string>;
+  let documents: Record<string, string | Buffer[]>;
+  let mappingQuads: RDF.Quad[];
   let mediatorDereference: MediatorDereference;
   let mediatorRdfParse: MediatorRdfParseHandle;
   let mediatorQuerySourceIdentify: MediatorQuerySourceIdentify;
@@ -26,30 +29,27 @@ describe('ActorQuerySourceIdentifyRml', () => {
   beforeEach(() => {
     bus = new Bus({ name: 'bus' });
     documents = {
-      'http://example.org/dir/mapping.ttl': 'MAPPING',
+      [MAPPING_URL]: 'MAPPING',
       'http://example.org/dir/people.json': 'PEOPLE',
       'http://other.example.org/pets.csv': 'PETS',
     };
+    mappingQuads = [
+      DF.quad(DF.namedNode('http://example.org/dir/mapping.ttl#M'), DF.namedNode('ex:p'), DF.blankNode('ls1')),
+      DF.quad(DF.blankNode('ls1'), RML_SOURCE, DF.literal('people.json')),
+      DF.quad(DF.blankNode('ls2'), RML_SOURCE, DF.literal('people.json')),
+      DF.quad(DF.blankNode('ls3'), RML_SOURCE, DF.literal('http://other.example.org/pets.csv')),
+    ];
     mediatorDereference = <any> {
       mediate: jest.fn(async({ url }: IActionDereference) => {
         if (!(url in documents)) {
           throw new Error(`Not found: ${url}`);
         }
-        return { url, data: Readable.from([ documents[url] ]) };
+        const document = documents[url];
+        return { url, exists: true, data: Readable.from(typeof document === 'string' ? [ document ] : document) };
       }),
     };
     mediatorRdfParse = <any> {
-      mediate: jest.fn(async(_action: IActionRdfParseHandle) => ({
-        handle: {
-          data: streamifyArray([
-            DF.quad(DF.blankNode('ls1'), RML_SOURCE, DF.literal('people.json')),
-            DF.quad(DF.blankNode('ls2'), RML_SOURCE, DF.literal('people.json')),
-            DF.quad(DF.blankNode('ls3'), RML_SOURCE, DF.literal('http://other.example.org/pets.csv')),
-            DF.quad(DF.blankNode('ls4'), RML_SOURCE, DF.blankNode('database')),
-            DF.quad(DF.blankNode('ls4'), DF.namedNode('ex:other'), DF.literal('other.json')),
-          ]),
-        },
-      })),
+      mediate: jest.fn(async(_action: IActionRdfParseHandle) => ({ handle: { data: streamifyArray(mappingQuads) }})),
     };
     mediatorQuerySourceIdentify = <any> {
       mediate: jest.fn(async(_action: IActionQuerySourceIdentify) => ({ querySource: 'QUERYSOURCE' })),
@@ -67,14 +67,14 @@ describe('ActorQuerySourceIdentifyRml', () => {
   describe('test', () => {
     it('should test', async() => {
       await expect(actor.test({
-        querySourceUnidentified: { type: 'rml', value: 'http://example.org/dir/mapping.ttl' },
+        querySourceUnidentified: { type: 'rml', value: MAPPING_URL },
         context,
       })).resolves.toPassTestVoid();
     });
 
     it('should not test with another type', async() => {
       await expect(actor.test({
-        querySourceUnidentified: { type: 'file', value: 'http://example.org/dir/mapping.ttl' },
+        querySourceUnidentified: { type: 'file', value: MAPPING_URL },
         context,
       })).resolves.toFailTest(`actor requires a single query source with rml type to be present in the context.`);
     });
@@ -90,26 +90,33 @@ describe('ActorQuerySourceIdentifyRml', () => {
   describe('run', () => {
     it('should map and delegate to a serialized source', async() => {
       await expect(actor.run({
-        querySourceUnidentified: { type: 'rml', value: 'http://example.org/dir/mapping.ttl', context: sourceContext },
+        querySourceUnidentified: { type: 'rml', value: MAPPING_URL, context: sourceContext },
         context,
       })).resolves.toEqual({ querySource: 'QUERYSOURCE' });
 
-      expect(mediatorDereference.mediate).toHaveBeenCalledTimes(3);
-      // The source context applies to all fetches
+      // The source context applies to all fetches, and logical sources of a Web mapping may not be local files
       const fetchContext = context.merge(sourceContext);
-      for (const url of Object.keys(documents)) {
-        expect(mediatorDereference.mediate).toHaveBeenCalledWith({ url, context: fetchContext });
-      }
+      const logicalSourceContext = fetchContext.set(KeysDereference.blockFileAccess, true);
+      expect(mediatorDereference.mediate).toHaveBeenCalledTimes(3);
+      expect(mediatorDereference.mediate).toHaveBeenCalledWith({ url: MAPPING_URL, context: fetchContext });
+      expect(mediatorDereference.mediate)
+        .toHaveBeenCalledWith({ url: 'http://example.org/dir/people.json', context: logicalSourceContext });
+      expect(mediatorDereference.mediate)
+        .toHaveBeenCalledWith({ url: 'http://other.example.org/pets.csv', context: logicalSourceContext });
 
       expect(mediatorRdfParse.mediate).toHaveBeenCalledTimes(1);
       const parseAction: IActionRdfParseHandle = jest.mocked(mediatorRdfParse.mediate).mock.calls[0][0];
       expect(parseAction.context).toEqual(fetchContext);
       expect(parseAction.handleMediaType).toBe('text/turtle');
-      expect(parseAction.handle.metadata).toEqual({ baseIRI: 'http://example.org/dir/mapping.ttl' });
-      await expect(streamToString(parseAction.handle.data)).resolves.toBe('MAPPING');
+      expect(parseAction.handle.metadata).toEqual({ baseIRI: MAPPING_URL });
+      await expect(parseAction.handle.data.toArray()).resolves.toEqual([ 'MAPPING' ]);
 
+      // The mapper receives the mapping with absolute IRIs
       expect(map).toHaveBeenCalledTimes(1);
-      expect(map).toHaveBeenCalledWith('MAPPING', {
+      expect(map).toHaveBeenCalledWith(`<http://example.org/dir/mapping.ttl#M> <ex:p> _:ls1 .
+_:ls1 <http://semweb.mmlab.be/ns/rml#source> "people.json" .
+_:ls2 <http://semweb.mmlab.be/ns/rml#source> "people.json" .
+_:ls3 <http://semweb.mmlab.be/ns/rml#source> "http://other.example.org/pets.csv" .`, {
         'people.json': 'PEOPLE',
         'http://other.example.org/pets.csv': 'PETS',
       });
@@ -127,20 +134,33 @@ describe('ActorQuerySourceIdentifyRml', () => {
     });
 
     it('should resolve logical sources against the final URL of the mapping', async() => {
-      documents['http://example.org/redirected/people.json'] = 'PEOPLE REDIRECTED';
+      documents['file:///redirected/people.json'] = 'PEOPLE LOCAL';
       jest.mocked(mediatorDereference.mediate).mockImplementationOnce(async() => <any> ({
-        url: 'http://example.org/redirected/mapping.ttl',
+        url: 'file:///redirected/mapping.ttl',
+        exists: true,
         data: Readable.from([ 'MAPPING' ]),
       }));
 
-      await actor.run({
-        querySourceUnidentified: { type: 'rml', value: 'http://example.org/dir/mapping.ttl' },
-        context,
-      });
+      await actor.run({ querySourceUnidentified: { type: 'rml', value: 'mapping.ttl' }, context });
 
-      expect(mediatorDereference.mediate).toHaveBeenCalledWith({ url: 'http://example.org/dir/mapping.ttl', context });
-      expect(map).toHaveBeenCalledWith('MAPPING', {
-        'people.json': 'PEOPLE REDIRECTED',
+      // Logical sources of a local mapping may be local files
+      expect(mediatorDereference.mediate).toHaveBeenCalledWith({ url: 'mapping.ttl', context });
+      expect(mediatorDereference.mediate).toHaveBeenCalledWith({ url: 'file:///redirected/people.json', context });
+      expect(map).toHaveBeenCalledWith(expect.anything(), {
+        'people.json': 'PEOPLE LOCAL',
+        'http://other.example.org/pets.csv': 'PETS',
+      });
+    });
+
+    it('should decode characters that are split across chunks', async() => {
+      const bytes = Buffer.from('{"name":"José"}');
+      const split = bytes.indexOf(0xC3) + 1;
+      documents['http://example.org/dir/people.json'] = [ bytes.subarray(0, split), bytes.subarray(split) ];
+
+      await actor.run({ querySourceUnidentified: { type: 'rml', value: MAPPING_URL }, context });
+
+      expect(map).toHaveBeenCalledWith(expect.anything(), {
+        'people.json': '{"name":"José"}',
         'http://other.example.org/pets.csv': 'PETS',
       });
     });
@@ -148,10 +168,28 @@ describe('ActorQuerySourceIdentifyRml', () => {
     it('should reject if a logical source can not be fetched', async() => {
       delete documents['http://example.org/dir/people.json'];
 
-      await expect(actor.run({
-        querySourceUnidentified: { type: 'rml', value: 'http://example.org/dir/mapping.ttl' },
-        context,
-      })).rejects.toThrow('Not found: http://example.org/dir/people.json');
+      await expect(actor.run({ querySourceUnidentified: { type: 'rml', value: MAPPING_URL }, context }))
+        .rejects.toThrow('Not found: http://example.org/dir/people.json');
+      expect(map).not.toHaveBeenCalled();
+    });
+
+    it('should reject if a document does not exist in lenient mode', async() => {
+      jest.mocked(mediatorDereference.mediate).mockImplementationOnce(async() => <any> ({
+        url: MAPPING_URL,
+        exists: false,
+        data: Readable.from([]),
+      }));
+
+      await expect(actor.run({ querySourceUnidentified: { type: 'rml', value: MAPPING_URL }, context }))
+        .rejects.toThrow('actor could not fetch http://example.org/dir/mapping.ttl');
+      expect(map).not.toHaveBeenCalled();
+    });
+
+    it('should reject for logical sources that are not referred to by name', async() => {
+      mappingQuads.push(DF.quad(DF.blankNode('ls4'), RML_SOURCE, DF.namedNode('http://example.org/dir/people.json')));
+
+      await expect(actor.run({ querySourceUnidentified: { type: 'rml', value: MAPPING_URL }, context })).rejects
+        .toThrow('actor only supports logical sources that are referred to by name, but got <http://example.org/dir/people.json>');
       expect(map).not.toHaveBeenCalled();
     });
   });

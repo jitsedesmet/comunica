@@ -8,10 +8,11 @@ import type {
 } from '@comunica/bus-query-source-identify';
 import { ActorQuerySourceIdentify } from '@comunica/bus-query-source-identify';
 import type { MediatorRdfParseHandle } from '@comunica/bus-rdf-parse';
+import { KeysDereference } from '@comunica/context-entries';
 import type { IActorTest, TestResult } from '@comunica/core';
 import { failTest, passTestVoid } from '@comunica/core';
 import type { IActionContext, IQuerySourceSerialized } from '@comunica/types';
-import { stringify as streamToString } from '@jeswr/stream-to-string';
+import { termToString } from 'rdf-string-ttl';
 import { Readable } from 'readable-stream';
 import { resolve } from 'relative-to-absolute-iri';
 
@@ -67,12 +68,19 @@ export class ActorQuerySourceIdentifyRml extends ActorQuerySourceIdentify {
    * @return The generated RDF, serialized as N-Quads.
    */
   protected async materialize(mappingUrl: string, context: IActionContext): Promise<string> {
-    const mapping = await this.dereference(mappingUrl, context);
-    // Fetch the logical sources, as the mapper can not do this by itself
-    const logicalSources = await this.getLogicalSources(mapping.data, mapping.url, context);
-    const inputFiles = Object.fromEntries(await Promise.all(logicalSources.map(async logicalSource =>
-      [ logicalSource, (await this.dereference(resolve(logicalSource, mapping.url), context)).data ])));
-    return await this.map(mapping.data, inputFiles);
+    const mappingDocument = await this.dereference(mappingUrl, context);
+    const { mapping, logicalSources } = await this.parseMapping(mappingDocument.data, mappingDocument.url, context);
+
+    // Fetch the logical sources, as the mapper can not do this by itself.
+    // Mappings from the Web may not read local files, as they could otherwise expose them.
+    const logicalSourceContext = /^https?:/u.test(mappingDocument.url) ?
+      context.set(KeysDereference.blockFileAccess, true) :
+      context;
+    const inputFiles = Object.fromEntries(await Promise.all(logicalSources.map(async logicalSource => [
+      logicalSource,
+      (await this.dereference(resolve(logicalSource, mappingDocument.url), logicalSourceContext)).data,
+    ])));
+    return await this.map(mapping, inputFiles);
   }
 
   /**
@@ -94,29 +102,49 @@ export class ActorQuerySourceIdentifyRml extends ActorQuerySourceIdentify {
    */
   protected async dereference(url: string, context: IActionContext): Promise<{ data: string; url: string }> {
     const output = await this.mediatorDereference.mediate({ url, context });
-    return { data: await streamToString(output.data), url: output.url };
+    if (!output.exists) {
+      throw new Error(`${this.name} could not fetch ${url}`);
+    }
+    // Decode in streaming mode, as characters can be split across chunks
+    const decoder = new TextDecoder();
+    let data = '';
+    for await (const chunk of output.data) {
+      data += typeof chunk === 'string' ? chunk : decoder.decode(chunk, { stream: true });
+    }
+    data += decoder.decode();
+    return { data, url: output.url };
   }
 
   /**
-   * Determine the distinct logical sources that are referred to by name in the given mapping.
-   * Logical sources that are described by a resource, such as databases, are not included.
+   * Parse the given mapping to determine its logical sources, and to make its IRIs absolute,
+   * as the mapper does not resolve them against the URL of the mapping document.
    * @param mapping An RML mapping document, serialized as Turtle.
    * @param baseIRI The base IRI of the mapping document.
    * @param context The action context.
+   * @return The mapping without relative IRIs, and the distinct logical sources it refers to.
    */
-  protected async getLogicalSources(mapping: string, baseIRI: string, context: IActionContext): Promise<string[]> {
+  protected async parseMapping(
+    mapping: string,
+    baseIRI: string,
+    context: IActionContext,
+  ): Promise<{ mapping: string; logicalSources: string[] }> {
     const { handle } = await this.mediatorRdfParse.mediate({
       context,
       handle: { metadata: { baseIRI }, data: Readable.from([ mapping ]), context },
       handleMediaType: 'text/turtle',
     });
+    const triples: string[] = [];
     const logicalSources = new Set<string>();
     for await (const quad of handle.data) {
-      if (quad.predicate.value === RML_SOURCE && quad.object.termType === 'Literal') {
+      if (quad.predicate.value === RML_SOURCE) {
+        if (quad.object.termType !== 'Literal') {
+          throw new Error(`${this.name} only supports logical sources that are referred to by name, but got ${termToString(quad.object)}`);
+        }
         logicalSources.add(quad.object.value);
       }
+      triples.push(`${termToString(quad.subject)} ${termToString(quad.predicate)} ${termToString(quad.object)} .`);
     }
-    return [ ...logicalSources ];
+    return { mapping: triples.join('\n'), logicalSources: [ ...logicalSources ]};
   }
 }
 

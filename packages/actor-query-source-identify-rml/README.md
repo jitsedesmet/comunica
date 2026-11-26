@@ -14,12 +14,19 @@ by passing the URL or path of an RML mapping document in Turtle as source:
 The logical sources of the mapping (`rml:source`) are fetched over the [Dereference bus](https://github.com/comunica/comunica/tree/master/packages/bus-dereference),
 where relative references are resolved against the URL of the mapping document.
 
+**Only use mappings that you fully trust.**
+The underlying mapper evaluates JSONPath expressions from the mapping using a vulnerable version of `jsonpath-plus`
+([CVE-2024-21534](https://nvd.nist.gov/vuln/detail/CVE-2024-21534)),
+which allows a mapping document to execute arbitrary code.
+This actor must therefore not be enabled in engines that accept sources from untrusted parties.
+
 Limitations:
 * The mapping is fully materialized in memory when the source is identified, so no parts of the query are pushed down into the mapping.
 * Mappings are executed using [`@comake/rmlmapper-js`](https://github.com/comake/rmlmapper-js),
   which only supports the legacy RML vocabulary (`http://semweb.mmlab.be/ns/rml#`) with JSON, CSV, and XML sources.
+* Only logical sources that are referred to by name (`rml:source "people.json"`) are supported, so not sources such as databases.
+* Mappings that are fetched over HTTP can not refer to local files as logical source.
 * The generated RDF is cached under the URL of the mapping document, so invalidating the URL of a logical source does not refresh it.
-* Only logical sources that are referred to by name are fetched, so sources such as databases are not supported.
 
 This module is part of the [Comunica framework](https://github.com/comunica/comunica),
 and should only be used by [developers that want to build their own query engine](https://comunica.dev/docs/modify/).
