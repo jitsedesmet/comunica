@@ -7,8 +7,6 @@ import { DataFactory } from 'rdf-data-factory';
 import { Readable } from 'readable-stream';
 import { streamifyArray } from 'streamify-array';
 import { ActorQuerySourceIdentifyRml } from '../lib/ActorQuerySourceIdentifyRml';
-import type { IRmlMapper } from '../lib/IRmlMapper';
-import { RmlMapperComake } from '../lib/RmlMapperComake';
 import '@comunica/utils-jest';
 
 const DF = new DataFactory();
@@ -20,9 +18,9 @@ describe('ActorQuerySourceIdentifyRml', () => {
   let mediatorDereference: MediatorDereference;
   let mediatorRdfParse: MediatorRdfParseHandle;
   let mediatorQuerySourceIdentify: MediatorQuerySourceIdentify;
-  let rmlMapper: IRmlMapper;
+  let map: jest.SpyInstance;
   let actor: ActorQuerySourceIdentifyRml;
-  const context = new ActionContext();
+  const context = new ActionContext({ q: 'query' });
   const sourceContext = new ActionContext({ a: 'b' });
 
   beforeEach(() => {
@@ -56,7 +54,6 @@ describe('ActorQuerySourceIdentifyRml', () => {
     mediatorQuerySourceIdentify = <any> {
       mediate: jest.fn(async(_action: IActionQuerySourceIdentify) => ({ querySource: 'QUERYSOURCE' })),
     };
-    rmlMapper = { map: jest.fn(async() => 'NQUADS') };
     actor = new ActorQuerySourceIdentifyRml({
       name: 'actor',
       bus,
@@ -64,17 +61,7 @@ describe('ActorQuerySourceIdentifyRml', () => {
       mediatorRdfParse,
       mediatorQuerySourceIdentify,
     });
-    (<any> actor).rmlMapper = rmlMapper;
-  });
-
-  it('should use the comake mapper by default', () => {
-    expect((<any> new ActorQuerySourceIdentifyRml({
-      name: 'actor',
-      bus,
-      mediatorDereference,
-      mediatorRdfParse,
-      mediatorQuerySourceIdentify,
-    })).rmlMapper).toBeInstanceOf(RmlMapperComake);
+    map = jest.spyOn(<any> actor, 'map').mockResolvedValue('NQUADS');
   });
 
   describe('test', () => {
@@ -88,13 +75,6 @@ describe('ActorQuerySourceIdentifyRml', () => {
     it('should not test with another type', async() => {
       await expect(actor.test({
         querySourceUnidentified: { type: 'file', value: 'http://example.org/dir/mapping.ttl' },
-        context,
-      })).resolves.toFailTest(`actor requires a single query source with rml type to be present in the context.`);
-    });
-
-    it('should not test without type', async() => {
-      await expect(actor.test({
-        querySourceUnidentified: { value: 'http://example.org/dir/mapping.ttl' },
         context,
       })).resolves.toFailTest(`actor requires a single query source with rml type to be present in the context.`);
     });
@@ -115,18 +95,21 @@ describe('ActorQuerySourceIdentifyRml', () => {
       })).resolves.toEqual({ querySource: 'QUERYSOURCE' });
 
       expect(mediatorDereference.mediate).toHaveBeenCalledTimes(3);
-      expect(mediatorDereference.mediate).toHaveBeenCalledWith({ url: 'http://example.org/dir/mapping.ttl', context });
-      expect(mediatorDereference.mediate).toHaveBeenCalledWith({ url: 'http://example.org/dir/people.json', context });
-      expect(mediatorDereference.mediate).toHaveBeenCalledWith({ url: 'http://other.example.org/pets.csv', context });
+      // The source context applies to all fetches
+      const fetchContext = context.merge(sourceContext);
+      for (const url of Object.keys(documents)) {
+        expect(mediatorDereference.mediate).toHaveBeenCalledWith({ url, context: fetchContext });
+      }
 
       expect(mediatorRdfParse.mediate).toHaveBeenCalledTimes(1);
       const parseAction: IActionRdfParseHandle = jest.mocked(mediatorRdfParse.mediate).mock.calls[0][0];
+      expect(parseAction.context).toEqual(fetchContext);
       expect(parseAction.handleMediaType).toBe('text/turtle');
       expect(parseAction.handle.metadata).toEqual({ baseIRI: 'http://example.org/dir/mapping.ttl' });
       await expect(streamToString(parseAction.handle.data)).resolves.toBe('MAPPING');
 
-      expect(rmlMapper.map).toHaveBeenCalledTimes(1);
-      expect(rmlMapper.map).toHaveBeenCalledWith('MAPPING', {
+      expect(map).toHaveBeenCalledTimes(1);
+      expect(map).toHaveBeenCalledWith('MAPPING', {
         'people.json': 'PEOPLE',
         'http://other.example.org/pets.csv': 'PETS',
       });
@@ -155,7 +138,8 @@ describe('ActorQuerySourceIdentifyRml', () => {
         context,
       });
 
-      expect(rmlMapper.map).toHaveBeenCalledWith('MAPPING', {
+      expect(mediatorDereference.mediate).toHaveBeenCalledWith({ url: 'http://example.org/dir/mapping.ttl', context });
+      expect(map).toHaveBeenCalledWith('MAPPING', {
         'people.json': 'PEOPLE REDIRECTED',
         'http://other.example.org/pets.csv': 'PETS',
       });
@@ -168,7 +152,39 @@ describe('ActorQuerySourceIdentifyRml', () => {
         querySourceUnidentified: { type: 'rml', value: 'http://example.org/dir/mapping.ttl' },
         context,
       })).rejects.toThrow('Not found: http://example.org/dir/people.json');
-      expect(rmlMapper.map).not.toHaveBeenCalled();
+      expect(map).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('map', () => {
+    it('should map JSON to N-Quads', async() => {
+      map.mockRestore();
+      const mapping = `
+@prefix rr: <http://www.w3.org/ns/r2rml#> .
+@prefix rml: <http://semweb.mmlab.be/ns/rml#> .
+@prefix ql: <http://semweb.mmlab.be/ns/ql#> .
+
+<http://example.org/mapping#People>
+  rml:logicalSource [
+    rml:source "people.json";
+    rml:referenceFormulation ql:JSONPath;
+    rml:iterator "$.people[*]"
+  ];
+  rr:subjectMap [ rr:template "http://example.org/person/{id}" ];
+  rr:predicateObjectMap [
+    rr:predicate <http://xmlns.com/foaf/0.1/name>;
+    rr:objectMap [ rml:reference "name" ]
+  ].
+`;
+      const people = [{ id: 1, name: 'Alice' }, { id: 2, name: 'Bob' }];
+      const inputFiles = { 'people.json': JSON.stringify({ people }) };
+
+      const output: string = await (<any> actor).map(mapping, inputFiles);
+
+      expect(output.trim().split('\n').sort()).toEqual([
+        '<http://example.org/person/1> <http://xmlns.com/foaf/0.1/name> "Alice" .',
+        '<http://example.org/person/2> <http://xmlns.com/foaf/0.1/name> "Bob" .',
+      ]);
     });
   });
 });

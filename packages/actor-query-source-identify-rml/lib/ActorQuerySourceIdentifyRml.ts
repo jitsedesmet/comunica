@@ -1,3 +1,4 @@
+import { parseTurtle } from '@comake/rmlmapper-js';
 import type { MediatorDereference } from '@comunica/bus-dereference';
 import type {
   IActionQuerySourceIdentify,
@@ -13,8 +14,6 @@ import type { IActionContext, IQuerySourceSerialized } from '@comunica/types';
 import { stringify as streamToString } from '@jeswr/stream-to-string';
 import { Readable } from 'readable-stream';
 import { resolve } from 'relative-to-absolute-iri';
-import type { IRmlMapper } from './IRmlMapper';
-import { RmlMapperComake } from './RmlMapperComake';
 
 const RML_SOURCE = 'http://semweb.mmlab.be/ns/rml#source';
 
@@ -27,10 +26,6 @@ export class ActorQuerySourceIdentifyRml extends ActorQuerySourceIdentify {
   public readonly mediatorDereference: MediatorDereference;
   public readonly mediatorRdfParse: MediatorRdfParseHandle;
   public readonly mediatorQuerySourceIdentify: MediatorQuerySourceIdentify;
-  /**
-   * The engine that executes the mappings, which can be replaced by subclasses.
-   */
-  protected readonly rmlMapper: IRmlMapper = new RmlMapperComake();
 
   public constructor(args: IActorQuerySourceIdentifyRmlArgs) {
     super(args);
@@ -51,23 +46,44 @@ export class ActorQuerySourceIdentifyRml extends ActorQuerySourceIdentify {
   }
 
   public async run(action: IActionQuerySourceIdentify): Promise<IActorQuerySourceIdentifyOutput> {
-    const { context } = action;
-    const mapping = await this.dereference(<string> action.querySourceUnidentified.value, context);
-
-    // Fetch the logical sources, as the mapper can not do this by itself
-    const inputFiles: Record<string, string> = {};
-    await Promise.all((await this.getLogicalSources(mapping.data, mapping.url, context)).map(async(logicalSource) => {
-      inputFiles[logicalSource] = (await this.dereference(resolve(logicalSource, mapping.url), context)).data;
-    }));
-
+    const sourceContext = action.querySourceUnidentified.context;
     // Delegate source identification to the same bus again, by passing the mapped RDF as serialized source
     const querySourceUnidentified: IQuerySourceSerialized = {
       type: 'serialized',
-      value: await this.rmlMapper.map(mapping.data, inputFiles),
+      value: await this.materialize(
+        <string> action.querySourceUnidentified.value,
+        sourceContext ? action.context.merge(sourceContext) : action.context,
+      ),
       mediaType: 'application/n-quads',
-      context: action.querySourceUnidentified.context,
+      context: sourceContext,
     };
-    return await this.mediatorQuerySourceIdentify.mediate({ querySourceUnidentified, context });
+    return await this.mediatorQuerySourceIdentify.mediate({ querySourceUnidentified, context: action.context });
+  }
+
+  /**
+   * Execute the RML mapping at the given URL.
+   * @param mappingUrl The URL or path of an RML mapping document in Turtle.
+   * @param context The action context for fetching the mapping and its logical sources.
+   * @return The generated RDF, serialized as N-Quads.
+   */
+  protected async materialize(mappingUrl: string, context: IActionContext): Promise<string> {
+    const mapping = await this.dereference(mappingUrl, context);
+    // Fetch the logical sources, as the mapper can not do this by itself
+    const logicalSources = await this.getLogicalSources(mapping.data, mapping.url, context);
+    const inputFiles = Object.fromEntries(await Promise.all(logicalSources.map(async logicalSource =>
+      [ logicalSource, (await this.dereference(resolve(logicalSource, mapping.url), context)).data ])));
+    return await this.map(mapping.data, inputFiles);
+  }
+
+  /**
+   * Execute an RML mapping.
+   * Subclasses can override this to use another RML engine.
+   * @param mapping An RML mapping document, serialized as Turtle.
+   * @param inputFiles The contents of the logical sources, keyed by the `rml:source` value they have in the mapping.
+   * @return The generated RDF, serialized as N-Quads.
+   */
+  protected async map(mapping: string, inputFiles: Record<string, string>): Promise<string> {
+    return <string> await parseTurtle(mapping, inputFiles, { toRDF: true });
   }
 
   /**

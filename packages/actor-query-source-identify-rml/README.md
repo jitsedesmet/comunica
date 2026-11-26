@@ -18,6 +18,7 @@ Limitations:
 * The mapping is fully materialized in memory when the source is identified, so no parts of the query are pushed down into the mapping.
 * Mappings are executed using [`@comake/rmlmapper-js`](https://github.com/comake/rmlmapper-js),
   which only supports the legacy RML vocabulary (`http://semweb.mmlab.be/ns/rml#`) with JSON, CSV, and XML sources.
+* The generated RDF is cached under the URL of the mapping document, so invalidating the URL of a logical source does not refresh it.
 * Only logical sources that are referred to by name are fetched, so sources such as databases are not supported.
 
 This module is part of the [Comunica framework](https://github.com/comunica/comunica),
