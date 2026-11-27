@@ -63,8 +63,8 @@ describe('ActorQueryParseRml', () => {
    */
   async function translate(triplesMaps: string, baseIRI?: string): Promise<ReturnType<typeof getQuadOperationParts>[]> {
     const { operation } = await actor.run({ query: `${PREFIXES}${triplesMaps}`, baseIRI, context });
-    return (<Algebra.Union> (<Algebra.Distinct> (<Algebra.Construct> operation).input).input).input
-      .map(getQuadOperationParts);
+    const filter = <Algebra.Filter> (<Algebra.Distinct> (<Algebra.Construct> operation).input).input;
+    return (<Algebra.Union> filter.input).input.map(getQuadOperationParts);
   }
 
   beforeEach(() => {
@@ -123,7 +123,12 @@ ex:PersonMap ${LOGICAL_SOURCE} ; ${SUBJECT_MAP} ;
       quadOperation = AF.createExtend(quadOperation, quadVariables[2], variable('reference1'));
       quadOperation = AF.createExtend(quadOperation, quadVariables[3], DEFAULT_GRAPH_EXPRESSION);
       expect(operation).toEqual(AF.createConstruct(
-        AF.createDistinct(AF.createUnion([ AF.createProject(quadOperation, quadVariables) ])),
+        AF.createDistinct(AF.createFilter(
+          AF.createUnion([ AF.createProject(quadOperation, quadVariables) ]),
+          [ 'subject', 'predicate', 'object', 'graph' ]
+            .map(name => operator('bound', [ variable(name) ]))
+            .reduce((left, right) => operator('&&', [ left, right ])),
+        )),
         [ AF.createPattern(quadVariables[0], quadVariables[1], quadVariables[2], quadVariables[3]) ],
       ));
     });
@@ -250,6 +255,33 @@ ex:CityMap ${LOGICAL_SOURCE} ; rml:subjectMap [ rml:template "http://example.org
       ]) ]));
     });
 
+    it('should join a parent triples map of another logical source without join conditions', async() => {
+      const [{ input }] = await translate(`
+ex:PersonMap ${LOGICAL_SOURCE} ; ${SUBJECT_MAP} ;
+  rml:predicateObjectMap [ rml:predicate ex:livesIn ; rml:objectMap [ rml:parentTriplesMap ex:CityMap ] ] .
+ex:CityMap rml:logicalSource [ rml:source "cities.csv" ] ;
+  rml:subjectMap [ rml:template "http://example.org/city/{city}" ] .`);
+
+      expect(input).toEqual(AF.createJoin([
+        AF.createRmlLogicalSource('people.csv', 'http://w3id.org/rml/CSV', [
+          { variable: DF.variable('reference0'), reference: 'id', required: false },
+        ]),
+        AF.createRmlLogicalSource('cities.csv', 'http://w3id.org/rml/CSV', [
+          { variable: DF.variable('parentReference0'), reference: 'city', required: false },
+        ]),
+      ]));
+    });
+
+    it('should translate a triples map without predicate-object maps into no quads', async() => {
+      const query = `${PREFIXES}ex:PersonMap ${LOGICAL_SOURCE} ; ${SUBJECT_MAP} .`;
+      const { operation } = await actor.run({ query, context });
+      const filter = <Algebra.Filter> (<Algebra.Distinct> (<Algebra.Construct> operation).input).input;
+      expect(filter.input).toEqual(AF.createValues(
+        [ 'subject', 'predicate', 'object', 'graph' ].map(name => DF.variable(name)),
+        [],
+      ));
+    });
+
     it('should reject unsupported properties', async() => {
       await expect(translate(`
 ex:PersonMap ${LOGICAL_SOURCE} ; ${SUBJECT_MAP} ;
@@ -257,10 +289,9 @@ ex:PersonMap ${LOGICAL_SOURCE} ; ${SUBJECT_MAP} ;
         .rejects.toThrow('The RML property <http://w3id.org/rml/languageMap> is not supported');
     });
 
-    it('should reject a mapping without triples', async() => {
-      await expect(translate('')).rejects.toThrow('The RML mapping does not generate any triples');
-      await expect(translate(`ex:PersonMap ${LOGICAL_SOURCE} ; ${SUBJECT_MAP} .`))
-        .rejects.toThrow('The RML mapping does not generate any triples');
+    it('should reject a mapping without triples maps', async() => {
+      await expect(translate('ex:a ex:b ex:c .')).rejects
+        .toThrow('The RML mapping has no triples map with a <http://w3id.org/rml/logicalSource>');
     });
 
     it('should reject a triples map without exactly one subject map', async() => {
@@ -278,7 +309,14 @@ ex:PersonMap ${LOGICAL_SOURCE} ; ${SUBJECT_MAP} ;
     it('should reject an unsupported term type', async() => {
       await expect(translate(`
 ex:PersonMap ${LOGICAL_SOURCE} ; rml:subjectMap [ rml:reference "id" ; rml:termType rml:UnsafeIRI ] .`))
-        .rejects.toThrow('The RML term type <http://w3id.org/rml/UnsafeIRI> is not supported');
+        .rejects.toThrow('The RML term type <http://w3id.org/rml/UnsafeIRI> is not supported for a subject');
+      await expect(translate(`
+ex:PersonMap ${LOGICAL_SOURCE} ; rml:subjectMap [ rml:reference "id" ; rml:termType rml:Literal ] .`))
+        .rejects.toThrow('The RML term type <http://w3id.org/rml/Literal> is not supported for a subject');
+      await expect(translate(`
+ex:PersonMap ${LOGICAL_SOURCE} ; ${SUBJECT_MAP} ; rml:predicateObjectMap [
+  rml:predicateMap [ rml:reference "id" ; rml:termType rml:BlankNode ] ; rml:object ex:a ] .`))
+        .rejects.toThrow('The RML term type <http://w3id.org/rml/BlankNode> is not supported for a predicate');
     });
   });
 });

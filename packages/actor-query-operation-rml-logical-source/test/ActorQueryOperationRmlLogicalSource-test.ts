@@ -27,6 +27,7 @@ describe('ActorQueryOperationRmlLogicalSource', () => {
         referencedValues: new ArrayIterator([
           { id: [ '1' ], tag: [ 'a', 'b' ]},
           { id: [ '2' ]},
+          { id: [ '3' ], tag: []},
         ], { autoStart: false }),
       })),
     };
@@ -93,6 +94,10 @@ describe('ActorQueryOperationRmlLogicalSource', () => {
       BF.bindings([
         [ DF.variable('id'), DF.literal('2') ],
         [ DF.variable('sameId'), DF.literal('2') ],
+      ]),
+      BF.bindings([
+        [ DF.variable('id'), DF.literal('3') ],
+        [ DF.variable('sameId'), DF.literal('3') ],
       ]),
     ]);
   });

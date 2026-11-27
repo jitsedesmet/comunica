@@ -45,13 +45,24 @@ describe('ActorRmlReferenceFormulationCsv', () => {
       const { referencedValues } = await actor.run({
         referenceFormulation: 'http://w3id.org/rml/CSV',
         data: Readable.from([ 'id,name,city\n1,"Alice, PhD",Ghent\n\n2,Bob,\n' ]),
-        references: [ 'id', 'city', 'unknown' ],
+        references: [ 'id', 'city' ],
         context,
       });
       await expect(referencedValues.toArray()).resolves.toEqual([
         { id: [ '1' ], city: [ 'Ghent' ]},
         { id: [ '2' ]},
       ]);
+    });
+
+    it('should emit an error on a reference to an unknown column', async() => {
+      const { referencedValues } = await actor.run({
+        referenceFormulation: 'http://w3id.org/rml/CSV',
+        data: Readable.from([ 'id,name\n1,Alice\n' ]),
+        references: [ 'id', 'unknown' ],
+        context,
+      });
+      await expect(referencedValues.toArray()).rejects
+        .toThrow(`The CSV data has no column 'unknown', only 'id', 'name'`);
     });
 
     it('should emit an error on invalid CSV', async() => {

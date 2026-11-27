@@ -198,6 +198,7 @@ WHERE {
       const ex = (localName: string): RDF.NamedNode => DF.namedNode(`http://example.org/${localName}`);
       const foaf = (localName: string): RDF.NamedNode => DF.namedNode(`http://xmlns.com/foaf/0.1/${localName}`);
       const integer = DF.namedNode('http://www.w3.org/2001/XMLSchema#integer');
+      const boolean = DF.namedNode('http://www.w3.org/2001/XMLSchema#boolean');
       const type = DF.namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type');
       const quads = await arrayifyStream(await engine.queryQuads(mapping, context));
       expect(quads).toBeRdfIsomorphic([
@@ -216,6 +217,10 @@ WHERE {
         DF.quad(person(3), ex('id'), DF.literal('3', integer)),
         DF.quad(person(3), ex('address'), DF.blankNode('address3'), ex('addresses')),
         DF.quad(person(3), ex('livesIn'), ex('city/Bruges')),
+        // A graph map that generates no graph for Bob does not hide his quad in the default graph
+        ...[ 1, 2, 3 ].map(id => DF.quad(person(id), ex('known'), DF.literal('true', boolean))),
+        DF.quad(person(1), ex('known'), DF.literal('true', boolean), ex('graph/Ghent')),
+        DF.quad(person(3), ex('known'), DF.literal('true', boolean), ex('graph/Bruges')),
         DF.quad(ex('city/Ghent'), ex('country'), DF.literal('Belgium')),
         DF.quad(ex('city/Bruges'), ex('country'), DF.literal('Belgium')),
       ]);

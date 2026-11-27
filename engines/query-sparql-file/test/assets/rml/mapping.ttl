@@ -15,3 +15,9 @@ ex:CityMap a rml:TriplesMap ;
   rml:logicalSource [ rml:source [ rml:path "cities.csv" ] ] ;
   rml:subjectMap [ rml:template "http://example.org/city/{city}" ] ;
   rml:predicateObjectMap [ rml:predicate ex:country ; rml:objectMap [ rml:reference "country" ] ] .
+
+# The graph map generates no graph for Bob, which must not hide his quad in the default graph
+ex:CityOfPersonMap a rml:TriplesMap ;
+  rml:logicalSource [ rml:source "people.csv" ] ;
+  rml:subjectMap [ rml:template "http://example.org/person/{id}" ; rml:graphMap [ rml:template "http://example.org/graph/{city}" ] ] ;
+  rml:predicateObjectMap [ rml:predicate ex:known ; rml:object true ; rml:graph rml:defaultGraph ] .

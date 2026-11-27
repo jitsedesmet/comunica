@@ -87,11 +87,11 @@ export class ActorQueryOperationRmlLogicalSource extends ActorQueryOperationType
   ): Bindings[] {
     let recordBindings: Bindings[] = [ bindingsFactory.bindings() ];
     for (const { variable, reference, required } of references) {
-      const values = recordValues[reference];
-      if (!values && required) {
+      const values = recordValues[reference] ?? [];
+      if (values.length === 0 && required) {
         return [];
       }
-      if (values) {
+      if (values.length > 0) {
         recordBindings = recordBindings.flatMap(bindings => values
           .map(value => bindings.set(variable, dataFactory.literal(value))));
       }

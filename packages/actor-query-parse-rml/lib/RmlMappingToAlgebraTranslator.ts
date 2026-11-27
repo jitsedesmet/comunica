@@ -4,7 +4,7 @@ import type * as RDF from '@rdfjs/types';
 import { resolve } from 'relative-to-absolute-iri';
 import { RmlMappingGraph } from './RmlMappingGraph';
 import { parseRmlTemplate } from './RmlTemplate';
-import { RDF_TYPE, RML_UNSUPPORTED_PROPERTIES, RmlVocabulary } from './RmlVocabulary';
+import { RDF_TYPE, RML_NAMESPACE, RmlVocabulary } from './RmlVocabulary';
 
 /**
  * The name of the function that gives the same blank node for the same argument.
@@ -12,6 +12,17 @@ import { RDF_TYPE, RML_UNSUPPORTED_PROPERTIES, RmlVocabulary } from './RmlVocabu
 export const FUNCTION_INTERNAL_BLANK_NODE = 'internal://blank';
 
 type RmlTermType = typeof RmlVocabulary.IRI | typeof RmlVocabulary.BlankNode | typeof RmlVocabulary.Literal;
+
+/**
+ * The term types that RDF allows in each position of a quad.
+ */
+const ALLOWED_TERM_TYPES: Record<'subject' | 'predicate' | 'object' | 'graph', string[]> = {
+  subject: [ RmlVocabulary.IRI, RmlVocabulary.BlankNode ],
+  predicate: [ RmlVocabulary.IRI ],
+  object: [ RmlVocabulary.IRI, RmlVocabulary.BlankNode, RmlVocabulary.Literal ],
+  graph: [ RmlVocabulary.IRI, RmlVocabulary.BlankNode ],
+};
+const SUPPORTED_PROPERTIES: ReadonlySet<string> = new Set(Object.values(RmlVocabulary));
 
 /**
  * A term map generating a term per record, or a constant term.
@@ -126,22 +137,34 @@ export class RmlMappingToAlgebraTranslator {
    * @throws Error if the mapping is invalid, or uses a feature that is not supported.
    */
   public translate(mappingQuads: RDF.Quad[]): Algebra.Construct {
-    const unsupported = mappingQuads.find(quad => RML_UNSUPPORTED_PROPERTIES.has(quad.predicate.value));
+    const unsupported = mappingQuads.find(({ predicate }) =>
+      predicate.value.startsWith(RML_NAMESPACE) && !SUPPORTED_PROPERTIES.has(predicate.value));
     if (unsupported) {
       throw new Error(`The RML property <${unsupported.predicate.value}> is not supported`);
     }
 
     const mapping = new RmlMappingGraph(mappingQuads);
-    const quadOperations = mapping.getSubjects(RmlVocabulary.logicalSource)
-      .flatMap(triplesMap => this.translateTriplesMap(mapping, triplesMap));
-    if (quadOperations.length === 0) {
-      throw new Error('The RML mapping does not generate any triples');
+    const triplesMaps = mapping.getSubjects(RmlVocabulary.logicalSource);
+    if (triplesMaps.length === 0) {
+      throw new Error(`The RML mapping has no triples map with a <${RmlVocabulary.logicalSource}>`);
     }
+    const quadOperations = triplesMaps.flatMap(triplesMap => this.translateTriplesMap(mapping, triplesMap));
 
+    const quadVariables = Object.values(this.quadVariables);
+    // A term map generates no term for a record without the referenced values, which leaves its variable unbound
+    const isQuadBound = quadVariables
+      .map(variable => this.algebraFactory
+        .createOperatorExpression('bound', [ this.algebraFactory.createTermExpression(variable) ]))
+      .reduce((left, right) => this.algebraFactory.createOperatorExpression('&&', [ left, right ]));
     const { subject, predicate, object, graph } = this.quadVariables;
     return this.algebraFactory.createConstruct(
       // An RDF dataset is a set, while the operations below give a bag
-      this.algebraFactory.createDistinct(this.algebraFactory.createUnion(quadOperations)),
+      this.algebraFactory.createDistinct(this.algebraFactory.createFilter(
+        quadOperations.length > 0 ?
+          this.algebraFactory.createUnion(quadOperations) :
+          this.algebraFactory.createValues(quadVariables, []),
+        isQuadBound,
+      )),
       [ this.algebraFactory.createPattern(subject, predicate, object, graph) ],
     );
   }
@@ -162,10 +185,11 @@ export class RmlMappingToAlgebraTranslator {
       ...mapping.getObjects(triplesMap, RmlVocabulary.predicateObjectMap).flatMap((predicateObjectMap) => {
         const graphMaps = [
           ...subjectMap.graphMaps,
-          ...this.getTermMaps(mapping, predicateObjectMap, RmlVocabulary.graphMap, RmlVocabulary.graph),
+          ...this.getTermMaps(mapping, predicateObjectMap, RmlVocabulary.graphMap, RmlVocabulary.graph, 'graph'),
         ];
-        const objectMaps = this.getObjectMaps(mapping, predicateObjectMap);
-        return this.getTermMaps(mapping, predicateObjectMap, RmlVocabulary.predicateMap, RmlVocabulary.predicate)
+        const objectMaps = this.getObjectMaps(mapping, predicateObjectMap, logicalSource);
+        return this
+          .getTermMaps(mapping, predicateObjectMap, RmlVocabulary.predicateMap, RmlVocabulary.predicate, 'predicate')
           .flatMap(predicateMap => objectMaps
             .map<[RmlTermMap, RmlObjectMap, RmlTermMap[]]>(objectMap => [ predicateMap, objectMap, graphMaps ]));
       }),
@@ -332,9 +356,9 @@ export class RmlMappingToAlgebraTranslator {
       return { termMap: { constant: constants[0] }, classes: [], graphMaps: []};
     }
     return {
-      termMap: this.getTermMap(mapping, subjectMaps[0], false),
+      termMap: this.getTermMap(mapping, subjectMaps[0], 'subject'),
       classes: mapping.getObjects(subjectMaps[0], RmlVocabulary.class),
-      graphMaps: this.getTermMaps(mapping, subjectMaps[0], RmlVocabulary.graphMap, RmlVocabulary.graph),
+      graphMaps: this.getTermMaps(mapping, subjectMaps[0], RmlVocabulary.graphMap, RmlVocabulary.graph, 'graph'),
     };
   }
 
@@ -342,29 +366,34 @@ export class RmlMappingToAlgebraTranslator {
    * Read the object maps of a predicate-object map, including those that refer to a parent triples map.
    * @param mapping The RML mapping.
    * @param predicateObjectMap The predicate-object map.
+   * @param logicalSource The logical source of the triples map that has the predicate-object map.
    * @return The object maps.
    */
-  protected getObjectMaps(mapping: RmlMappingGraph, predicateObjectMap: RDF.Term): RmlObjectMap[] {
+  protected getObjectMaps(
+    mapping: RmlMappingGraph,
+    predicateObjectMap: RDF.Term,
+    logicalSource: IRmlLogicalSource,
+  ): RmlObjectMap[] {
     return [
       ...mapping.getObjects(predicateObjectMap, RmlVocabulary.object).map(constant => ({ constant })),
       ...mapping.getObjects(predicateObjectMap, RmlVocabulary.objectMap).map((objectMap) => {
         const parentTriplesMap = mapping.getOptionalObject(objectMap, RmlVocabulary.parentTriplesMap);
         if (!parentTriplesMap) {
-          return this.getTermMap(mapping, objectMap, true);
+          return this.getTermMap(mapping, objectMap, 'object');
         }
         const parentSubjectMap = this.getSubjectMap(mapping, parentTriplesMap).termMap;
         const joinConditions = mapping.getObjects(objectMap, RmlVocabulary.joinCondition).map(joinCondition => ({
           child: mapping.getRequiredObject(joinCondition, RmlVocabulary.child).value,
           parent: mapping.getRequiredObject(joinCondition, RmlVocabulary.parent).value,
         }));
-        // Without join conditions, the parent subject map reads the records of this logical source
-        return joinConditions.length === 0 ?
+        const parentLogicalSource = this.getLogicalSource(mapping, parentTriplesMap);
+        // Without join conditions on the same logical source, the parent subject map reads the same records
+        const isSameLogicalSource = parentLogicalSource.sourceUrl === logicalSource.sourceUrl &&
+          parentLogicalSource.referenceFormulation === logicalSource.referenceFormulation &&
+          parentLogicalSource.iterator === logicalSource.iterator;
+        return joinConditions.length === 0 && isSameLogicalSource ?
           parentSubjectMap :
-            {
-              parentLogicalSource: this.getLogicalSource(mapping, parentTriplesMap),
-              parentSubjectMap,
-              joinConditions,
-            };
+            { parentLogicalSource, parentSubjectMap, joinConditions };
       }),
     ];
   }
@@ -375,6 +404,7 @@ export class RmlMappingToAlgebraTranslator {
    * @param resource The resource that has the term maps.
    * @param termMapProperty The IRI of the property that refers to a term map.
    * @param constantProperty The IRI of the shortcut property that refers to a constant term.
+   * @param position The position in a quad of the terms that the term maps generate.
    * @return The term maps.
    */
   protected getTermMaps(
@@ -382,10 +412,11 @@ export class RmlMappingToAlgebraTranslator {
     resource: RDF.Term,
     termMapProperty: string,
     constantProperty: string,
+    position: keyof typeof ALLOWED_TERM_TYPES,
   ): RmlTermMap[] {
     return [
       ...mapping.getObjects(resource, constantProperty).map(constant => ({ constant })),
-      ...mapping.getObjects(resource, termMapProperty).map(termMap => this.getTermMap(mapping, termMap, false)),
+      ...mapping.getObjects(resource, termMapProperty).map(termMap => this.getTermMap(mapping, termMap, position)),
     ];
   }
 
@@ -393,11 +424,15 @@ export class RmlMappingToAlgebraTranslator {
    * Read a term map.
    * @param mapping The RML mapping.
    * @param termMap The term map.
-   * @param isObjectMap If the term map generates objects, which are literals by default when not templated.
+   * @param position The position in a quad of the terms that the term map generates.
    * @return The term map.
-   * @throws Error if the term map has no constant, reference or template, or an unsupported term type.
+   * @throws Error if the term map has no constant, reference or template, or a term type its position does not allow.
    */
-  protected getTermMap(mapping: RmlMappingGraph, termMap: RDF.Term, isObjectMap: boolean): RmlTermMap {
+  protected getTermMap(
+    mapping: RmlMappingGraph,
+    termMap: RDF.Term,
+    position: keyof typeof ALLOWED_TERM_TYPES,
+  ): RmlTermMap {
     const constant = mapping.getOptionalObject(termMap, RmlVocabulary.constant);
     if (constant) {
       return { constant };
@@ -412,14 +447,15 @@ export class RmlMappingToAlgebraTranslator {
 
     const datatype = mapping.getOptionalObject(termMap, RmlVocabulary.datatype);
     const language = mapping.getOptionalObject(termMap, RmlVocabulary.language);
-    const isLiteralByDefault = isObjectMap && (reference !== undefined || Boolean(datatype ?? language));
+    // Objects are literals by default, unless they are templated
+    const isLiteralByDefault = position === 'object' && (reference !== undefined || Boolean(datatype ?? language));
     const defaultTermType = isLiteralByDefault ?
       RmlVocabulary.Literal :
       RmlVocabulary.IRI;
     const termType = mapping.getOptionalObject(termMap, RmlVocabulary.termType)?.value ?? defaultTermType;
-    if (termType !== RmlVocabulary.IRI && termType !== RmlVocabulary.BlankNode && termType !== RmlVocabulary.Literal) {
-      throw new Error(`The RML term type <${termType}> is not supported`);
+    if (!ALLOWED_TERM_TYPES[position].includes(termType)) {
+      throw new Error(`The RML term type <${termType}> is not supported for a ${position}`);
     }
-    return { ...generator, termType, datatype, language };
+    return { ...generator, termType: <RmlTermType> termType, datatype, language };
   }
 }

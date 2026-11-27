@@ -10,7 +10,7 @@ following the [RML algebra](https://arxiv.org/abs/2503.10385).
 Mappings are passed as queries with query format `{ language: 'rml', version: '1.0' }`.
 Relative source paths are resolved against the base IRI of the query.
 
-Function executions, logical targets, collections, and language, datatype and join maps are not supported.
+Only the core of RML is supported: a mapping that uses any other property of the RML vocabulary is rejected.
 
 This module is part of the [Comunica framework](https://github.com/comunica/comunica),
 and should only be used by [developers that want to build their own query engine](https://comunica.dev/docs/modify/).

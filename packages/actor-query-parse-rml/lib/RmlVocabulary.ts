@@ -1,7 +1,8 @@
-const RML_NAMESPACE = 'http://w3id.org/rml/';
+export const RML_NAMESPACE = 'http://w3id.org/rml/';
 
 /**
  * The terms of the RML vocabulary that the translation reads.
+ * A mapping that uses another property of the vocabulary is rejected, as ignoring it would give a different graph.
  */
 export const RmlVocabulary = <const> {
   logicalSource: `${RML_NAMESPACE}logicalSource`,
@@ -38,18 +39,5 @@ export const RmlVocabulary = <const> {
   child: `${RML_NAMESPACE}child`,
   parent: `${RML_NAMESPACE}parent`,
 };
-
-/**
- * The properties of the RML vocabulary that the translation rejects, as ignoring them would give a different graph.
- */
-export const RML_UNSUPPORTED_PROPERTIES: ReadonlySet<string> = new Set([
-  'languageMap',
-  'datatypeMap',
-  'functionExecution',
-  'logicalTarget',
-  'gather',
-  'childMap',
-  'parentMap',
-].map(localName => `${RML_NAMESPACE}${localName}`));
 
 export const RDF_TYPE = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type';

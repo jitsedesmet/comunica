@@ -34,7 +34,14 @@ export class ActorRmlReferenceFormulationCsv extends ActorRmlReferenceFormulatio
   public async run(action: IActionRmlReferenceFormulation): Promise<IActorRmlReferenceFormulationOutput> {
     const { data, references } = action;
     // Closing the rows also closes the data, and an error of the data is emitted by the rows
-    const parser = pipeline(data, parse({ columns: true, bom: true, skipEmptyLines: true }), () => {
+    const columns = (header: string[]): string[] => {
+      const unknownReference = references.find(reference => !header.includes(reference));
+      if (unknownReference !== undefined) {
+        throw new Error(`The CSV data has no column '${unknownReference}', only '${header.join(`', '`)}'`);
+      }
+      return header;
+    };
+    const parser = pipeline(data, parse({ columns, bom: true, skipEmptyLines: true }), () => {
       // Errors are emitted by the parser
     });
     const rows: AsyncIterator<Record<string, string>> = wrap(parser, { autoStart: false });
