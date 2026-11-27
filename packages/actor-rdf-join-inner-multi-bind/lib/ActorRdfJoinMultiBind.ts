@@ -19,7 +19,7 @@ import type {
   IJoinEntryWithMetadata,
   IQueryOperationResultBindings,
 } from '@comunica/types';
-import { AlgebraFactory, Algebra, algebraUtils, inScopeVariables } from '@comunica/utils-algebra';
+import { AlgebraFactory, Algebra, algebraUtils, inScopeVariables, TypesComunica } from '@comunica/utils-algebra';
 import { BindingsFactory } from '@comunica/utils-bindings-factory';
 import {
   getExpressionVariables,
@@ -204,6 +204,8 @@ export class ActorRdfJoinMultiBind extends ActorRdfJoin<IActorRdfJoinMultiBindTe
     algebraUtils.visitOperation(operation, {
       [Algebra.Types.EXTEND]: skipHandler,
       [Algebra.Types.GROUP]: skipHandler,
+      // The variables of a logical source are bound to its references, which can not be replaced by terms
+      [TypesComunica.RML_LOGICAL_SOURCE]: skipHandler,
       [Algebra.Types.LEFT_JOIN]: {
         preVisitor: (op: Algebra.LeftJoin) => {
           // Default: valid

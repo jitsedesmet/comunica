@@ -66,7 +66,7 @@ export class ActorQueryOperationRmlLogicalSource extends ActorQueryOperationType
     const metadata = async(): Promise<MetadataBindings> => ({
       state: new MetadataValidationState(),
       cardinality: { type: 'estimate', value: Number.POSITIVE_INFINITY },
-      variables: operation.references.map(({ variable }) => ({ variable, canBeUndef: true })),
+      variables: operation.references.map(({ variable, required }) => ({ variable, canBeUndef: !required })),
     });
     return { type: 'bindings', bindingsStream, metadata };
   }
@@ -77,7 +77,7 @@ export class ActorQueryOperationRmlLogicalSource extends ActorQueryOperationType
    * @param references The references and the variables to bind their values to.
    * @param bindingsFactory The factory to create bindings with.
    * @param dataFactory The factory to create literals with.
-   * @return One bindings object per combination of values, where a reference without values stays unbound.
+   * @return One bindings object per combination of values, or none if a required reference has no values.
    */
   public static getRecordBindings(
     recordValues: RmlReferencedValues,
@@ -86,8 +86,11 @@ export class ActorQueryOperationRmlLogicalSource extends ActorQueryOperationType
     dataFactory: ComunicaDataFactory,
   ): Bindings[] {
     let recordBindings: Bindings[] = [ bindingsFactory.bindings() ];
-    for (const { variable, reference } of references) {
+    for (const { variable, reference, required } of references) {
       const values = recordValues[reference];
+      if (!values && required) {
+        return [];
+      }
       if (values) {
         recordBindings = recordBindings.flatMap(bindings => values
           .map(value => bindings.set(variable, dataFactory.literal(value))));

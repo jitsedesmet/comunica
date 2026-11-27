@@ -209,6 +209,10 @@ export type DistinctTerms = Opened<DistinctTermsUnopened>;
 export interface RmlLogicalSourceReference {
   variable: RDF.Variable;
   reference: string;
+  /**
+   * If records without a value for the reference are skipped, instead of leaving the variable unbound.
+   */
+  required?: boolean;
 }
 
 /**

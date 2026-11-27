@@ -96,4 +96,21 @@ describe('ActorQueryOperationRmlLogicalSource', () => {
       ]),
     ]);
   });
+
+  it('should skip records without a value for a required reference', async() => {
+    const operation = AF.createRmlLogicalSource('data.csv', 'ex:CSV', [
+      { variable: DF.variable('id'), reference: 'id' },
+      { variable: DF.variable('tag'), reference: 'tag', required: true },
+    ]);
+    const output = getSafeBindings(await actor.run({ operation, context }, undefined));
+
+    await expect(output.metadata()).resolves.toMatchObject({ variables: [
+      { variable: DF.variable('id'), canBeUndef: true },
+      { variable: DF.variable('tag'), canBeUndef: false },
+    ]});
+    await expect(output.bindingsStream).toEqualBindingsStream([
+      BF.bindings([[ DF.variable('id'), DF.literal('1') ], [ DF.variable('tag'), DF.literal('a') ]]),
+      BF.bindings([[ DF.variable('id'), DF.literal('1') ], [ DF.variable('tag'), DF.literal('b') ]]),
+    ]);
+  });
 });

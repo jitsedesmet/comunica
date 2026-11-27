@@ -25,6 +25,7 @@ const term = AF.createTermExpression.bind(AF);
 const variable = (name: string): Algebra.Expression => term(DF.variable(name));
 const literal = (value: string): Algebra.Expression => term(DF.literal(value));
 const operator = AF.createOperatorExpression.bind(AF);
+const DEFAULT_GRAPH_EXPRESSION = term(DF.defaultGraph());
 const SUBJECT_EXPRESSION = operator('iri', [ operator('concat', [
   literal('http://example.org/person/'),
   operator('encode_for_uri', [ variable('reference0') ]),
@@ -108,29 +109,22 @@ ex:PersonMap ${LOGICAL_SOURCE} ; ${SUBJECT_MAP} ;
         handle: expect.objectContaining({ metadata: { baseIRI: 'http://base.org/mapping.ttl' }}),
         handleMediaType: 'text/turtle',
       }));
-      const quadVariables = [ DF.variable('subject'), DF.variable('predicate'), DF.variable('object') ];
+      const quadVariables = [ 'subject', 'predicate', 'object', 'graph' ].map(name => DF.variable(name));
       let quadOperation: Algebra.Operation = AF.createRmlLogicalSource(
         'http://base.org/people.csv',
         'http://w3id.org/rml/CSV',
         [
-          { variable: DF.variable('reference0'), reference: 'id' },
-          { variable: DF.variable('reference1'), reference: 'name' },
+          { variable: DF.variable('reference0'), reference: 'id', required: false },
+          { variable: DF.variable('reference1'), reference: 'name', required: false },
         ],
       );
       quadOperation = AF.createExtend(quadOperation, quadVariables[0], SUBJECT_EXPRESSION);
       quadOperation = AF.createExtend(quadOperation, quadVariables[1], term(DF.namedNode('http://example.org/name')));
       quadOperation = AF.createExtend(quadOperation, quadVariables[2], variable('reference1'));
+      quadOperation = AF.createExtend(quadOperation, quadVariables[3], DEFAULT_GRAPH_EXPRESSION);
       expect(operation).toEqual(AF.createConstruct(
         AF.createDistinct(AF.createUnion([ AF.createProject(quadOperation, quadVariables) ])),
-        [
-          AF.createPattern(DF.variable('subject'), DF.variable('predicate'), DF.variable('object')),
-          AF.createPattern(
-            DF.variable('namedGraphSubject'),
-            DF.variable('namedGraphPredicate'),
-            DF.variable('namedGraphObject'),
-            DF.variable('namedGraph'),
-          ),
-        ],
+        [ AF.createPattern(quadVariables[0], quadVariables[1], quadVariables[2], quadVariables[3]) ],
       ));
     });
 
@@ -141,7 +135,7 @@ ex:PersonMap ${SUBJECT_MAP} ; rml:predicateObjectMap [ rml:predicate ex:a ; rml:
       expect(input).toEqual(AF.createRmlLogicalSource(
         'people.xml',
         'http://w3id.org/rml/XPath',
-        [{ variable: DF.variable('reference0'), reference: 'id' }],
+        [{ variable: DF.variable('reference0'), reference: 'id', required: false }],
         '//p',
       ));
     });
@@ -161,7 +155,7 @@ ex:PersonMap ${LOGICAL_SOURCE} ; rml:subject ex:subject ;
   ] .`);
 
       for (const { expressions, projectedVariables } of quadOperations) {
-        expect(projectedVariables).toEqual([ 'subject', 'predicate', 'object' ]);
+        expect(projectedVariables).toEqual([ 'subject', 'predicate', 'object', 'graph' ]);
         expect(expressions.subject).toEqual(term(DF.namedNode('http://example.org/subject')));
         expect(expressions.predicate).toEqual(operator('iri', [ variable('reference0') ]));
       }
@@ -189,28 +183,22 @@ ex:PersonMap ${LOGICAL_SOURCE} ;
     rml:graph rml:defaultGraph ;
   ] .`);
 
-      expect(quadOperations.map(({ expressions }) => [ expressions.namedGraphObject ?? expressions.object ])).toEqual([
-        [ term(DF.namedNode('http://example.org/Person')) ],
-        [ term(DF.namedNode('http://example.org/b')) ],
-        [ term(DF.namedNode('http://example.org/b')) ],
-        [ term(DF.namedNode('http://example.org/b')) ],
+      expect(quadOperations.map(({ expressions }) => expressions.object)).toEqual([
+        term(DF.namedNode('http://example.org/Person')),
+        term(DF.namedNode('http://example.org/b')),
+        term(DF.namedNode('http://example.org/b')),
+        term(DF.namedNode('http://example.org/b')),
       ]);
-      expect(quadOperations.map(({ projectedVariables }) => projectedVariables)).toEqual([
-        [ 'namedGraphSubject', 'namedGraphPredicate', 'namedGraphObject', 'namedGraph' ],
-        [ 'namedGraphSubject', 'namedGraphPredicate', 'namedGraphObject', 'namedGraph' ],
-        [ 'subject', 'predicate', 'object' ],
-        [ 'namedGraphSubject', 'namedGraphPredicate', 'namedGraphObject', 'namedGraph' ],
-      ]);
-      expect(quadOperations.map(({ expressions }) => expressions.namedGraph)).toEqual([
+      expect(quadOperations.map(({ expressions }) => expressions.graph)).toEqual([
         term(DF.namedNode('http://example.org/subjectGraph')),
         term(DF.namedNode('http://example.org/subjectGraph')),
-        undefined,
+        DEFAULT_GRAPH_EXPRESSION,
         operator('iri', [ operator('concat', [
           literal('http://example.org/graph/'),
           operator('encode_for_uri', [ variable('reference0') ]),
         ]) ]),
       ]);
-      expect(quadOperations[0].expressions.namedGraphPredicate)
+      expect(quadOperations[0].expressions.predicate)
         .toEqual(term(DF.namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type')));
     });
 
@@ -222,25 +210,28 @@ ex:PersonMap ${LOGICAL_SOURCE} ; ${SUBJECT_MAP} ;
     rml:joinCondition [ rml:child "city" ; rml:parent "name" ] ;
     rml:joinCondition [ rml:child "country" ; rml:parent "country" ] ;
   ] ] .
-ex:CityMap rml:logicalSource [ rml:source "cities.csv" ] ; rml:subjectMap [ rml:reference "name" ] .`);
+ex:CityMap rml:logicalSource [ rml:source "cities.csv" ] ;
+  rml:subjectMap [ rml:template "http://example.org/{name}/{population}" ] .`);
 
-      const boundFilter = operator('&&', [
-        operator('bound', [ variable('reference1') ]),
-        operator('bound', [ variable('reference2') ]),
-      ]);
       expect(input).toEqual(AF.createJoin([
-        AF.createFilter(AF.createRmlLogicalSource('people.csv', 'http://w3id.org/rml/CSV', [
-          { variable: DF.variable('reference0'), reference: 'id' },
-          { variable: DF.variable('reference1'), reference: 'city' },
-          { variable: DF.variable('reference2'), reference: 'country' },
-        ]), boundFilter),
-        AF.createFilter(AF.createRmlLogicalSource('cities.csv', 'http://w3id.org/rml/CSV', [
-          { variable: DF.variable('reference1'), reference: 'name' },
-          { variable: DF.variable('reference2'), reference: 'country' },
-        ]), boundFilter),
+        AF.createRmlLogicalSource('people.csv', 'http://w3id.org/rml/CSV', [
+          { variable: DF.variable('reference0'), reference: 'id', required: false },
+          { variable: DF.variable('reference1'), reference: 'city', required: true },
+          { variable: DF.variable('reference2'), reference: 'country', required: true },
+        ]),
+        AF.createRmlLogicalSource('cities.csv', 'http://w3id.org/rml/CSV', [
+          { variable: DF.variable('reference1'), reference: 'name', required: true },
+          { variable: DF.variable('reference2'), reference: 'country', required: true },
+          { variable: DF.variable('parentReference2'), reference: 'population', required: false },
+        ]),
       ]));
       expect(expressions.subject).toEqual(SUBJECT_EXPRESSION);
-      expect(expressions.object).toEqual(operator('iri', [ variable('reference1') ]));
+      expect(expressions.object).toEqual(operator('iri', [ operator('concat', [
+        literal('http://example.org/'),
+        operator('encode_for_uri', [ variable('reference1') ]),
+        literal('/'),
+        operator('encode_for_uri', [ variable('parentReference2') ]),
+      ]) ]));
     });
 
     it('should read a parent triples map without join conditions from the same logical source', async() => {
@@ -250,8 +241,8 @@ ex:PersonMap ${LOGICAL_SOURCE} ; ${SUBJECT_MAP} ;
 ex:CityMap ${LOGICAL_SOURCE} ; rml:subjectMap [ rml:template "http://example.org/city/{city}" ] .`);
 
       expect(input).toEqual(AF.createRmlLogicalSource('people.csv', 'http://w3id.org/rml/CSV', [
-        { variable: DF.variable('reference0'), reference: 'id' },
-        { variable: DF.variable('reference1'), reference: 'city' },
+        { variable: DF.variable('reference0'), reference: 'id', required: false },
+        { variable: DF.variable('reference1'), reference: 'city', required: false },
       ]));
       expect(expressions.object).toEqual(operator('iri', [ operator('concat', [
         literal('http://example.org/city/'),

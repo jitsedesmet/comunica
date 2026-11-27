@@ -4,19 +4,18 @@ import type * as RDF from '@rdfjs/types';
  * The quads of an RML mapping, indexed for lookups by subject and property.
  */
 export class RmlMappingGraph {
+  private readonly quads: RDF.Quad[];
   private readonly objectsBySubjectAndProperty = new Map<string, RDF.Term[]>();
-  private readonly subjectsByProperty = new Map<string, RDF.Term[]>();
 
   public constructor(quads: RDF.Quad[]) {
+    this.quads = quads;
     for (const quad of quads) {
       const subjectAndProperty = RmlMappingGraph.getSubjectAndPropertyKey(quad.subject, quad.predicate.value);
-      this.objectsBySubjectAndProperty.set(
-        subjectAndProperty,
-        [ ...this.objectsBySubjectAndProperty.get(subjectAndProperty) ?? [], quad.object ],
-      );
-      const subjects = this.subjectsByProperty.get(quad.predicate.value) ?? [];
-      if (!subjects.some(subject => subject.equals(quad.subject))) {
-        this.subjectsByProperty.set(quad.predicate.value, [ ...subjects, quad.subject ]);
+      const objects = this.objectsBySubjectAndProperty.get(subjectAndProperty);
+      if (objects) {
+        objects.push(quad.object);
+      } else {
+        this.objectsBySubjectAndProperty.set(subjectAndProperty, [ quad.object ]);
       }
     }
   }
@@ -27,7 +26,13 @@ export class RmlMappingGraph {
    * @return The subjects, in the order of the mapping.
    */
   public getSubjects(property: string): RDF.Term[] {
-    return this.subjectsByProperty.get(property) ?? [];
+    const subjects: RDF.Term[] = [];
+    for (const quad of this.quads) {
+      if (quad.predicate.value === property && !subjects.some(subject => subject.equals(quad.subject))) {
+        subjects.push(quad.subject);
+      }
+    }
+    return subjects;
   }
 
   /**

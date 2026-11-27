@@ -10,6 +10,7 @@ import { failTest, passTestVoid } from '@comunica/core';
 import type { AsyncIterator } from 'asynciterator';
 import { wrap } from 'asynciterator';
 import { parse } from 'csv-parse';
+import { pipeline } from 'readable-stream';
 
 /**
  * A comunica CSV RML Reference Formulation Actor.
@@ -31,13 +32,14 @@ export class ActorRmlReferenceFormulationCsv extends ActorRmlReferenceFormulatio
   }
 
   public async run(action: IActionRmlReferenceFormulation): Promise<IActorRmlReferenceFormulationOutput> {
-    const rows: AsyncIterator<Record<string, string>> = wrap(
-      action.data.pipe(parse({ columns: true, bom: true, skipEmptyLines: true })),
-      { autoStart: false },
-    );
-    action.data.on('error', error => rows.destroy(error));
+    const { data, references } = action;
+    // Closing the rows also closes the data, and an error of the data is emitted by the rows
+    const parser = pipeline(data, parse({ columns: true, bom: true, skipEmptyLines: true }), () => {
+      // Errors are emitted by the parser
+    });
+    const rows: AsyncIterator<Record<string, string>> = wrap(parser, { autoStart: false });
     return {
-      referencedValues: rows.map(row => ActorRmlReferenceFormulationCsv.getReferencedValues(row, action.references)),
+      referencedValues: rows.map(row => ActorRmlReferenceFormulationCsv.getReferencedValues(row, references)),
     };
   }
 

@@ -16,16 +16,11 @@ type RmlTermType = typeof RmlVocabulary.IRI | typeof RmlVocabulary.BlankNode | t
 /**
  * A term map generating a term per record, or a constant term.
  */
-type RmlTermMap = { constant: RDF.Term } | {
-  /**
-   * Either a reference or a template is defined.
-   */
-  reference?: string;
-  template?: string;
+type RmlTermMap = { constant: RDF.Term } | (({ reference: string } | { template: string }) & {
   termType: RmlTermType;
   datatype?: RDF.Term;
   language?: RDF.Term;
-};
+});
 
 interface IRmlLogicalSource {
   sourceUrl: string;
@@ -33,28 +28,68 @@ interface IRmlLogicalSource {
   iterator?: string;
 }
 
-interface IRmlJoinCondition {
-  child: string;
-  parent: string;
+interface IRmlSubjectMap {
+  termMap: RmlTermMap;
+  classes: RDF.Term[];
+  graphMaps: RmlTermMap[];
 }
 
 /**
- * An object map that takes the subjects of another triples map as objects.
+ * An object map that takes the subjects of another triples map as objects, for the records that join.
  */
 interface IRmlReferencingObjectMap {
   parentLogicalSource: IRmlLogicalSource;
   parentSubjectMap: RmlTermMap;
-  joinConditions: IRmlJoinCondition[];
+  joinConditions: { child: string; parent: string }[];
 }
 
+type RmlObjectMap = RmlTermMap | IRmlReferencingObjectMap;
+
 /**
- * The variables holding the terms of the generated quads.
+ * The references to read from a logical source, each bound to a variable of its own.
  */
-interface IRmlQuadVariables {
-  subject: RDF.Variable;
-  predicate: RDF.Variable;
-  object: RDF.Variable;
-  graph?: RDF.Variable;
+class RmlLogicalSourceReferences {
+  public readonly references: Algebra.RmlLogicalSourceReference[] = [];
+
+  /**
+   * @param dataFactory The factory to create variables with.
+   * @param variablePrefix The prefix of the variable names, which differs between the sources of a join.
+   */
+  public constructor(
+    private readonly dataFactory: ComunicaDataFactory,
+    private readonly variablePrefix: string,
+  ) {}
+
+  /**
+   * Get the variable that the values of a reference are bound to.
+   * @param reference The reference to read.
+   * @return The variable of the reference, which stays unbound for records without a value unless it is required.
+   */
+  public getVariable(reference: string): RDF.Variable {
+    return this.references.find(entry => entry.reference === reference)?.variable ??
+      this.bind(this.dataFactory.variable(`${this.variablePrefix}${this.references.length}`), reference, false);
+  }
+
+  /**
+   * Bind the values of a reference to a new variable, skipping the records without a value.
+   * @param reference The reference to read.
+   * @return The variable of the reference.
+   */
+  public getRequiredVariable(reference: string): RDF.Variable {
+    return this.bind(this.dataFactory.variable(`${this.variablePrefix}${this.references.length}`), reference, true);
+  }
+
+  /**
+   * Bind the values of a reference to a given variable.
+   * @param variable The variable to bind.
+   * @param reference The reference to read.
+   * @param required If records without a value are skipped.
+   * @return The given variable.
+   */
+  public bind(variable: RDF.Variable, reference: string, required: boolean): RDF.Variable {
+    this.references.push({ variable, reference, required });
+    return variable;
+  }
 }
 
 /**
@@ -65,8 +100,7 @@ export class RmlMappingToAlgebraTranslator {
   private readonly dataFactory: ComunicaDataFactory;
   private readonly algebraFactory: AlgebraFactory;
   private readonly baseIRI: string | undefined;
-  private readonly defaultGraphVariables: IRmlQuadVariables;
-  private readonly namedGraphVariables: Required<IRmlQuadVariables>;
+  private readonly quadVariables: Record<'subject' | 'predicate' | 'object' | 'graph', RDF.Variable>;
 
   /**
    * @param dataFactory The factory to create terms with.
@@ -77,17 +111,11 @@ export class RmlMappingToAlgebraTranslator {
     this.dataFactory = dataFactory;
     this.algebraFactory = algebraFactory;
     this.baseIRI = baseIRI;
-    // A quad in the default graph has no graph term to bind, so it gets variables of its own.
-    this.defaultGraphVariables = {
+    this.quadVariables = {
       subject: dataFactory.variable('subject'),
       predicate: dataFactory.variable('predicate'),
       object: dataFactory.variable('object'),
-    };
-    this.namedGraphVariables = {
-      subject: dataFactory.variable('namedGraphSubject'),
-      predicate: dataFactory.variable('namedGraphPredicate'),
-      object: dataFactory.variable('namedGraphObject'),
-      graph: dataFactory.variable('namedGraph'),
+      graph: dataFactory.variable('graph'),
     };
   }
 
@@ -110,23 +138,11 @@ export class RmlMappingToAlgebraTranslator {
       throw new Error('The RML mapping does not generate any triples');
     }
 
-    const { defaultGraphVariables, namedGraphVariables } = this;
+    const { subject, predicate, object, graph } = this.quadVariables;
     return this.algebraFactory.createConstruct(
       // An RDF dataset is a set, while the operations below give a bag
       this.algebraFactory.createDistinct(this.algebraFactory.createUnion(quadOperations)),
-      [
-        this.algebraFactory.createPattern(
-          defaultGraphVariables.subject,
-          defaultGraphVariables.predicate,
-          defaultGraphVariables.object,
-        ),
-        this.algebraFactory.createPattern(
-          namedGraphVariables.subject,
-          namedGraphVariables.predicate,
-          namedGraphVariables.object,
-          namedGraphVariables.graph,
-        ),
-      ],
+      [ this.algebraFactory.createPattern(subject, predicate, object, graph) ],
     );
   }
 
@@ -139,46 +155,25 @@ export class RmlMappingToAlgebraTranslator {
   protected translateTriplesMap(mapping: RmlMappingGraph, triplesMap: RDF.Term): Algebra.Operation[] {
     const logicalSource = this.getLogicalSource(mapping, triplesMap);
     const subjectMap = this.getSubjectMap(mapping, triplesMap);
-    const subjectMapNode = mapping.getOptionalObject(triplesMap, RmlVocabulary.subjectMap);
-    const subjectGraphMaps = subjectMapNode ?
-      this.getTermMaps(mapping, subjectMapNode, RmlVocabulary.graphMap, RmlVocabulary.graph) :
-        [];
 
-    const quadOperations: Algebra.Operation[] = [];
-    const addQuadOperations = (
-      predicateMap: RmlTermMap,
-      objectMap: RmlTermMap | IRmlReferencingObjectMap,
-      graphMaps: RmlTermMap[],
-    ): void => {
-      for (const graphMap of graphMaps.length > 0 ? graphMaps : [ undefined ]) {
-        quadOperations
-          .push(this.createQuadOperation(logicalSource, subjectMap, predicateMap, objectMap, graphMap));
-      }
-    };
-
-    if (subjectMapNode) {
-      for (const subjectClass of mapping.getObjects(subjectMapNode, RmlVocabulary.class)) {
-        addQuadOperations(
-          { constant: this.dataFactory.namedNode(RDF_TYPE) },
-          { constant: subjectClass },
-          subjectGraphMaps,
-        );
-      }
-    }
-    for (const predicateObjectMap of mapping.getObjects(triplesMap, RmlVocabulary.predicateObjectMap)) {
-      const graphMaps = [
-        ...subjectGraphMaps,
-        ...this.getTermMaps(mapping, predicateObjectMap, RmlVocabulary.graphMap, RmlVocabulary.graph),
-      ];
-      const objectMaps = this.getObjectMaps(mapping, predicateObjectMap);
-      for (const predicateMap of
-        this.getTermMaps(mapping, predicateObjectMap, RmlVocabulary.predicateMap, RmlVocabulary.predicate)) {
-        for (const objectMap of objectMaps) {
-          addQuadOperations(predicateMap, objectMap, graphMaps);
-        }
-      }
-    }
-    return quadOperations;
+    const quadMaps: [predicateMap: RmlTermMap, objectMap: RmlObjectMap, graphMaps: RmlTermMap[]][] = [
+      ...subjectMap.classes.map<[RmlTermMap, RmlObjectMap, RmlTermMap[]]>(subjectClass =>
+        [{ constant: this.dataFactory.namedNode(RDF_TYPE) }, { constant: subjectClass }, subjectMap.graphMaps ]),
+      ...mapping.getObjects(triplesMap, RmlVocabulary.predicateObjectMap).flatMap((predicateObjectMap) => {
+        const graphMaps = [
+          ...subjectMap.graphMaps,
+          ...this.getTermMaps(mapping, predicateObjectMap, RmlVocabulary.graphMap, RmlVocabulary.graph),
+        ];
+        const objectMaps = this.getObjectMaps(mapping, predicateObjectMap);
+        return this.getTermMaps(mapping, predicateObjectMap, RmlVocabulary.predicateMap, RmlVocabulary.predicate)
+          .flatMap(predicateMap => objectMaps
+            .map<[RmlTermMap, RmlObjectMap, RmlTermMap[]]>(objectMap => [ predicateMap, objectMap, graphMaps ]));
+      }),
+    ];
+    // Without graph maps, the quads are generated in the default graph
+    return quadMaps.flatMap(([ predicateMap, objectMap, graphMaps ]) =>
+      (graphMaps.length > 0 ? graphMaps : [ undefined ]).map(graphMap =>
+        this.createQuadOperation(logicalSource, subjectMap.termMap, predicateMap, objectMap, graphMap)));
   }
 
   /**
@@ -194,101 +189,73 @@ export class RmlMappingToAlgebraTranslator {
     logicalSource: IRmlLogicalSource,
     subjectMap: RmlTermMap,
     predicateMap: RmlTermMap,
-    objectMap: RmlTermMap | IRmlReferencingObjectMap,
+    objectMap: RmlObjectMap,
     graphMap: RmlTermMap | undefined,
   ): Algebra.Operation {
+    // Creating the expressions collects the references to read from the logical sources
+    const references = new RmlLogicalSourceReferences(this.dataFactory, 'reference');
+    const subjectExpression = this.createTermMapExpression(subjectMap, references);
+    const predicateExpression = this.createTermMapExpression(predicateMap, references);
     const isDefaultGraph = !graphMap ||
       ('constant' in graphMap && graphMap.constant.value === RmlVocabulary.defaultGraph);
-    const quadVariables = isDefaultGraph ? this.defaultGraphVariables : this.namedGraphVariables;
+    const graphExpression = isDefaultGraph ?
+      this.algebraFactory.createTermExpression(this.dataFactory.defaultGraph()) :
+      this.createTermMapExpression(graphMap, references);
 
-    // Creating the expressions collects the references to read from the logical sources
-    const references: Algebra.RmlLogicalSourceReference[] = [];
-    const parentReferences: Algebra.RmlLogicalSourceReference[] = [];
-    const joinVariables: RDF.Variable[] = [];
-    let referenceVariableCounter = 0;
-    const createReferenceVariable = (): RDF.Variable =>
-      this.dataFactory.variable(`reference${referenceVariableCounter++}`);
-    const createExpression = (termMap: RmlTermMap, termMapReferences = references): Algebra.Expression =>
-      this.createTermMapExpression(termMap, termMapReferences, createReferenceVariable);
-    const extensions: [RDF.Variable, Algebra.Expression][] = [
-      [ quadVariables.subject, createExpression(subjectMap) ],
-      [ quadVariables.predicate, createExpression(predicateMap) ],
-    ];
+    let objectExpression: Algebra.Expression;
+    let parentOperation: Algebra.Operation | undefined;
     if ('parentSubjectMap' in objectMap) {
       // The values of a join condition are equal, so both sources bind them to the same variable
+      const parentReferences = new RmlLogicalSourceReferences(this.dataFactory, 'parentReference');
       for (const { child, parent } of objectMap.joinConditions) {
-        const joinVariable = createReferenceVariable();
-        joinVariables.push(joinVariable);
-        references.push({ variable: joinVariable, reference: child });
-        parentReferences.push({ variable: joinVariable, reference: parent });
+        parentReferences.bind(references.getRequiredVariable(child), parent, true);
       }
-      // Without join conditions, the parent triples map reads the records of this logical source
-      extensions.push([ quadVariables.object, createExpression(
-        objectMap.parentSubjectMap,
-        joinVariables.length > 0 ? parentReferences : references,
-      ) ]);
+      objectExpression = this.createTermMapExpression(objectMap.parentSubjectMap, parentReferences);
+      parentOperation = this.createLogicalSourceOperation(objectMap.parentLogicalSource, parentReferences);
     } else {
-      extensions.push([ quadVariables.object, createExpression(objectMap) ]);
-    }
-    if (!isDefaultGraph) {
-      extensions.push([ quadVariables.graph!, createExpression(graphMap) ]);
+      objectExpression = this.createTermMapExpression(objectMap, references);
     }
 
     let operation: Algebra.Operation = this.createLogicalSourceOperation(logicalSource, references);
-    if ('parentSubjectMap' in objectMap && joinVariables.length > 0) {
-      operation = this.algebraFactory.createJoin([
-        this.createBoundFilter(operation, joinVariables),
-        this.createBoundFilter(
-          this.createLogicalSourceOperation(objectMap.parentLogicalSource, parentReferences),
-          joinVariables,
-        ),
-      ]);
+    if (parentOperation) {
+      operation = this.algebraFactory.createJoin([ operation, parentOperation ]);
     }
-    for (const [ variable, expression ] of extensions) {
-      operation = this.algebraFactory.createExtend(operation, variable, expression);
-    }
-    return this.algebraFactory.createProject(operation, Object.values(quadVariables));
+    const { subject, predicate, object, graph } = this.quadVariables;
+    operation = this.algebraFactory.createExtend(operation, subject, subjectExpression);
+    operation = this.algebraFactory.createExtend(operation, predicate, predicateExpression);
+    operation = this.algebraFactory.createExtend(operation, object, objectExpression);
+    operation = this.algebraFactory.createExtend(operation, graph, graphExpression);
+    return this.algebraFactory.createProject(operation, [ subject, predicate, object, graph ]);
   }
 
   /**
    * Create the expression generating the term of a term map.
    * @param termMap The term map.
    * @param references The references of the logical source, to which the references of the term map are added.
-   * @param createReferenceVariable Creates a variable that no other reference is bound to.
    * @return An expression that errors if a referenced value is missing, so that no term is generated.
    */
-  protected createTermMapExpression(
-    termMap: RmlTermMap,
-    references: Algebra.RmlLogicalSourceReference[],
-    createReferenceVariable: () => RDF.Variable,
-  ): Algebra.Expression {
+  protected createTermMapExpression(termMap: RmlTermMap, references: RmlLogicalSourceReferences): Algebra.Expression {
     if ('constant' in termMap) {
       return this.algebraFactory.createTermExpression(termMap.constant);
     }
 
-    const getReferenceExpression = (reference: string): Algebra.Expression => {
-      let variable = references.find(entry => entry.reference === reference)?.variable;
-      if (!variable) {
-        variable = createReferenceVariable();
-        references.push({ variable, reference });
-      }
-      return this.algebraFactory.createTermExpression(variable);
-    };
-
+    const createReferenceExpression = (reference: string): Algebra.Expression =>
+      this.algebraFactory.createTermExpression(references.getVariable(reference));
     let value: Algebra.Expression;
-    if (termMap.reference === undefined) {
-      const parts = parseRmlTemplate(termMap.template!).map((part) => {
+    if ('reference' in termMap) {
+      value = createReferenceExpression(termMap.reference);
+    } else {
+      const parts = parseRmlTemplate(termMap.template).map((part) => {
         if ('text' in part) {
           return this.algebraFactory.createTermExpression(this.dataFactory.literal(part.text));
         }
         // Referenced values must not change the structure of a generated IRI
+        const referenceExpression = createReferenceExpression(part.reference);
         return termMap.termType === RmlVocabulary.IRI ?
-          this.algebraFactory.createOperatorExpression('encode_for_uri', [ getReferenceExpression(part.reference) ]) :
-          getReferenceExpression(part.reference);
+          this.algebraFactory.createOperatorExpression('encode_for_uri', [ referenceExpression ]) :
+          referenceExpression;
       });
       value = parts.length === 1 ? parts[0] : this.algebraFactory.createOperatorExpression('concat', parts);
-    } else {
-      value = getReferenceExpression(termMap.reference);
     }
 
     switch (termMap.termType) {
@@ -318,27 +285,14 @@ export class RmlMappingToAlgebraTranslator {
    */
   protected createLogicalSourceOperation(
     logicalSource: IRmlLogicalSource,
-    references: Algebra.RmlLogicalSourceReference[],
+    references: RmlLogicalSourceReferences,
   ): Algebra.RmlLogicalSource {
     return this.algebraFactory.createRmlLogicalSource(
       logicalSource.sourceUrl,
       logicalSource.referenceFormulation,
-      references,
+      references.references,
       logicalSource.iterator,
     );
-  }
-
-  /**
-   * Keep only the solutions that bind all given variables, as a join would match anything on an unbound variable.
-   * @param input The operation to filter.
-   * @param variables The variables that must be bound.
-   * @return The filtered operation.
-   */
-  protected createBoundFilter(input: Algebra.Operation, variables: RDF.Variable[]): Algebra.Operation {
-    return this.algebraFactory.createFilter(input, variables
-      .map(variable => this.algebraFactory
-        .createOperatorExpression('bound', [ this.algebraFactory.createTermExpression(variable) ]))
-      .reduce((left, right) => this.algebraFactory.createOperatorExpression('&&', [ left, right ])));
   }
 
   /**
@@ -362,18 +316,26 @@ export class RmlMappingToAlgebraTranslator {
   }
 
   /**
-   * Read the subject map of a triples map.
+   * Read the subject map of a triples map, with its classes and graph maps.
    * @param mapping The RML mapping.
    * @param triplesMap The triples map.
    * @return The subject map.
    * @throws Error if the triples map does not have exactly one subject map.
    */
-  protected getSubjectMap(mapping: RmlMappingGraph, triplesMap: RDF.Term): RmlTermMap {
-    const subjectMaps = this.getTermMaps(mapping, triplesMap, RmlVocabulary.subjectMap, RmlVocabulary.subject);
-    if (subjectMaps.length !== 1) {
+  protected getSubjectMap(mapping: RmlMappingGraph, triplesMap: RDF.Term): IRmlSubjectMap {
+    const constants = mapping.getObjects(triplesMap, RmlVocabulary.subject);
+    const subjectMaps = mapping.getObjects(triplesMap, RmlVocabulary.subjectMap);
+    if (constants.length + subjectMaps.length !== 1) {
       throw new Error(`Expected exactly one subject map on the RML triples map ${triplesMap.value}`);
     }
-    return subjectMaps[0];
+    if (constants.length === 1) {
+      return { termMap: { constant: constants[0] }, classes: [], graphMaps: []};
+    }
+    return {
+      termMap: this.getTermMap(mapping, subjectMaps[0], false),
+      classes: mapping.getObjects(subjectMaps[0], RmlVocabulary.class),
+      graphMaps: this.getTermMaps(mapping, subjectMaps[0], RmlVocabulary.graphMap, RmlVocabulary.graph),
+    };
   }
 
   /**
@@ -382,29 +344,29 @@ export class RmlMappingToAlgebraTranslator {
    * @param predicateObjectMap The predicate-object map.
    * @return The object maps.
    */
-  protected getObjectMaps(
-    mapping: RmlMappingGraph,
-    predicateObjectMap: RDF.Term,
-  ): (RmlTermMap | IRmlReferencingObjectMap)[] {
-    const objectMaps: (RmlTermMap | IRmlReferencingObjectMap)[] = mapping
-      .getObjects(predicateObjectMap, RmlVocabulary.object)
-      .map(constant => ({ constant }));
-    for (const objectMap of mapping.getObjects(predicateObjectMap, RmlVocabulary.objectMap)) {
-      const parentTriplesMap = mapping.getOptionalObject(objectMap, RmlVocabulary.parentTriplesMap);
-      if (parentTriplesMap) {
-        objectMaps.push({
-          parentLogicalSource: this.getLogicalSource(mapping, parentTriplesMap),
-          parentSubjectMap: this.getSubjectMap(mapping, parentTriplesMap),
-          joinConditions: mapping.getObjects(objectMap, RmlVocabulary.joinCondition).map(joinCondition => ({
-            child: mapping.getRequiredObject(joinCondition, RmlVocabulary.child).value,
-            parent: mapping.getRequiredObject(joinCondition, RmlVocabulary.parent).value,
-          })),
-        });
-      } else {
-        objectMaps.push(this.getTermMap(mapping, objectMap, true));
-      }
-    }
-    return objectMaps;
+  protected getObjectMaps(mapping: RmlMappingGraph, predicateObjectMap: RDF.Term): RmlObjectMap[] {
+    return [
+      ...mapping.getObjects(predicateObjectMap, RmlVocabulary.object).map(constant => ({ constant })),
+      ...mapping.getObjects(predicateObjectMap, RmlVocabulary.objectMap).map((objectMap) => {
+        const parentTriplesMap = mapping.getOptionalObject(objectMap, RmlVocabulary.parentTriplesMap);
+        if (!parentTriplesMap) {
+          return this.getTermMap(mapping, objectMap, true);
+        }
+        const parentSubjectMap = this.getSubjectMap(mapping, parentTriplesMap).termMap;
+        const joinConditions = mapping.getObjects(objectMap, RmlVocabulary.joinCondition).map(joinCondition => ({
+          child: mapping.getRequiredObject(joinCondition, RmlVocabulary.child).value,
+          parent: mapping.getRequiredObject(joinCondition, RmlVocabulary.parent).value,
+        }));
+        // Without join conditions, the parent subject map reads the records of this logical source
+        return joinConditions.length === 0 ?
+          parentSubjectMap :
+            {
+              parentLogicalSource: this.getLogicalSource(mapping, parentTriplesMap),
+              parentSubjectMap,
+              joinConditions,
+            };
+      }),
+    ];
   }
 
   /**
@@ -446,6 +408,7 @@ export class RmlMappingToAlgebraTranslator {
     if (reference === undefined && template === undefined) {
       throw new Error(`Expected a constant, reference or template on the RML term map ${termMap.value}`);
     }
+    const generator = reference === undefined ? { template: template! } : { reference };
 
     const datatype = mapping.getOptionalObject(termMap, RmlVocabulary.datatype);
     const language = mapping.getOptionalObject(termMap, RmlVocabulary.language);
@@ -457,6 +420,6 @@ export class RmlMappingToAlgebraTranslator {
     if (termType !== RmlVocabulary.IRI && termType !== RmlVocabulary.BlankNode && termType !== RmlVocabulary.Literal) {
       throw new Error(`The RML term type <${termType}> is not supported`);
     }
-    return { reference, template, termType, datatype, language };
+    return { ...generator, termType, datatype, language };
   }
 }

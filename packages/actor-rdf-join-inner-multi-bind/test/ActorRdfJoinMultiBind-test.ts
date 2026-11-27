@@ -140,6 +140,14 @@ IQueryOperationResultBindings
 
     describe('static helper methods', () => {
       describe('canBindWithOperation', () => {
+        it('should return false for an RML logical source', () => {
+          const logicalSource = FACTORY
+            .createRmlLogicalSource('data.csv', 'ex:CSV', [{ variable: DF.variable('a'), reference: 'a' }]);
+          expect(ActorRdfJoinMultiBind.canBindWithOperation(logicalSource)).toBe(false);
+          expect(ActorRdfJoinMultiBind.canBindWithOperation(FACTORY.createJoin([ logicalSource, logicalSource ])))
+            .toBe(false);
+        });
+
         describe('default without boundVariables', () => {
           it('should return true even with conflicting variables with LEFT_JOIN', () => {
             const leftPattern = FACTORY.createPattern(DF.variable('a'), DF.namedNode('p'), DF.namedNode('o'));
