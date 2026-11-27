@@ -901,17 +901,13 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
           )).toEqual([ true, AF.createUnion([]) ]);
         });
 
-        it('is voided for non-overlapping variables', async() => {
-          expect(filterPushdown(
-            AF.createTermExpression(DF.variable('a')),
-            AF.createJoin([
-              AF.createPattern(DF.variable('s'), DF.namedNode('p1'), DF.namedNode('o1')),
-              AF.createPattern(DF.variable('s'), DF.namedNode('p2'), DF.namedNode('o2')),
-            ]),
-          )).toEqual([ true, AF.createJoin([
+        it('is kept for non-overlapping variables', async() => {
+          const expression = AF.createTermExpression(DF.variable('a'));
+          const join = AF.createJoin([
             AF.createPattern(DF.variable('s'), DF.namedNode('p1'), DF.namedNode('o1')),
             AF.createPattern(DF.variable('s'), DF.namedNode('p2'), DF.namedNode('o2')),
-          ]) ]);
+          ]);
+          expect(filterPushdown(expression, join)).toEqual([ false, AF.createFilter(join, expression) ]);
         });
 
         it('is pushed down for fully-, partially-, and not-overlapping variables', async() => {
@@ -988,11 +984,10 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
       });
 
       describe('for a nop operation', () => {
-        it('is voided', async() => {
-          expect(filterPushdown(
-            AF.createTermExpression(DF.variable('s')),
-            AF.createNop(),
-          )).toEqual([ true, AF.createNop() ]);
+        it('is kept', async() => {
+          const expression = AF.createTermExpression(DF.variable('s'));
+          expect(filterPushdown(expression, AF.createNop()))
+            .toEqual([ false, AF.createFilter(AF.createNop(), expression) ]);
         });
 
         it('is kept for expressions without variables', async() => {
@@ -1031,17 +1026,10 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
           )).toEqual([ true, AF.createUnion([]) ]);
         });
 
-        it('is voided when variables do not overlap', async() => {
-          expect(filterPushdown(
-            AF.createTermExpression(DF.variable('s')),
-            AF.createProject(
-              AF.createBgp([]),
-              [ DF.variable('a') ],
-            ),
-          )).toEqual([ true, AF.createProject(
-            AF.createBgp([]),
-            [ DF.variable('a') ],
-          ) ]);
+        it('is kept when variables do not overlap', async() => {
+          const expression = AF.createTermExpression(DF.variable('s'));
+          const project = AF.createProject(AF.createBgp([]), [ DF.variable('a') ]);
+          expect(filterPushdown(expression, project)).toEqual([ false, AF.createFilter(project, expression) ]);
         });
 
         it('is pushed down for expressions without variables', async() => {
@@ -1141,17 +1129,13 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
           )).toEqual([ true, AF.createUnion([]) ]);
         });
 
-        it('is voided for non-overlapping variables', async() => {
-          expect(filterPushdown(
-            AF.createTermExpression(DF.variable('a')),
-            AF.createUnion([
-              AF.createPattern(DF.variable('s'), DF.namedNode('p1'), DF.namedNode('o1')),
-              AF.createPattern(DF.variable('s'), DF.namedNode('p2'), DF.namedNode('o2')),
-            ]),
-          )).toEqual([ true, AF.createUnion([
+        it('is kept for non-overlapping variables', async() => {
+          const expression = AF.createTermExpression(DF.variable('a'));
+          const union = AF.createUnion([
             AF.createPattern(DF.variable('s'), DF.namedNode('p1'), DF.namedNode('o1')),
             AF.createPattern(DF.variable('s'), DF.namedNode('p2'), DF.namedNode('o2')),
-          ]) ]);
+          ]);
+          expect(filterPushdown(expression, union)).toEqual([ false, AF.createFilter(union, expression) ]);
         });
 
         it('is pushed down for fully-, partially-, and not-overlapping variables', async() => {
@@ -1177,21 +1161,18 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
                 ]),
               ),
             ]),
-            // Partially overlapping
+            // Partially and not overlapping
             AF.createFilter(
               AF.createUnion([
                 AF.createPattern(DF.variable('s'), DF.variable('p'), DF.namedNode('o1')),
                 AF.createPattern(DF.variable('s'), DF.namedNode('p2'), DF.namedNode('o2')),
+                AF.createPattern(DF.variable('a'), DF.variable('b'), DF.namedNode('o1')),
               ]),
               AF.createOperatorExpression('+', [
                 AF.createTermExpression(DF.variable('s')),
                 AF.createTermExpression(DF.variable('x')),
               ]),
             ),
-            // Not overlapping
-            AF.createUnion([
-              AF.createPattern(DF.variable('a'), DF.variable('b'), DF.namedNode('o1')),
-            ]),
           ]) ]);
         });
       });
@@ -1223,17 +1204,10 @@ describe('ActorOptimizeQueryOperationFilterPushdown', () => {
           )).toEqual([ true, AF.createUnion([]) ]);
         });
 
-        it('is voided when variables do not overlap', async() => {
-          expect(filterPushdown(
-            AF.createTermExpression(DF.variable('s')),
-            AF.createValues(
-              [ DF.variable('a') ],
-              [],
-            ),
-          )).toEqual([ true, AF.createValues(
-            [ DF.variable('a') ],
-            [],
-          ) ]);
+        it('is kept when variables do not overlap', async() => {
+          const expression = AF.createTermExpression(DF.variable('s'));
+          const values = AF.createValues([ DF.variable('a') ], []);
+          expect(filterPushdown(expression, values)).toEqual([ false, AF.createFilter(values, expression) ]);
         });
 
         it('is kept for expressions without variables', async() => {
