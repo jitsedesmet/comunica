@@ -1,9 +1,13 @@
 import { ActorRmlReferenceFormulation } from '@comunica/bus-rml-reference-formulation';
+import { KeysInitQuery } from '@comunica/context-entries';
 import { ActionContext, Bus } from '@comunica/core';
 import type { IActionContext } from '@comunica/types';
+import { DataFactory } from 'rdf-data-factory';
 import { Readable } from 'readable-stream';
 import { ActorRmlReferenceFormulationCsv } from '../lib/ActorRmlReferenceFormulationCsv';
 import '@comunica/utils-jest';
+
+const DF = new DataFactory();
 
 describe('ActorRmlReferenceFormulationCsv', () => {
   let bus: any;
@@ -13,7 +17,7 @@ describe('ActorRmlReferenceFormulationCsv', () => {
   beforeEach(() => {
     bus = new Bus({ name: 'bus' });
     actor = new ActorRmlReferenceFormulationCsv({ name: 'actor', bus });
-    context = new ActionContext();
+    context = new ActionContext({ [KeysInitQuery.dataFactory.name]: DF });
   });
 
   it('should be an ActorRmlReferenceFormulation', () => {
@@ -49,8 +53,8 @@ describe('ActorRmlReferenceFormulationCsv', () => {
         context,
       });
       await expect(referencedValues.toArray()).resolves.toEqual([
-        { id: [ '1' ], city: [ 'Ghent' ]},
-        { id: [ '2' ]},
+        { id: [ DF.literal('1') ], city: [ DF.literal('Ghent') ]},
+        { id: [ DF.literal('2') ]},
       ]);
     });
 

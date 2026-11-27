@@ -1,5 +1,6 @@
 import type { IAction, IActorArgs, IActorOutput, IActorTest, Mediate } from '@comunica/core';
 import { Actor } from '@comunica/core';
+import type * as RDF from '@rdfjs/types';
 import type { AsyncIterator } from 'asynciterator';
 
 /**
@@ -28,9 +29,10 @@ export abstract class ActorRmlReferenceFormulation<TS = undefined>
 }
 
 /**
- * The values of each reference in a single record, where a reference without a value has no entry.
+ * The values of each reference in a single record, as literals with the natural datatype of the data.
+ * A reference without a value has no entry.
  */
-export type RmlReferencedValues = Record<string, string[]>;
+export type RmlReferencedValues = Record<string, RDF.Literal[]>;
 
 export interface IActionRmlReferenceFormulation extends IAction {
   /**

@@ -25,9 +25,9 @@ describe('ActorQueryOperationRmlLogicalSource', () => {
     mediatorRmlReferenceFormulation = {
       mediate: jest.fn(async() => ({
         referencedValues: new ArrayIterator([
-          { id: [ '1' ], tag: [ 'a', 'b' ]},
-          { id: [ '2' ]},
-          { id: [ '3' ], tag: []},
+          { id: [ DF.literal('1') ], tag: [ DF.literal('a'), DF.literal('b') ]},
+          { id: [ DF.literal('2') ]},
+          { id: [ DF.literal('3') ], tag: []},
         ], { autoStart: false }),
       })),
     };
@@ -99,23 +99,6 @@ describe('ActorQueryOperationRmlLogicalSource', () => {
         [ DF.variable('id'), DF.literal('3') ],
         [ DF.variable('sameId'), DF.literal('3') ],
       ]),
-    ]);
-  });
-
-  it('should skip records without a value for a required reference', async() => {
-    const operation = AF.createRmlLogicalSource('data.csv', 'ex:CSV', [
-      { variable: DF.variable('id'), reference: 'id' },
-      { variable: DF.variable('tag'), reference: 'tag', required: true },
-    ]);
-    const output = getSafeBindings(await actor.run({ operation, context }, undefined));
-
-    await expect(output.metadata()).resolves.toMatchObject({ variables: [
-      { variable: DF.variable('id'), canBeUndef: true },
-      { variable: DF.variable('tag'), canBeUndef: false },
-    ]});
-    await expect(output.bindingsStream).toEqualBindingsStream([
-      BF.bindings([[ DF.variable('id'), DF.literal('1') ], [ DF.variable('tag'), DF.literal('a') ]]),
-      BF.bindings([[ DF.variable('id'), DF.literal('1') ], [ DF.variable('tag'), DF.literal('b') ]]),
     ]);
   });
 });

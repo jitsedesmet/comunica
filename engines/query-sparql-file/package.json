@@ -58,6 +58,7 @@
     "browser:webpack": "node \"../../node_modules/webpack/bin/webpack.js\" --mode production",
     "browser:vite": "node \"../../node_modules/vite/bin/vite.js\" build",
     "browser-profile": "node \"../../node_modules/webpack/bin/webpack.js\" --mode production --profile --json > stats.json && node \"../../node_modules/.bin/webpack-bundle-analyzer\" stats.json && rm stats.json",
+    "spec:rml": "node spec/rml-test-cases.js",
     "integration": "rdf-test-suite-ldf spec/sparql-engine.js https://comunica.github.io/manifest-ldf-tests/sparql-file/file-manifest.ttl -d 200000 -c ../../.rdf-test-suite-ldf-cache/"
   },
   "dependencies": {
@@ -129,6 +130,7 @@
     "@comunica/actor-function-factory-term-rand": "^5.5.0",
     "@comunica/actor-function-factory-term-regex": "^5.5.0",
     "@comunica/actor-function-factory-term-replace": "^5.5.0",
+    "@comunica/actor-function-factory-term-rml-iri": "^5.5.0",
     "@comunica/actor-function-factory-term-round": "^5.5.0",
     "@comunica/actor-function-factory-term-seconds": "^5.5.0",
     "@comunica/actor-function-factory-term-sha1": "^5.5.0",
@@ -322,6 +324,7 @@
     "@comunica/actor-rdf-update-quads-hypermedia": "^5.5.0",
     "@comunica/actor-rdf-update-quads-rdfjs-store": "^5.5.0",
     "@comunica/actor-rml-reference-formulation-csv": "^5.5.0",
+    "@comunica/actor-rml-reference-formulation-jsonpath": "^5.5.0",
     "@comunica/actor-term-comparator-factory-expression-evaluator": "^5.5.0",
     "@comunica/actor-warmup-queries-sampled": "^5.5.0",
     "@comunica/bus-function-factory": "^5.5.0",

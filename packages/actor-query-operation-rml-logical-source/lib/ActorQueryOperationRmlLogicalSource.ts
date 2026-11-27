@@ -57,7 +57,7 @@ export class ActorQueryOperationRmlLogicalSource extends ActorQueryOperationType
       autoStart: false,
       transform(recordValues, done, push) {
         for (const bindings of ActorQueryOperationRmlLogicalSource
-          .getRecordBindings(recordValues, operation.references, bindingsFactory, dataFactory)) {
+          .getRecordBindings(recordValues, operation.references, bindingsFactory)) {
           push(bindings);
         }
         done();
@@ -66,7 +66,7 @@ export class ActorQueryOperationRmlLogicalSource extends ActorQueryOperationType
     const metadata = async(): Promise<MetadataBindings> => ({
       state: new MetadataValidationState(),
       cardinality: { type: 'estimate', value: Number.POSITIVE_INFINITY },
-      variables: operation.references.map(({ variable, required }) => ({ variable, canBeUndef: !required })),
+      variables: operation.references.map(({ variable }) => ({ variable, canBeUndef: true })),
     });
     return { type: 'bindings', bindingsStream, metadata };
   }
@@ -76,24 +76,19 @@ export class ActorQueryOperationRmlLogicalSource extends ActorQueryOperationType
    * @param recordValues The referenced values of the record.
    * @param references The references and the variables to bind their values to.
    * @param bindingsFactory The factory to create bindings with.
-   * @param dataFactory The factory to create literals with.
-   * @return One bindings object per combination of values, or none if a required reference has no values.
+   * @return One bindings object per combination of values, where a reference without values stays unbound.
    */
   public static getRecordBindings(
     recordValues: RmlReferencedValues,
     references: Algebra.RmlLogicalSourceReference[],
     bindingsFactory: BindingsFactory,
-    dataFactory: ComunicaDataFactory,
   ): Bindings[] {
     let recordBindings: Bindings[] = [ bindingsFactory.bindings() ];
-    for (const { variable, reference, required } of references) {
+    for (const { variable, reference } of references) {
       const values = recordValues[reference] ?? [];
-      if (values.length === 0 && required) {
-        return [];
-      }
       if (values.length > 0) {
         recordBindings = recordBindings.flatMap(bindings => values
-          .map(value => bindings.set(variable, dataFactory.literal(value))));
+          .map(value => bindings.set(variable, value)));
       }
     }
     return recordBindings;

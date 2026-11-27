@@ -8,6 +8,8 @@ export const RmlVocabulary = <const> {
   logicalSource: `${RML_NAMESPACE}logicalSource`,
   source: `${RML_NAMESPACE}source`,
   path: `${RML_NAMESPACE}path`,
+  root: `${RML_NAMESPACE}root`,
+  CurrentWorkingDirectory: `${RML_NAMESPACE}CurrentWorkingDirectory`,
   referenceFormulation: `${RML_NAMESPACE}referenceFormulation`,
   iterator: `${RML_NAMESPACE}iterator`,
   CSV: `${RML_NAMESPACE}CSV`,
@@ -29,15 +31,22 @@ export const RmlVocabulary = <const> {
   template: `${RML_NAMESPACE}template`,
   termType: `${RML_NAMESPACE}termType`,
   IRI: `${RML_NAMESPACE}IRI`,
+  URI: `${RML_NAMESPACE}URI`,
+  UnsafeIRI: `${RML_NAMESPACE}UnsafeIRI`,
   BlankNode: `${RML_NAMESPACE}BlankNode`,
   Literal: `${RML_NAMESPACE}Literal`,
   datatype: `${RML_NAMESPACE}datatype`,
+  datatypeMap: `${RML_NAMESPACE}datatypeMap`,
   language: `${RML_NAMESPACE}language`,
+  languageMap: `${RML_NAMESPACE}languageMap`,
+  baseIRI: `${RML_NAMESPACE}baseIRI`,
 
   parentTriplesMap: `${RML_NAMESPACE}parentTriplesMap`,
   joinCondition: `${RML_NAMESPACE}joinCondition`,
   child: `${RML_NAMESPACE}child`,
+  childMap: `${RML_NAMESPACE}childMap`,
   parent: `${RML_NAMESPACE}parent`,
+  parentMap: `${RML_NAMESPACE}parentMap`,
 };
 
 export const RDF_TYPE = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type';

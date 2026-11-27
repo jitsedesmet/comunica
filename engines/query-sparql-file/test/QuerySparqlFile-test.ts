@@ -3,6 +3,7 @@
 import { readFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { KeysQueryParseRml } from '@comunica/context-entries';
 import type { QueryStringContext } from '@comunica/types';
 import 'jest-rdf';
 import { BindingsFactory } from '@comunica/utils-bindings-factory';
@@ -191,7 +192,8 @@ WHERE {
       const context: QueryStringContext = {
         sources: [],
         queryFormat: { language: 'rml', version: '1.0' },
-        baseIRI: pathToFileURL(path.join(assets, 'mapping.ttl')).href,
+        baseIRI: 'http://example.org/',
+        [KeysQueryParseRml.mappingDirectory.name]: `${pathToFileURL(assets).href}/`,
       };
 
       const person = (id: number): RDF.NamedNode => DF.namedNode(`http://example.org/person/${id}`);

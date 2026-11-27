@@ -1,7 +1,7 @@
 import type { IActionQueryParse, IActorQueryParseArgs, IActorQueryParseOutput } from '@comunica/bus-query-parse';
 import { ActorQueryParse } from '@comunica/bus-query-parse';
 import type { MediatorRdfParseHandle } from '@comunica/bus-rdf-parse';
-import { KeysInitQuery } from '@comunica/context-entries';
+import { KeysInitQuery, KeysQueryParseRml } from '@comunica/context-entries';
 import type { IActorTest, TestResult } from '@comunica/core';
 import { failTest, passTestVoid } from '@comunica/core';
 import type { ComunicaDataFactory } from '@comunica/types';
@@ -43,7 +43,11 @@ export class ActorQueryParseRml extends ActorQueryParse {
     const mappingQuads: RDF.Quad[] = await arrayifyStream(handle.data);
 
     const dataFactory: ComunicaDataFactory = action.context.getSafe(KeysInitQuery.dataFactory);
-    const translator = new RmlMappingToAlgebraTranslator(dataFactory, new AlgebraFactory(dataFactory), action.baseIRI);
+    const translator = new RmlMappingToAlgebraTranslator(
+      dataFactory,
+      new AlgebraFactory(dataFactory),
+      { baseIRI: action.baseIRI, mappingDirectory: action.context.get(KeysQueryParseRml.mappingDirectory) },
+    );
     return { operation: translator.translate(mappingQuads) };
   }
 }

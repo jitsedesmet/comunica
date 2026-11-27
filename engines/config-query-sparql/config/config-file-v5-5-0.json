@@ -6,6 +6,7 @@
     "ccqs:config/config-default-v5-4-1.json",
     "ccqs:config/dereference/actors-file.json",
     "ccqs:config/function-factory/actors/term-function-internal-blank-node.json",
+    "ccqs:config/function-factory/actors/term-function-rml-iri.json",
     "ccqs:config/query-operation/actors/query/rml-logical-source.json",
     "ccqs:config/query-parse/actors-rml.json",
     "ccqs:config/rml-reference-formulation/actors.json",

@@ -486,6 +486,14 @@ export const KeysRdfParseJsonLd = {
   parserOptions: new ActionContextKey<Record<string, any>>('@comunica/actor-rdf-parse-jsonld:parserOptions'),
 };
 
+export const KeysQueryParseRml = {
+  /**
+   * The IRI of the directory of the RML mapping, against which relative source paths are resolved.
+   * Without it, relative source paths are kept as is.
+   */
+  mappingDirectory: new ActionContextKey<string>('@comunica/actor-query-parse-rml:mappingDirectory'),
+};
+
 export const KeysRdfParseHtmlScript = {
   /**
    * An internal context flag to determine if the engine is already processing an HTML script tag.
