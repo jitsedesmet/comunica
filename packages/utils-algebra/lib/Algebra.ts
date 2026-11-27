@@ -50,7 +50,8 @@ export type Closed<T extends object > = {[K in keyof T]: CloseSingle<T[K]> };
 // Redefinitions of types
 export type KnownOperation = Ask | KnownExpression | Bgp | Construct | Describe | Distinct | Extend | From | Filter
   | Graph | Group | Join | LeftJoin | Minus | Nop | OrderBy | Path | Pattern | Project | KnownPropertyPathSymbol
-  | Reduced | Service | Slice | Union | Values | KnownUpdate | CompositeUpdate | Nodes | DistinctTerms;
+  | Reduced | Service | Slice | Union | Values | KnownUpdate | CompositeUpdate | Nodes | DistinctTerms
+  | RmlLogicalSource;
 export type KnownExpression = AggregateExpression | GroupConcatExpression | ExistenceExpression | NamedExpression |
   OperatorExpression | TermExpression | WildcardExpression | BoundAggregate | BoundNamedAggregate;
 export type KnownPropertyPathSymbol = Alt | Inv | Link | Nps | OneOrMorePath | Seq | ZeroOrMorePath | ZeroOrOnePath;
@@ -201,3 +202,25 @@ export interface DistinctTermsUnopened extends BaseOperation {
   filters?: Partial<Record<QuadTermName, RDF.Term>>;
 }
 export type DistinctTerms = Opened<DistinctTermsUnopened>;
+
+/**
+ * A reference of an RML logical source, and the variable its values are bound to.
+ */
+export interface RmlLogicalSourceReference {
+  variable: RDF.Variable;
+  reference: string;
+}
+
+/**
+ * A non-standard operator to represent the source operator of the RML algebra.
+ * It returns one solution per combination of referenced values, for each record the iterator selects in the source.
+ * https://arxiv.org/abs/2503.10385
+ */
+export interface RmlLogicalSourceUnopened extends BaseOperation {
+  type: TypesComunica.RML_LOGICAL_SOURCE;
+  sourceUrl: string;
+  referenceFormulation: string;
+  iterator?: string;
+  references: RmlLogicalSourceReference[];
+}
+export type RmlLogicalSource = Opened<RmlLogicalSourceUnopened>;

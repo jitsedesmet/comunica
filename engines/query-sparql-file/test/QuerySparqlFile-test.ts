@@ -1,10 +1,12 @@
 /** @jest-environment setup-polly-jest/jest-environment-node */
 
+import { readFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { QueryStringContext } from '@comunica/types';
 import 'jest-rdf';
 import { BindingsFactory } from '@comunica/utils-bindings-factory';
+import type * as RDF from '@rdfjs/types';
 import arrayifyStream from 'arrayify-stream';
 import { DataFactory } from 'rdf-data-factory';
 import '@comunica/utils-jest';
@@ -178,6 +180,44 @@ WHERE {
         'http://ex/s0 http://ex/o5',
         'http://ex/s1 http://ex/o3',
         'http://ex/s1 http://ex/o5',
+      ]);
+    });
+  });
+
+  describe('materializing an RML mapping', () => {
+    it('should generate the quads of a mapping over CSV files', async() => {
+      const assets = path.join(__dirname, 'assets/rml');
+      const mapping = readFileSync(path.join(assets, 'mapping.ttl'), 'utf8');
+      const context: QueryStringContext = {
+        sources: [],
+        queryFormat: { language: 'rml', version: '1.0' },
+        baseIRI: pathToFileURL(path.join(assets, 'mapping.ttl')).href,
+      };
+
+      const person = (id: number): RDF.NamedNode => DF.namedNode(`http://example.org/person/${id}`);
+      const ex = (localName: string): RDF.NamedNode => DF.namedNode(`http://example.org/${localName}`);
+      const foaf = (localName: string): RDF.NamedNode => DF.namedNode(`http://xmlns.com/foaf/0.1/${localName}`);
+      const integer = DF.namedNode('http://www.w3.org/2001/XMLSchema#integer');
+      const type = DF.namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type');
+      const quads = await arrayifyStream(await engine.queryQuads(mapping, context));
+      expect(quads).toBeRdfIsomorphic([
+        DF.quad(person(1), type, foaf('Person')),
+        DF.quad(person(1), foaf('name'), DF.literal('Alice', 'en')),
+        DF.quad(person(1), ex('id'), DF.literal('1', integer)),
+        DF.quad(person(1), ex('address'), DF.blankNode('address1'), ex('addresses')),
+        DF.quad(person(1), ex('livesIn'), ex('city/Ghent')),
+        // Bob has no city, so he lives nowhere
+        DF.quad(person(2), type, foaf('Person')),
+        DF.quad(person(2), foaf('name'), DF.literal('Bob', 'en')),
+        DF.quad(person(2), ex('id'), DF.literal('2', integer)),
+        DF.quad(person(2), ex('address'), DF.blankNode('address2'), ex('addresses')),
+        DF.quad(person(3), type, foaf('Person')),
+        DF.quad(person(3), foaf('name'), DF.literal('Carol, PhD', 'en')),
+        DF.quad(person(3), ex('id'), DF.literal('3', integer)),
+        DF.quad(person(3), ex('address'), DF.blankNode('address3'), ex('addresses')),
+        DF.quad(person(3), ex('livesIn'), ex('city/Bruges')),
+        DF.quad(ex('city/Ghent'), ex('country'), DF.literal('Belgium')),
+        DF.quad(ex('city/Bruges'), ex('country'), DF.literal('Belgium')),
       ]);
     });
   });

@@ -97,6 +97,7 @@ describe('algebraTransformer', () => {
   it.each([
     AF.createNodes(DF.namedNode('ex:g'), DF.variable('v')),
     AF.createDistinctTerms([ DF.variable('v') ], { v: 'subject' }, { graph: DF.namedNode('ex:g') }),
+    AF.createRmlLogicalSource('ex:source', 'ex:formulation', [{ variable: DF.variable('v'), reference: 'r' }], 'i'),
   ])('should not traverse the terms of the operation type $type defined by Comunica.', (operation: any) => {
     const copy = <any> algebraTransformer().transformNode(operation, {});
     expect(copy).not.toBe(operation);

@@ -12,7 +12,16 @@ import type {
   VisitContext,
 } from '@traqula/core';
 import { forEveryNodeType, TransformerSubTyped, visitOnlyKnownKeys } from '@traqula/core';
-import type { Construct, DeleteInsert, DistinctTerms, KnownOperation, Nodes, Operation, Path } from './Algebra';
+import type {
+  Construct,
+  DeleteInsert,
+  DistinctTerms,
+  KnownOperation,
+  Nodes,
+  Operation,
+  Path,
+  RmlLogicalSource,
+} from './Algebra';
 import { TypesComunica } from './TypesComunica';
 
 export const resolveIRI = algebraUtils.resolveIRI;
@@ -78,9 +87,10 @@ export const defaultObjectContext: TransformContext = {
  */
 export const defaultNodePreVisitor: DefaultNodePreVisitor<KnownOperation> = {
   ...<DefaultNodePreVisitor<KnownOperation>> algebraUtils.knownKeysAllowlist,
-  ...visitOnlyKnownKeys<Nodes | DistinctTerms>({
+  ...visitOnlyKnownKeys<Nodes | DistinctTerms | RmlLogicalSource>({
     [TypesComunica.NODES]: { graph: false, variable: false, metadata: false },
     [TypesComunica.DISTINCT_TERMS]: { variables: false, terms: false, filters: false, metadata: false },
+    [TypesComunica.RML_LOGICAL_SOURCE]: { references: false, metadata: false },
   }),
 };
 

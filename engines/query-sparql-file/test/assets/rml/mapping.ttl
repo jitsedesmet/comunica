@@ -1,0 +1,17 @@
+@prefix rml: <http://w3id.org/rml/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix ex: <http://example.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:PersonMap a rml:TriplesMap ;
+  rml:logicalSource [ rml:source "people.csv" ; rml:referenceFormulation rml:CSV ] ;
+  rml:subjectMap [ rml:template "http://example.org/person/{id}" ; rml:class foaf:Person ] ;
+  rml:predicateObjectMap [ rml:predicate foaf:name ; rml:objectMap [ rml:reference "name" ; rml:language "en" ] ] ;
+  rml:predicateObjectMap [ rml:predicate ex:id ; rml:objectMap [ rml:reference "id" ; rml:datatype xsd:integer ] ] ;
+  rml:predicateObjectMap [ rml:predicate ex:address ; rml:objectMap [ rml:template "address {id}" ; rml:termType rml:BlankNode ] ; rml:graph ex:addresses ] ;
+  rml:predicateObjectMap [ rml:predicate ex:livesIn ; rml:objectMap [ rml:parentTriplesMap ex:CityMap ; rml:joinCondition [ rml:child "city" ; rml:parent "city" ] ] ] .
+
+ex:CityMap a rml:TriplesMap ;
+  rml:logicalSource [ rml:source [ rml:path "cities.csv" ] ] ;
+  rml:subjectMap [ rml:template "http://example.org/city/{city}" ] ;
+  rml:predicateObjectMap [ rml:predicate ex:country ; rml:objectMap [ rml:reference "country" ] ] .
