@@ -548,6 +548,23 @@ describe('ActorOptimizeQueryOperationPruneEmptySourceOperations', () => {
         });
       });
 
+      describe('with graph operations', () => {
+        it('should not modify children', async() => {
+          // The patterns within a GRAPH are matched against named graphs instead of the default graph.
+          const opIn = AF.createGraph(
+            AF.createUnion([
+              assignOperationSource(AF
+                .createPattern(DF.namedNode('s'), DF.namedNode('p1'), DF.namedNode('o')), source1),
+              assignOperationSource(AF
+                .createPattern(DF.namedNode('s'), DF.namedNode('empty'), DF.namedNode('o')), source1),
+            ]),
+            DF.namedNode('g'),
+          );
+          const { operation: opOut } = await actor.run({ operation: opIn, context: ctx });
+          expect(opOut).toEqual(opIn);
+        });
+      });
+
       describe('with from operations', () => {
         it('should not modify children', async() => {
           // The graphs of the patterns within a FROM are only rewritten when that FROM is executed,
@@ -910,7 +927,10 @@ describe('ActorOptimizeQueryOperationPruneEmptySourceOperations', () => {
             [ 'reduced', () => AF.createReduced(unionOf('empty')) ],
             [ 'slice', () => AF.createSlice(unionOf('empty'), 1) ],
             [ 'order by', () => AF.createOrderBy(unionOf('empty'), [ AF.createTermExpression(variable) ]) ],
-            [ 'graph', () => AF.createGraph(unionOf('empty'), DF.namedNode('g')) ],
+            [ 'graph', () => AF.createUnion([
+              unionOf('empty'),
+              AF.createGraph(AF.createUnion([]), DF.namedNode('g')),
+            ]) ],
             [ 'group with keys', () => AF.createGroup(unionOf('empty'), [ variable ], [ count ]) ],
             [ 'one-or-more path', () => pathOf(AF.createOneOrMorePath(altOf('empty'))) ],
             [ 'inverse path', () => pathOf(AF.createInv(altOf('empty'))) ],

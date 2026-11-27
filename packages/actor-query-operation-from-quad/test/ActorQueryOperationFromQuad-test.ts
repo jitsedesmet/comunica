@@ -4,6 +4,7 @@ import { ActionContext, Bus } from '@comunica/core';
 import type { IQueryOperationResultBindings } from '@comunica/types';
 import { Algebra, AlgebraFactory } from '@comunica/utils-algebra';
 import { BindingsFactory } from '@comunica/utils-bindings-factory';
+import type * as RDF from '@rdfjs/types';
 import arrayifyStream from 'arrayify-stream';
 import { ArrayIterator } from 'asynciterator';
 import { DataFactory } from 'rdf-data-factory';
@@ -320,9 +321,83 @@ describe('ActorQueryOperationFromQuad', () => {
       expect(ActorQueryOperationFromQuad.applyOperationDefaultGraph(AF, operation, [ DF.namedNode('gd') ]))
         .toEqual(operation);
     });
+
+    it('should not modify the input of a GRAPH operation', () => {
+      const operation = AF.createGraph(
+        AF.createPattern(DF.variable('s'), DF.namedNode('p'), DF.namedNode('o')),
+        DF.namedNode('g'),
+      );
+      expect(ActorQueryOperationFromQuad.applyOperationDefaultGraph(AF, operation, [ DF.namedNode('gd') ]))
+        .toEqual(operation);
+    });
   });
 
   describe('#applyOperationNamedGraph', () => {
+    describe('for GRAPH operations', () => {
+      const pattern = AF.createPattern(DF.variable('s'), DF.namedNode('p'), DF.namedNode('o'));
+      const noSolutions = AF.createValues([], []);
+      const graphValues = (graph: string): Algebra.Values =>
+        AF.createValues([ DF.variable('g') ], [{ g: DF.namedNode(graph) }]);
+
+      it('should keep an available graph with its metadata', () => {
+        const operation = Object.assign(AF.createGraph(pattern, DF.namedNode('g')), { metadata: { a: 'b' }});
+        expect(ActorQueryOperationFromQuad.applyOperationNamedGraph(AF, operation, [ DF.namedNode('g') ], []))
+          .toEqual(operation);
+      });
+
+      it('should transform a non-available graph to a no-op', () => {
+        expect(ActorQueryOperationFromQuad.applyOperationNamedGraph(
+          AF,
+          AF.createGraph(pattern, DF.namedNode('g')),
+          [ DF.namedNode('other') ],
+          [ DF.namedNode('g') ],
+        )).toEqual(noSolutions);
+      });
+
+      it('should transform a variable graph without named graphs to a no-op', () => {
+        expect(ActorQueryOperationFromQuad
+          .applyOperationNamedGraph(AF, AF.createGraph(pattern, DF.variable('g')), [], [ DF.namedNode('g') ]))
+          .toEqual(noSolutions);
+      });
+
+      it('should transform a variable graph into the union over all named graphs', () => {
+        expect(ActorQueryOperationFromQuad.applyOperationNamedGraph(
+          AF,
+          AF.createGraph(pattern, DF.variable('g')),
+          [ DF.namedNode('g1'), DF.namedNode('g2') ],
+          [],
+        )).toEqual(AF.createUnion([
+          AF.createJoin([ graphValues('g1'), AF.createGraph(pattern, DF.namedNode('g1')) ]),
+          AF.createJoin([ graphValues('g2'), AF.createGraph(pattern, DF.namedNode('g2')) ]),
+        ]));
+      });
+
+      it('should only transform nested graphs within the input', () => {
+        const patternIn = (graph: RDF.Term): Algebra.Pattern =>
+          AF.createPattern(DF.variable('s'), DF.namedNode('p'), DF.namedNode('o'), graph);
+        expect(ActorQueryOperationFromQuad.applyOperationNamedGraph(
+          AF,
+          AF.createGraph(
+            AF.createJoin([
+              pattern,
+              patternIn(DF.variable('g')),
+              AF.createGraph(pattern, DF.namedNode('other')),
+            ], false),
+            DF.namedNode('g'),
+          ),
+          [ DF.namedNode('g') ],
+          [],
+        )).toEqual(AF.createGraph(
+          AF.createJoin([
+            pattern,
+            AF.createJoin([ graphValues('g'), patternIn(DF.namedNode('g')) ]),
+            noSolutions,
+          ], false),
+          DF.namedNode('g'),
+        ));
+      });
+    });
+
     it('should not modify an empty BGP', () => {
       const operation = AF.createBgp([]);
       expect(ActorQueryOperationFromQuad.applyOperationNamedGraph(AF, operation, [ DF.namedNode('g') ], []))

@@ -1,8 +1,24 @@
 import type * as RDF from '@rdfjs/types';
 import { ArrayIterator } from 'asynciterator';
-import { cachifyMetadata, getMetadataBindings, getMetadataQuads, MetadataValidationState } from '../lib';
+import {
+  cachifyMetadata,
+  createDerivedMetadataState,
+  getMetadataBindings,
+  getMetadataQuads,
+  MetadataValidationState,
+} from '../lib';
 
 describe('Utils', () => {
+  describe('createDerivedMetadataState', () => {
+    it('is invalidated when one of the given states is invalidated', () => {
+      const states = [ new MetadataValidationState(), new MetadataValidationState() ];
+      const derivedState = createDerivedMetadataState(states.map(state => ({ state })));
+      expect(derivedState.valid).toBe(true);
+      states[1].invalidate();
+      expect(derivedState.valid).toBe(false);
+    });
+  });
+
   describe('getMetadataQuads', () => {
     it('resolves for valid metadata', async() => {
       const it = new ArrayIterator<RDF.Quad>([], { autoStart: false });

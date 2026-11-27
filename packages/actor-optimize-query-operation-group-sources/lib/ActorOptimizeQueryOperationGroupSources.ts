@@ -12,6 +12,7 @@ import { Algebra, AlgebraFactory, algebraTransformer, isKnownOperation, isKnownS
 import {
   assignOperationSource,
   doesShapeAcceptOperationInContext,
+  getOperationDatasetSources,
   getOperationSource,
   getSourceSelectorShape,
   removeOperationSource,
@@ -223,6 +224,8 @@ export class ActorOptimizeQueryOperationGroupSources extends ActorOptimizeQueryO
     context: IActionContext,
   ): Promise<O> {
     if (source && inputs.every(input => getOperationSource(input) === source) &&
+      // A GRAPH operation ranges over the named graphs of its whole dataset, which the source must hold on its own.
+      (getOperationDatasetSources(operation) ?? []).every(datasetSource => datasetSource === source) &&
       this.isPossibleToMoveSourceAnnotationUpwards(
         operation,
         await getSourceSelectorShape(source, context),

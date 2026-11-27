@@ -84,6 +84,27 @@ export function materializeOperation(
       ), { metadata: serviceOp.metadata }),
       preVisitor: () => ({ continue: false }),
     },
+    [Algebra.Types.GRAPH]: {
+      preVisitor: () => ({ continue: false }),
+      transform: (graphOp) => {
+        const graphName = materializeTerm(graphOp.name, bindings);
+        if (![ 'Variable', 'NamedNode', 'BlankNode' ].includes(graphName.termType)) {
+          // Only IRIs and blank nodes can name a graph, so other terms have no solutions.
+          return algebraFactory.createValues([], []);
+        }
+        // The graph variable is only bound after evaluating the GRAPH clause, so it is not materialized within it.
+        const unbindGraphVariable = (bindingsIn: Bindings): Bindings => graphOp.name.termType === 'Variable' ?
+          bindingsIn.delete(graphOp.name) :
+          bindingsIn;
+        return Object.assign(algebraFactory.createGraph(
+          materializeOperation(graphOp.input, unbindGraphVariable(bindings), algebraFactory, bindingsFactory, {
+            ...options,
+            originalBindings: unbindGraphVariable(<Bindings> options.originalBindings),
+          }),
+          <RDF.Variable | RDF.NamedNode> graphName,
+        ), { metadata: graphOp.metadata });
+      },
+    },
     [Algebra.Types.PATH]: {
       preVisitor: () => ({ continue: false }),
       transform: pathOp =>

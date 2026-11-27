@@ -3356,6 +3356,115 @@ WHERE { }
       });
     });
 
+    describe('GRAPH evaluated over every named graph separately', () => {
+      // These cases follow https://www.w3.org/TR/sparql12-query/#defn_evalGraph
+      let store: RdfStore;
+
+      beforeEach(() => {
+        store = RdfStore.createDefault();
+        store.addQuad(quadIn(DF.defaultGraph(), 'ex:s0', 'ex:o0'));
+        store.addQuad(quadIn(DF.namedNode('ex:g1'), 'ex:s1', 'ex:o1'));
+        store.addQuad(quadIn(DF.namedNode('ex:g1'), 'ex:s2', 'ex:g1'));
+        store.addQuad(quadIn(DF.namedNode('ex:g2'), 'ex:s3', 'ex:o3'));
+      });
+
+      function quadIn(graph: RDF.Quad_Graph, subject: string, object: string): RDF.Quad {
+        return DF.quad(DF.namedNode(subject), DF.namedNode('ex:p'), DF.namedNode(object), graph);
+      }
+
+      async function query(queryString: string, sources: RdfStore[] = [ store ]): Promise<Record<string, string>[]> {
+        const bindingsStream = await engine.queryBindings(`PREFIX ex: <ex:> ${queryString}`, { sources });
+        const bindings = await bindingsStream.toArray();
+        return bindings
+          .map(binding => Object.fromEntries([ ...binding ]
+            .map(([ variable, term ]) => [ variable.value, term.value ])))
+          .sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right)));
+      }
+
+      it('should not bind the graph variable within the graph pattern', async() => {
+        await expect(query(`SELECT ?s { GRAPH ?g { ?s ?p ?o FILTER(!BOUND(?g)) } }`)).resolves
+          .toEqual([{ s: 'ex:s1' }, { s: 'ex:s2' }, { s: 'ex:s3' }]);
+      });
+
+      it('should not bind the graph variable for filters within the graph pattern', async() => {
+        await expect(query(`SELECT ?s { GRAPH ?g { ?s ?p ?o . ?s ?p ?o2 FILTER(?g = ex:g1) } }`)).resolves.toEqual([]);
+        await expect(query(`SELECT ?s { GRAPH ?g { ?s ?p ?o FILTER(?g = ex:g1) } }`)).resolves.toEqual([]);
+      });
+
+      it('should evaluate EXISTS over the graph that its solution is in', async() => {
+        await expect(query(`SELECT ?s { GRAPH ?g { ?s ?p ?o FILTER NOT EXISTS { ?s ?p ex:o1 } } }`)).resolves
+          .toEqual([{ s: 'ex:s2' }, { s: 'ex:s3' }]);
+        await expect(query(`SELECT ?s { GRAPH ?g { ?s ?p ?o { FILTER NOT EXISTS { ?a ?b ex:o3 } } } }`)).resolves
+          .toEqual([{ s: 'ex:s1' }, { s: 'ex:s2' }]);
+        await expect(query(`SELECT ?s ?e { GRAPH ?g { BIND(EXISTS { ?a ?b ex:o3 } AS ?e) ?s ?p ?o } }`)).resolves
+          .toEqual([{ e: 'false', s: 'ex:s1' }, { e: 'false', s: 'ex:s2' }, { e: 'true', s: 'ex:s3' }]);
+      });
+
+      it('should only keep solutions that are compatible with the graph', async() => {
+        await expect(query(`SELECT ?g ?s { GRAPH ?g { ?s ?p ?o BIND(ex:g1 AS ?g) } }`)).resolves
+          .toEqual([{ g: 'ex:g1', s: 'ex:s1' }, { g: 'ex:g1', s: 'ex:s2' }]);
+        await expect(query(`SELECT ?g ?s { GRAPH ?g { ?s ?p ?o OPTIONAL { ?s ?p ?g } } }`)).resolves
+          .toEqual([{ g: 'ex:g1', s: 'ex:s2' }]);
+      });
+
+      it('should apply solution modifiers and aggregates of subqueries per graph', async() => {
+        await expect(query(`SELECT * { GRAPH ?g { SELECT ?s { ?s ?p ?o } ORDER BY DESC(?s) LIMIT 1 } }`)).resolves
+          .toEqual([{ g: 'ex:g1', s: 'ex:s2' }, { g: 'ex:g2', s: 'ex:s3' }]);
+        await expect(query(`SELECT * { GRAPH ?g { SELECT (COUNT(*) AS ?c) { ?s ?p ?o } } }`)).resolves
+          .toEqual([{ c: '1', g: 'ex:g2' }, { c: '2', g: 'ex:g1' }]);
+        await expect(query(`SELECT * { GRAPH ex:g1 { SELECT (COUNT(*) AS ?c) { ?s ?p ?o } } }`)).resolves
+          .toEqual([{ c: '2' }]);
+        await expect(query(`SELECT * { GRAPH ?g { SELECT DISTINCT ?p { ?s ?p ?o } } }`)).resolves
+          .toEqual([{ g: 'ex:g1', p: 'ex:p' }, { g: 'ex:g2', p: 'ex:p' }]);
+      });
+
+      it('should not evaluate over the default graph if it is the union of all graphs', async() => {
+        const bindingsStream = await engine.queryBindings(
+          `SELECT ?s { GRAPH ?g { ?s ?p ?o FILTER(!BOUND(?g)) } }`,
+          { sources: [ store ], unionDefaultGraph: true },
+        );
+        await expect(bindingsStream.toArray()).resolves.toHaveLength(3);
+      });
+
+      it('should have a solution for every named graph that exists', async() => {
+        await expect(query(`SELECT * { GRAPH ?g { } }`)).resolves.toEqual([{ g: 'ex:g1' }, { g: 'ex:g2' }]);
+        await expect(query(`SELECT * { GRAPH ?g { VALUES ?x { 1 } } }`)).resolves
+          .toEqual([{ g: 'ex:g1', x: '1' }, { g: 'ex:g2', x: '1' }]);
+        await expect(query(`SELECT * { GRAPH ex:g1 { } }`)).resolves.toEqual([{}]);
+        await expect(query(`SELECT * { GRAPH ex:missing { } }`)).resolves.toEqual([]);
+        await expect(query(`SELECT * { GRAPH ex:missing { SELECT (COUNT(*) AS ?c) { ?s ?p ?o } } }`)).resolves
+          .toEqual([]);
+      });
+
+      it('should not share the graph variable with MINUS', async() => {
+        await expect(query(`SELECT ?s { GRAPH ?g { ?s ?p ?o MINUS { ?a ?b ?c } } }`)).resolves
+          .toEqual([{ s: 'ex:s1' }, { s: 'ex:s2' }, { s: 'ex:s3' }]);
+      });
+
+      it('should only evaluate over the graphs that the graph variable is bound to', async() => {
+        await expect(query(`SELECT * { VALUES ?g { ex:g2 } GRAPH ?g { SELECT (COUNT(*) AS ?c) { ?s ?p ?o } } }`))
+          .resolves.toEqual([{ c: '1', g: 'ex:g2' }]);
+        await expect(query(`SELECT ?s {
+          GRAPH ex:g1 { ?s ?p ?o } FILTER EXISTS { GRAPH ?o { SELECT (COUNT(*) AS ?c) { ?a ?b ?c } } }
+        }`)).resolves.toEqual([{ s: 'ex:s2' }]);
+      });
+
+      it('should restrict the named graphs to those of FROM NAMED', async() => {
+        await expect(query(`SELECT * FROM NAMED ex:g2 { GRAPH ?g { SELECT (COUNT(*) AS ?c) { ?s ?p ?o } } }`))
+          .resolves.toEqual([{ c: '1', g: 'ex:g2' }]);
+        await expect(query(`SELECT * FROM ex:g1 FROM NAMED ex:g2 {
+          GRAPH ex:g1 { SELECT (COUNT(*) AS ?c) { ?s ?p ?o } }
+        }`)).resolves.toEqual([]);
+      });
+
+      it('should merge the named graphs of multiple sources', async() => {
+        const otherStore = RdfStore.createDefault();
+        otherStore.addQuad(quadIn(DF.namedNode('ex:g2'), 'ex:s4', 'ex:o4'));
+        await expect(query(`SELECT * { GRAPH ?g { SELECT (COUNT(*) AS ?c) { ?s ?p ?o } } }`, [ store, otherStore ]))
+          .resolves.toEqual([{ c: '2', g: 'ex:g1' }, { c: '2', g: 'ex:g2' }]);
+      });
+    });
+
     describe('for a complex query', () => {
       it('with VALUES and OPTIONAL', async() => {
         const context: QueryStringContext = {

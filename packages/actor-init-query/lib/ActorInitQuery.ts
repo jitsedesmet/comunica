@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import type { IActionInit, IActorOutputInit } from '@comunica/bus-init';
 import { KeysInitQuery } from '@comunica/context-entries';
-import type { ICliArgsHandler, IQueryContextCommon } from '@comunica/types';
+import type { ICliArgsHandler, IQueryContextCommon, IQuerySourceWrapper } from '@comunica/types';
 import { Readable } from 'readable-stream';
 import yargs from 'yargs';
 import type { IActorInitQueryBaseArgs } from './ActorInitQueryBase';
@@ -91,6 +91,9 @@ export class ActorInitQuery<QueryContext extends IQueryContextCommon = IQueryCon
           JSON.stringify(queryResult.data, (key: string, value: any) => {
             if (key === 'scopedSource') {
               return value.source.toString();
+            }
+            if (key === 'datasetSources') {
+              return value.map((datasetSource: IQuerySourceWrapper) => datasetSource.source.toString());
             }
             return value;
           }, '  ') + '\n' ]),

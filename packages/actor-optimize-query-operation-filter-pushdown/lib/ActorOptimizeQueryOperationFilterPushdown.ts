@@ -275,8 +275,7 @@ export class ActorOptimizeQueryOperationFilterPushdown extends ActorOptimizeQuer
    * Recursively push down the given expression into the given operation if possible.
    * Different operators have different semantics for choosing whether or not to push down,
    * and how this pushdown is done.
-   * For every passed operator, it is checked whether or not the filter will have any effect on the operation.
-   * If not, the filter is voided.
+   * A filter on variables that an operation does not bind is kept above it, as it still rejects solutions.
    * @param expression An expression to push down.
    * @param expressionVariables The variables inside the given expression.
    * @param operation The operation to push down into.
@@ -344,6 +343,11 @@ export class ActorOptimizeQueryOperationFilterPushdown extends ActorOptimizeQuer
         notOverlapping,
       } = this.getOverlappingOperations(operation, expressionVariables);
 
+      // Don't push down if no entry binds a variable of the expression, as the filter would be lost
+      if (fullyOverlapping.length === 0 && partiallyOverlapping.length === 0) {
+        return [ false, factory.createFilter(operation, expression) ];
+      }
+
       const joins: Algebra.Operation[] = [];
       let isModified = false;
       if (fullyOverlapping.length > 0) {
@@ -369,11 +373,8 @@ export class ActorOptimizeQueryOperationFilterPushdown extends ActorOptimizeQuer
       return [ isModified, joins.length === 1 ? joins[0] : factory.createJoin(joins) ];
     }
     if (isKnownOperation(operation, Algebra.Types.NOP)) {
-      // Keep expressions without variables, as these may still reject the single empty solution
-      if (expressionVariables.length === 0) {
-        return [ false, factory.createFilter(operation, expression) ];
-      }
-      return [ true, operation ];
+      // Keep the expression, as it may still reject the single empty solution
+      return [ false, factory.createFilter(operation, expression) ];
     }
     if (isKnownOperation(operation, Algebra.Types.PROJECT)) {
       // Push down if variables overlap, or if there are no variables
@@ -383,8 +384,8 @@ export class ActorOptimizeQueryOperationFilterPushdown extends ActorOptimizeQuer
           operation.variables,
         ) ];
       }
-      // Void expression otherwise
-      return [ true, operation ];
+      // Keep the expression otherwise, as its variables are not bound by the projection
+      return [ false, factory.createFilter(operation, expression) ];
     }
     if (isKnownOperation(operation, Algebra.Types.UNION)) {
       // Determine overlapping operations
@@ -406,11 +407,10 @@ export class ActorOptimizeQueryOperationFilterPushdown extends ActorOptimizeQuer
         unions.push(factory.createUnion(fullyOverlapping
           .map(input => this.filterPushdown(expression, expressionVariables, input, factory, context)[1])));
       }
-      if (partiallyOverlapping.length > 0) {
-        unions.push(factory.createFilter(factory.createUnion(partiallyOverlapping, false), expression));
-      }
-      if (notOverlapping.length > 0) {
-        unions.push(...notOverlapping);
+      // Entries that do not bind all variables of the expression are still filtered by it
+      const notFullyOverlapping = [ ...partiallyOverlapping, ...notOverlapping ];
+      if (notFullyOverlapping.length > 0) {
+        unions.push(factory.createFilter(factory.createUnion(notFullyOverlapping, false), expression));
       }
 
       if (unions.length > 1) {
@@ -424,11 +424,7 @@ export class ActorOptimizeQueryOperationFilterPushdown extends ActorOptimizeQuer
       return [ isModified, unions.length === 1 ? unions[0] : factory.createUnion(unions) ];
     }
     if (isKnownOperation(operation, Algebra.Types.VALUES)) {
-      // Only keep filter if it overlaps with the variables, or if there are no variables
-      if (expressionVariables.length === 0 || this.variablesIntersect(operation.variables, expressionVariables)) {
-        return [ false, factory.createFilter(operation, expression) ];
-      }
-      return [ true, operation ];
+      return [ false, factory.createFilter(operation, expression) ];
     }
     if (isKnownOperation(operation, Algebra.Types.LEFT_JOIN)) {
       if (this.pushIntoLeftJoins) {

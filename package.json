@@ -5,7 +5,9 @@
   "workspaces": [
     "engines/*",
     "packages/*",
-    "performance/*"
+    "performance/*",
+    "./traqula/engines/*",
+    "./traqula/packages/*"
   ],
   "scripts": {
     "build": "yarn run build:ts && yarn run build:components",
@@ -74,7 +76,7 @@
     "rdf-data-factory": "^2.1.0",
     "rdf-quad": "^2.0.0",
     "rdf-stores": "^2.10.3",
-    "rdf-test-suite": "^2.9.0",
+    "rdf-test-suite": "^2.10.0",
     "rdf-test-suite-ldf": "^2.1.0",
     "setup-polly-jest": "^0.11.0",
     "streamify-array": "^2.0.0",
@@ -89,5 +91,8 @@
     "webpack": "^5.0.0",
     "webpack-bundle-analyzer": "^5.0.0",
     "webpack-cli": "^7.0.0"
+  },
+  "resolutions": {
+    "vite": "^8.0.0"
   }
 }

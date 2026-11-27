@@ -16,6 +16,7 @@ import { Algebra, algebraUtils, inScopeVariables } from '@comunica/utils-algebra
 import { BindingsFactory } from '@comunica/utils-bindings-factory';
 import { MetadataValidationState } from '@comunica/utils-metadata';
 import {
+  assignOperationDatasetSources,
   assignOperationSource,
   doesShapeAcceptOperationInContext,
   getSafeBindings,
@@ -137,6 +138,8 @@ export class ActorQueryOperationService extends ActorQueryOperationTypedMediated
       [Algebra.Types.PATTERN]: leafHandler,
       [Algebra.Types.LINK]: leafHandler,
       [Algebra.Types.NPS]: leafHandler,
+      // The named graphs of a GRAPH operation within a SERVICE clause are those of its target.
+      [Algebra.Types.GRAPH]: { transform: graphOp => assignOperationDatasetSources(graphOp, [ querySource ]) },
     });
   }
 

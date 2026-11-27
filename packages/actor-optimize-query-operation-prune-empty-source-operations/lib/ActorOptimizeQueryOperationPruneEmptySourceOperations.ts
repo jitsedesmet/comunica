@@ -64,6 +64,8 @@ export class ActorOptimizeQueryOperationPruneEmptySourceOperations extends Actor
       // Their graphs are only rewritten when the FROM operation is executed,
       // so emptiness checks against the source would be done on the wrong graphs here.
       [Algebra.Types.FROM]: { preVisitor: () => ({ continue: false }) },
+      // Likewise, operations within GRAPH are evaluated over named graphs instead of the default graph.
+      [Algebra.Types.GRAPH]: { preVisitor: () => ({ continue: false }) },
     });
 
     // Determine in an async manner whether or not these sources return non-empty results

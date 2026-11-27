@@ -15,7 +15,7 @@ import type {
   IQuerySourceWrapper,
   IServiceExecutor,
 } from '@comunica/types';
-import type { Algebra } from '@comunica/utils-algebra';
+import type { Algebra, AlgebraFactory } from '@comunica/utils-algebra';
 import type * as RDF from '@rdfjs/types';
 
 /**
@@ -103,6 +103,45 @@ export function assignOperationSource<O extends Algebra.Operation>(operation: O,
   operation.metadata = operation.metadata ? { ...operation.metadata } : {};
   operation.metadata.scopedSource = source;
   return operation;
+}
+
+/**
+ * Assign the given sources to an operation, as a union over the sources unless there is exactly one.
+ * @param operation An operation that a single source can evaluate.
+ * @param sources The source wrappers to assign.
+ * @param algebraFactory The algebra factory.
+ * @return The operation with its sources assigned.
+ */
+export function unionOperationOverSources(
+  operation: Algebra.Operation,
+  sources: IQuerySourceWrapper[],
+  algebraFactory: AlgebraFactory,
+): Algebra.Operation {
+  return sources.length === 1 ?
+    assignOperationSource(operation, sources[0]) :
+    algebraFactory.createUnion(sources.map(source => assignOperationSource(operation, source)));
+}
+
+/**
+ * Obtain the sources that make up the dataset of the given GRAPH operation.
+ * @param operation A GRAPH operation.
+ * @return The sources that hold the named graphs it ranges over, or undefined if none are attached.
+ */
+export function getOperationDatasetSources(operation: Algebra.Operation): IQuerySourceWrapper[] | undefined {
+  return <IQuerySourceWrapper[] | undefined> operation.metadata?.datasetSources;
+}
+
+/**
+ * Attach the sources that make up its dataset to the given GRAPH operation.
+ * @param operation A GRAPH operation.
+ * @param datasetSources The sources that hold the named graphs it ranges over.
+ * @return A copy of the operation with the dataset sources attached.
+ */
+export function assignOperationDatasetSources<O extends Algebra.Operation>(
+  operation: O,
+  datasetSources: IQuerySourceWrapper[],
+): O {
+  return { ...operation, metadata: { ...operation.metadata, datasetSources }};
 }
 
 /**

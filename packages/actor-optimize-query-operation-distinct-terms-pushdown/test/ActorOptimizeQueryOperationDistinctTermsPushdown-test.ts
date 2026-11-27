@@ -171,6 +171,19 @@ describe('ActorOptimizeQueryOperationDistinctTermsPushdown', () => {
         expect(source.source.getSelectorShape).toHaveBeenCalledWith(expect.anything());
       });
 
+      it('should not optimize within a GRAPH operation', async() => {
+        const shape = { type: 'operation', operation: { operationType: 'type', type: 'distinctterms' }};
+        const source: IQuerySourceWrapper = <any> { source: { getSelectorShape: async() => shape }};
+        const operation = AF.createGraph(AF.createDistinct(AF.createProject(
+          assignOperationSource(AF.createPattern(DF.variable('s'), DF.variable('p'), DF.variable('o')), source),
+          [ DF.variable('s') ],
+        )), DF.variable('g'));
+
+        const { operation: operationOut } = await actor.run({ operation, context });
+
+        expect(operationOut).toEqual(operation);
+      });
+
       it('should request the selector shape once for multiple distincts over the same source', async() => {
         const source: IQuerySourceWrapper = <any> {
           source: {

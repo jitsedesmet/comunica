@@ -10,10 +10,12 @@ import { ActionContext, passTestVoid } from '@comunica/core';
 import type { ComunicaDataFactory, IQuerySourceWrapper } from '@comunica/types';
 import { Algebra, AlgebraFactory, algebraUtils } from '@comunica/utils-algebra';
 import {
+  assignOperationDatasetSources,
   assignOperationEquivalentQueryString,
   assignOperationSource,
   getOriginalSparqlQueryString,
   passFullOperationToSource,
+  unionOperationOverSources,
 } from '@comunica/utils-query-operation';
 
 /**
@@ -78,13 +80,7 @@ export class ActorOptimizeQueryOperationAssignSourcesExhaustive extends ActorOpt
     return algebraUtils.mapOperation(operation, {
       [Algebra.Types.PATTERN]: {
         preVisitor: () => ({ continue: false }),
-        transform: (patternOp) => {
-          if (sources.length === 1) {
-            return assignOperationSource(patternOp, sources[0]);
-          }
-          return factory.createUnion(sources
-            .map(source => assignOperationSource(patternOp, source)));
-        },
+        transform: patternOp => unionOperationOverSources(patternOp, sources, factory),
       },
       [Algebra.Types.SERVICE]: {
         preVisitor: () => ({ continue: false }),
@@ -120,6 +116,14 @@ export class ActorOptimizeQueryOperationAssignSourcesExhaustive extends ActorOpt
           }
           return serviceOp;
         },
+      },
+      [Algebra.Types.GRAPH]: {
+        preVisitor: () => ({ continue: false }),
+        // The SERVICE clauses within a GRAPH operation are kept, so that they remain outside the scope of its graph.
+        transform: graphOp => assignOperationDatasetSources({
+          ...graphOp,
+          input: this.assignExhaustive(factory, graphOp.input, sources, {}, withinService),
+        }, sources),
       },
       [Algebra.Types.CONSTRUCT]: {
         // The template holds quad patterns to produce, not patterns to match, so it gets no source.

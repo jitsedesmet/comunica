@@ -47,6 +47,8 @@ export class ActorOptimizeQueryOperationDistinctTermsPushdown extends ActorOptim
     };
 
     const operation = await algebraTransformer().transformNodeAsync(action.operation, {
+      // The patterns within a GRAPH operation are matched against named graphs that are only known during evaluation.
+      [Algebra.Types.GRAPH]: { preVisitor: () => ({ continue: false }) },
       [Algebra.Types.DISTINCT]: {
         preVisitor: () => ({ continue: false }),
         transform: async(operation: Algebra.Distinct) => {

@@ -6,9 +6,11 @@ import { AlgebraFactory } from '@comunica/utils-algebra';
 import type * as RDF from '@rdfjs/types';
 import { DataFactory } from 'rdf-data-factory';
 import {
+  assignOperationDatasetSources,
   assignOperationEquivalentQueryString,
   assignOperationSource,
   getExtensionAggregatorLookup,
+  getOperationDatasetSources,
   getOperationEquivalentQueryString,
   getOperationSource,
   getOriginalSparqlQueryString,
@@ -18,6 +20,7 @@ import {
   getServiceExecutor,
   getServiceExecutorLookup,
   removeOperationSource,
+  unionOperationOverSources,
   validateQueryOutput,
 } from '../lib/Utils';
 
@@ -107,6 +110,38 @@ describe('utils', () => {
       expect(getOperationSource(opIn)).toBeUndefined();
       expect(getOperationSource(opOut1)).toBe(source1);
       expect(getOperationSource(opOut2)).toBe(source2);
+    });
+  });
+
+  describe('#assignOperationDatasetSources', () => {
+    it('should attach the dataset sources to a copy of the operation', () => {
+      const opIn = Object.assign(AF.createNop(), { metadata: { a: 'b' }});
+      const sources = [ <any> 'abc', <any> 'def' ];
+      const opOut = assignOperationDatasetSources(opIn, sources);
+      expect(getOperationDatasetSources(opIn)).toBeUndefined();
+      expect(getOperationDatasetSources(opOut)).toBe(sources);
+      expect(opOut.metadata).toEqual({ a: 'b', datasetSources: sources });
+    });
+  });
+
+  describe('#unionOperationOverSources', () => {
+    const source1 = <any> 'abc';
+    const source2 = <any> 'def';
+
+    it('should assign a single source to the operation', () => {
+      expect(unionOperationOverSources(AF.createNop(), [ source1 ], AF))
+        .toEqual(assignOperationSource(AF.createNop(), source1));
+    });
+
+    it('should take the union of the operation for multiple sources', () => {
+      expect(unionOperationOverSources(AF.createNop(), [ source1, source2 ], AF)).toEqual(AF.createUnion([
+        assignOperationSource(AF.createNop(), source1),
+        assignOperationSource(AF.createNop(), source2),
+      ]));
+    });
+
+    it('should be an empty union without sources', () => {
+      expect(unionOperationOverSources(AF.createNop(), [], AF)).toEqual(AF.createUnion([]));
     });
   });
 
