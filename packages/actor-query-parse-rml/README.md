@@ -21,6 +21,7 @@ const quads = await engine.queryQuads(mappingInTurtle, {
 ```
 
 [RML-Core](https://w3id.org/rml/core/spec) is supported, except for blank nodes without template or reference.
+The [RML-Core test cases](https://github.com/kg-construct/rml-core/tree/main/test-cases) are run by `yarn run spec` in `engines/query-sparql-file`.
 A mapping that uses any other property of the RML vocabulary is rejected.
 The generated plan uses the functions of
 [`@comunica/actor-function-factory-term-rml-iri`](https://github.com/comunica/comunica/tree/master/packages/actor-function-factory-term-rml-iri) and

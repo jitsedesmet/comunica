@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 /* eslint-disable import/no-nodejs-modules, no-sync */
-// Runs the RML test cases of a local checkout, such as https://github.com/kg-construct/rml-core/tree/main/test-cases
-// Usage: node spec/rml-test-cases.js <path to the test-cases directory> [regex of test case names to skip]
+// Runs RML test cases, such as https://github.com/kg-construct/rml-core/tree/main/test-cases
+// Usage: node spec/rml-test-cases.js <test cases> [regex of test case names to skip]
+// The test cases are a local directory, or <git repository URL>#<commit>:<directory in the repository>
+const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
@@ -59,23 +61,49 @@ async function runTestCase(testCaseDirectory) {
   return isExpectedOutput ? undefined : `got ${quads.length} quads that differ from the expected output`;
 }
 
-(async() => {
-  const [ testCasesDirectory, skipPattern ] = process.argv.slice(2);
-  if (!testCasesDirectory) {
-    throw new Error('Usage: rml-test-cases.js <path to the test-cases directory> [regex of test case names to skip]');
+/**
+ * Get the directory of the test cases, fetching them from a git repository if needed.
+ * @param {string} testCases A local directory, or <git repository URL>#<commit>:<directory in the repository>.
+ * @return {string} The local directory with the test cases.
+ */
+function getTestCasesDirectory(testCases) {
+  const [ , repositoryUrl, commit, directory ] = /^(https?:.+)#([\da-f]+):(.+)$/u.exec(testCases) ?? [];
+  if (!repositoryUrl) {
+    return testCases;
   }
+  // The cache is shared with the other specification tests, and is kept between CI runs
+  const checkout = path.join(__dirname, '../../../.rdf-test-suite-cache', `rml-test-cases-${commit}`);
+  if (!fs.existsSync(path.join(checkout, directory))) {
+    fs.rmSync(checkout, { recursive: true, force: true });
+    fs.mkdirSync(checkout, { recursive: true });
+    const git = args => execFileSync('git', args, { cwd: checkout, stdio: 'ignore' });
+    git([ 'init' ]);
+    git([ 'fetch', '--depth', '1', repositoryUrl, commit ]);
+    git([ 'checkout', 'FETCH_HEAD' ]);
+  }
+  return path.join(checkout, directory);
+}
+
+(async() => {
+  const [ testCases, skipPattern ] = process.argv.slice(2);
+  if (!testCases) {
+    throw new Error('Usage: rml-test-cases.js <test cases> [regex of test case names to skip]');
+  }
+  const testCasesDirectory = getTestCasesDirectory(testCases);
   const testCaseNames = fs.readdirSync(testCasesDirectory)
-    .filter(name => fs.existsSync(path.join(testCasesDirectory, name, 'mapping.ttl')))
-    .filter(name => !skipPattern || !new RegExp(skipPattern, 'u').test(name));
+    .filter(name => fs.existsSync(path.join(testCasesDirectory, name, 'mapping.ttl')));
+  const skippedTestCaseNames = testCaseNames.filter(name => skipPattern && new RegExp(skipPattern, 'u').test(name));
 
   const failures = [];
-  for (const testCaseName of testCaseNames) {
+  for (const testCaseName of testCaseNames.filter(name => !skippedTestCaseNames.includes(name))) {
     const failure = await runTestCase(path.resolve(testCasesDirectory, testCaseName));
     process.stdout.write(`${failure ? '✖' : '✔'} ${testCaseName}${failure ? `: ${failure}` : ''}\n`);
     if (failure) {
       failures.push(testCaseName);
     }
   }
-  process.stdout.write(`${testCaseNames.length - failures.length} / ${testCaseNames.length} RML test cases passed\n`);
+  const passedCount = testCaseNames.length - skippedTestCaseNames.length - failures.length;
+  process.stdout.write(`${passedCount} / ${testCaseNames.length} RML test cases passed, ${
+    skippedTestCaseNames.length} skipped, ${failures.length} failed\n`);
   process.exitCode = failures.length > 0 ? 1 : 0;
 })();
