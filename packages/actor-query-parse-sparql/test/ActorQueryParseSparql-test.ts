@@ -163,6 +163,26 @@ describe('ActorQueryParseSparql', () => {
       });
     });
 
+    it('should push GRAPH clauses into quad patterns by default', async() => {
+      const result = await actor.run({ query: 'SELECT * WHERE { GRAPH ?g { ?a a ?b } }', context });
+      expect(result.operation).toMatchObject(AF.createProject(AF.createBgp([ AF.createPattern(
+        DF.variable('a'),
+        DF.namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
+        DF.variable('b'),
+        DF.variable('g'),
+      ) ]), [ DF.variable('a'), DF.variable('b'), DF.variable('g') ]));
+    });
+
+    it('should keep GRAPH clauses as graph operations without quads', async() => {
+      const actorWithoutQuads = new ActorQueryParseSparql({ name: 'actor', bus, quads: false });
+      const result = await actorWithoutQuads.run({ query: 'SELECT * WHERE { GRAPH ?g { ?a a ?b } }', context });
+      expect(result.operation).toMatchObject(AF.createProject(AF.createGraph(AF.createBgp([ AF.createPattern(
+        DF.variable('a'),
+        DF.namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
+        DF.variable('b'),
+      ) ]), DF.variable('g')), [ DF.variable('a'), DF.variable('b'), DF.variable('g') ]));
+    });
+
     describe('with extension aggregates', () => {
       const aggregateQuery = 'PREFIX ex: <http://example.org/> SELECT (ex:median(DISTINCT ?o) AS ?m) { ?s ?p ?o }';
       const extensionAggregator = jest.fn();

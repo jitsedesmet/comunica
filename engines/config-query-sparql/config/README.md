@@ -38,7 +38,7 @@ In most cases, only a single mediator per bus will exist, hence then `#main` suf
 
 _This section explains how maintainers add actors to configs.
 If you are building your own config upon this package,
-import the versioned entry config with the highest version (e.g. `config-default-v5-4-1.json`),
+import the versioned entry config with the highest version (e.g. `config-default-v5-5-0.json`),
 and never import the config files of engine packages such as `@comunica/query-sparql`.
 [Read more](https://comunica.dev/docs/modify/advanced/config_versioning/)._
 

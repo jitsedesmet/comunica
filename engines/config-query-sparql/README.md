@@ -29,7 +29,7 @@ The following entry configs correspond to the default engines:
 | `config-rdfjs`        | [`@comunica/query-sparql-rdfjs`](https://github.com/comunica/comunica/tree/master/engines/query-sparql-rdfjs)           |
 | `config-rdfjs-lite`   | [`@comunica/query-sparql-rdfjs-lite`](https://github.com/comunica/comunica/tree/master/engines/query-sparql-rdfjs-lite) |
 
-Each entry config exists in several versions, such as `config/config-default.json` and `config/config-default-v5-4-1.json`.
+Each entry config exists in several versions, such as `config/config-default.json` and `config/config-default-v5-5-0.json`.
 Within a major version, no actors are added to existing files.
 Instead, actors that are added in a minor release are placed in new versioned files.
 So build upon the file with the **highest version** that exists in the version of this package that you depend on:
@@ -40,7 +40,7 @@ So build upon the file with the **highest version** that exists in the version o
     "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/config-query-sparql/^5.0.0/components/context.jsonld"
   ],
   "import": [
-    "ccqs:config/config-default-v5-4-1.json"
+    "ccqs:config/config-default-v5-5-0.json"
   ]
 }
 ```

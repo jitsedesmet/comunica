@@ -172,6 +172,59 @@ describe('materializeTerm', () => {
 });
 
 describe('materializeOperation', () => {
+  describe('for a graph operation', () => {
+    const graphName = DF.namedNode('http://example.org/graph');
+    const filtered = (input: Algebra.Operation): Algebra.Operation =>
+      AF.createFilter(input, AF.createOperatorExpression('bound', [ AF.createTermExpression(termVariableA) ]));
+
+    it('should materialize the variable name, but not within the input', () => {
+      expect(materializeOperation(
+        AF.createGraph(AF.createPattern(termVariableA, termNamedNode, termVariableB), termVariableA),
+        BF.bindings([[ termVariableA, graphName ], [ termVariableB, valueB ]]),
+        AF,
+        BF,
+      )).toEqual(Object.assign(AF.createGraph(
+        Object.assign(AF.createPattern(termVariableA, termNamedNode, valueB), { metadata: undefined }),
+        graphName,
+      ), { metadata: undefined }));
+    });
+
+    it('should not materialize the variable name within filters of the input', () => {
+      const input = filtered(AF.createPattern(termVariableB, termNamedNode, termVariableC));
+      expect(materializeOperation(
+        AF.createGraph(input, termVariableA),
+        BF.bindings([[ termVariableA, graphName ]]),
+        AF,
+        BF,
+      )).toEqual(Object.assign(AF.createGraph(input, graphName), { metadata: undefined }));
+    });
+
+    it('should have no solutions for a variable name that is bound to a term that is no IRI', () => {
+      expect(materializeOperation(
+        AF.createGraph(AF.createPattern(termVariableB, termNamedNode, termVariableC), termVariableA),
+        bindingsA,
+        AF,
+        BF,
+      )).toEqual(AF.createValues([], []));
+    });
+
+    it('should materialize within the input of an unbound variable name and an IRI name', () => {
+      for (const name of [ termVariableD, graphName ]) {
+        expect(materializeOperation(
+          Object.assign(AF.createGraph(AF.createPattern(termVariableA, termNamedNode, termVariableC), name), {
+            metadata: { a: 'b' },
+          }),
+          bindingsA,
+          AF,
+          BF,
+        )).toEqual(Object.assign(AF.createGraph(
+          Object.assign(AF.createPattern(valueA, termNamedNode, termVariableC), { metadata: undefined }),
+          name,
+        ), { metadata: { a: 'b' }}));
+      }
+    });
+  });
+
   it('should materialize the variable target of a service operation', () => {
     const endpoint = DF.namedNode('http://example.org/sparql');
     expect(materializeOperation(

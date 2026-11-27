@@ -14,6 +14,7 @@ import {
   assignOperationSource,
   getOriginalSparqlQueryString,
   passFullOperationToSource,
+  unionOperationOverSources,
 } from '@comunica/utils-query-operation';
 
 /**
@@ -78,13 +79,7 @@ export class ActorOptimizeQueryOperationAssignSourcesExhaustive extends ActorOpt
     return algebraUtils.mapOperation(operation, {
       [Algebra.Types.PATTERN]: {
         preVisitor: () => ({ continue: false }),
-        transform: (patternOp) => {
-          if (sources.length === 1) {
-            return assignOperationSource(patternOp, sources[0]);
-          }
-          return factory.createUnion(sources
-            .map(source => assignOperationSource(patternOp, source)));
-        },
+        transform: patternOp => unionOperationOverSources(patternOp, sources, factory),
       },
       [Algebra.Types.SERVICE]: {
         preVisitor: () => ({ continue: false }),

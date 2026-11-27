@@ -127,6 +127,8 @@ export class ActorQueryOperationFromQuad extends ActorQueryOperationTypedMediate
           return ActorQueryOperationFromQuad.unionOperations(algebraFactory, paths);
         },
       },
+      // The input of a GRAPH operation is matched against the graph of that operation instead of the default graph.
+      [Algebra.Types.GRAPH]: { preVisitor: () => ({ continue: false }) },
       // A construct template holds the quads to produce, it is never matched against the dataset.
       [Algebra.Types.CONSTRUCT]: { preVisitor: () => ({ ignoreKeys: new Set([ 'template', 'metadata' ]) }) },
     });
@@ -165,27 +167,46 @@ export class ActorQueryOperationFromQuad extends ActorQueryOperationTypedMediate
         transform: pattern => ActorQueryOperationFromQuad
           .applyNamedGraphToPattern(algebraFactory, pattern, namedGraphs, defaultGraphs),
       },
+      [Algebra.Types.GRAPH]: {
+        preVisitor: () => ({ continue: false, copy: false }),
+        // The input of a GRAPH operation has the graph of that operation as its default graph.
+        transform: (graph) => {
+          const input = ActorQueryOperationFromQuad
+            .applyOperationNamedGraph(algebraFactory, graph.input, namedGraphs, [ graph.name ]);
+          return ActorQueryOperationFromQuad.applyNamedGraphToPattern(
+            algebraFactory,
+            ActorQueryOperationFromQuad.copyMetadata(algebraFactory.createGraph(input, graph.name), graph),
+            namedGraphs,
+            defaultGraphs,
+          );
+        },
+      },
       [Algebra.Types.CONSTRUCT]: { preVisitor: () => ({ ignoreKeys: new Set([ 'template', 'metadata' ]) }) },
     });
   }
 
   /**
-   * Transform a single BGP, quad pattern or property path to use the given graphs as named graph.
+   * Transform a single BGP, quad pattern, property path or GRAPH operation to use the given graphs as named graph.
    * @param algebraFactory The algebra factory.
-   * @param operation A BGP, quad pattern or property path operation.
+   * @param operation A BGP, quad pattern, property path or GRAPH operation.
    * @param {RDF.Term[]} namedGraphs Graph terms, as defined by FROM NAMED.
    * @param {RDF.Term[]} defaultGraphs Default graph terms, as defined by FROM.
    * @return {Operation} A new operation.
    */
   private static applyNamedGraphToPattern(
     algebraFactory: AlgebraFactory,
-    operation: Algebra.Bgp | Algebra.Path | Algebra.Pattern,
+    operation: Algebra.Bgp | Algebra.Path | Algebra.Pattern | Algebra.Graph,
     namedGraphs: RDF.NamedNode[],
     defaultGraphs: RDF.Term[],
   ): Algebra.Operation {
-    const patternGraph: RDF.Term = algebraUtils.isKnownOperation(operation, Algebra.Types.BGP) ?
-      operation.patterns[0].graph :
-      operation.graph;
+    let patternGraph: RDF.Term;
+    if (isKnownOperation(operation, Algebra.Types.BGP)) {
+      patternGraph = operation.patterns[0].graph;
+    } else if (isKnownOperation(operation, Algebra.Types.GRAPH)) {
+      patternGraph = operation.name;
+    } else {
+      patternGraph = operation.graph;
+    }
     if (patternGraph.termType === 'DefaultGraph') {
       // Patterns over the default graph are not restricted by FROM NAMED.
       // They are handled afterwards by the default graph transformation.
@@ -218,6 +239,11 @@ export class ActorQueryOperationFromQuad extends ActorQueryOperationTypedMediate
         } else if (isKnownOperation(operation, Algebra.Types.PATH)) {
           pattern = ActorQueryOperationFromQuad.copyMetadata(
             algebraFactory.createPath(operation.subject, operation.predicate, operation.object, graph),
+            operation,
+          );
+        } else if (isKnownOperation(operation, Algebra.Types.GRAPH)) {
+          pattern = ActorQueryOperationFromQuad.copyMetadata(
+            algebraFactory.createGraph(operation.input, graph),
             operation,
           );
         } else {

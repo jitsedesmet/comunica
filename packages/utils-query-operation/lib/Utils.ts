@@ -15,7 +15,7 @@ import type {
   IQuerySourceWrapper,
   IServiceExecutor,
 } from '@comunica/types';
-import type { Algebra } from '@comunica/utils-algebra';
+import type { Algebra, AlgebraFactory } from '@comunica/utils-algebra';
 import type * as RDF from '@rdfjs/types';
 
 /**
@@ -103,6 +103,23 @@ export function assignOperationSource<O extends Algebra.Operation>(operation: O,
   operation.metadata = operation.metadata ? { ...operation.metadata } : {};
   operation.metadata.scopedSource = source;
   return operation;
+}
+
+/**
+ * Evaluate an operation over the union of the given sources.
+ * @param operation An operation that a single source can evaluate.
+ * @param sources The source wrappers to assign.
+ * @param algebraFactory The algebra factory.
+ * @return The operation with its source for a single source, or else a union of the operation for every source.
+ */
+export function unionOperationOverSources(
+  operation: Algebra.Operation,
+  sources: IQuerySourceWrapper[],
+  algebraFactory: AlgebraFactory,
+): Algebra.Operation {
+  return sources.length === 1 ?
+    assignOperationSource(operation, sources[0]) :
+    algebraFactory.createUnion(sources.map(source => assignOperationSource(operation, source)));
 }
 
 /**

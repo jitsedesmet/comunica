@@ -15,12 +15,14 @@ import { AstFactory } from '@traqula/rules-sparql-1-2';
 export class ActorQueryParseSparql extends ActorQueryParse {
   public readonly prefixes: Record<string, string> | undefined;
   public readonly minimalErrorMessages: boolean;
+  public readonly quads: boolean;
   private readonly parser: SparqlParser;
 
   public constructor(args: IActorQueryParseSparqlArgs) {
     super(args);
     this.prefixes = Object.freeze(args.prefixes);
     this.minimalErrorMessages = args.minimalErrorMessages ?? false;
+    this.quads = args.quads ?? true;
     this.parser = new SparqlParser({ lexerConfig: {
       positionTracking: this.minimalErrorMessages ? 'onlyOffset' : 'full',
     }});
@@ -56,7 +58,7 @@ export class ActorQueryParseSparql extends ActorQueryParse {
     return {
       baseIRI,
       operation: toAlgebra(parsedSyntax, {
-        quads: true,
+        quads: this.quads,
         prefixes: this.prefixes,
         blankToVariable: true,
         baseIRI: action.baseIRI,
@@ -95,4 +97,11 @@ export interface IActorQueryParseSparqlArgs extends IActorQueryParseArgs {
    * @default {false}
    */
   minimalErrorMessages?: boolean;
+  /**
+   * If GRAPH clauses should be pushed into quad patterns while parsing, instead of being kept as graph operations.
+   * This pushdown is not always correct, so it should only be enabled when no actors can handle graph operations.
+   * TODO (next-major): remove this option, and always keep graph operations.
+   * @default {true}
+   */
+  quads?: boolean;
 }
