@@ -7,21 +7,11 @@ that parses an [RML](https://w3id.org/rml/portal) mapping in Turtle
 into an operation that constructs the quads the mapping generates,
 following the [RML algebra](https://arxiv.org/abs/2503.10385).
 
-Mappings are passed as queries with query format `{ language: 'rml', version: '1.0' }`:
-
-```typescript
-const quads = await engine.queryQuads(mappingInTurtle, {
-  sources: [],
-  queryFormat: { language: 'rml', version: '1.0' },
-  // Generated relative IRIs are resolved against the base IRI
-  baseIRI: 'http://example.org/',
-  // Relative source paths are resolved against the mapping directory
-  '@comunica/actor-query-parse-rml:mappingDirectory': 'file:///path/to/mappings/',
-});
-```
+It handles queries with query format `{ language: 'rml', version: '1.0' }`, as
+[`@comunica/materialize-rml`](https://github.com/comunica/comunica/tree/master/engines/materialize-rml) passes them.
+Relative source paths are resolved against the `@comunica/actor-query-parse-rml:mappingDirectory` context entry.
 
 [RML-Core](https://w3id.org/rml/core/spec) is supported, except for blank nodes without template or reference.
-The [RML-Core test cases](https://github.com/kg-construct/rml-core/tree/main/test-cases) are run by `yarn run spec` in `engines/query-sparql-file`.
 A mapping that uses any other property of the RML vocabulary is rejected.
 The generated plan uses the functions of
 [`@comunica/actor-function-factory-term-rml-iri`](https://github.com/comunica/comunica/tree/master/packages/actor-function-factory-term-rml-iri) and

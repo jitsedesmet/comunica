@@ -1,3 +1,4 @@
+import { RML_REFERENCE_FORMULATION_CSV } from '@comunica/bus-rml-reference-formulation';
 import type { ComunicaDataFactory } from '@comunica/types';
 import type { Algebra, AlgebraFactory } from '@comunica/utils-algebra';
 import type * as RDF from '@rdfjs/types';
@@ -424,7 +425,7 @@ export class RmlMappingToAlgebraTranslator {
     return {
       sourceUrl: isRelativeToMapping ? resolve(sourcePath, mappingDirectory) : sourcePath,
       referenceFormulation: mapping.getOptionalObject(logicalSource, RmlVocabulary.referenceFormulation)?.value ??
-        RmlVocabulary.CSV,
+        RML_REFERENCE_FORMULATION_CSV,
       iterator: mapping.getOptionalObject(logicalSource, RmlVocabulary.iterator)?.value,
     };
   }

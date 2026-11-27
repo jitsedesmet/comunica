@@ -9,7 +9,7 @@ const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { Parser, Writer } = require('n3');
 const { isomorphic } = require('rdf-isomorphic');
-const { QueryEngine } = require('..');
+const { RmlEngine } = require('..');
 
 const DEFAULT_BASE_IRI = 'http://example.com/';
 
@@ -33,14 +33,9 @@ async function runTestCase(testCaseDirectory) {
   const expectsError = !fs.existsSync(expectedOutputPath);
   let quads;
   try {
-    const quadStream = await new QueryEngine().queryQuads(
+    const quadStream = await new RmlEngine().materialize(
       fs.readFileSync(path.join(testCaseDirectory, 'mapping.ttl'), 'utf8'),
-      {
-        sources: [],
-        queryFormat: { language: 'rml', version: '1.0' },
-        baseIRI: DEFAULT_BASE_IRI,
-        '@comunica/actor-query-parse-rml:mappingDirectory': `${pathToFileURL(testCaseDirectory).href}/`,
-      },
+      { baseIRI: DEFAULT_BASE_IRI, mappingDirectory: `${pathToFileURL(testCaseDirectory).href}/` },
     );
     quads = await quadStream.toArray();
   } catch (error) {

@@ -12,7 +12,6 @@ export const RmlVocabulary = <const> {
   CurrentWorkingDirectory: `${RML_NAMESPACE}CurrentWorkingDirectory`,
   referenceFormulation: `${RML_NAMESPACE}referenceFormulation`,
   iterator: `${RML_NAMESPACE}iterator`,
-  CSV: `${RML_NAMESPACE}CSV`,
 
   subject: `${RML_NAMESPACE}subject`,
   subjectMap: `${RML_NAMESPACE}subjectMap`,

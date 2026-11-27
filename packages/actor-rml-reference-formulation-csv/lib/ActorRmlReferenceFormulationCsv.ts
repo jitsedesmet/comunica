@@ -4,7 +4,7 @@ import type {
   IActorRmlReferenceFormulationOutput,
   RmlReferencedValues,
 } from '@comunica/bus-rml-reference-formulation';
-import { ActorRmlReferenceFormulation } from '@comunica/bus-rml-reference-formulation';
+import { ActorRmlReferenceFormulation, RML_REFERENCE_FORMULATION_CSV } from '@comunica/bus-rml-reference-formulation';
 import { KeysInitQuery } from '@comunica/context-entries';
 import type { IActorTest, TestResult } from '@comunica/core';
 import { failTest, passTestVoid } from '@comunica/core';
@@ -19,16 +19,13 @@ import { pipeline } from 'readable-stream';
  * Each row is a record, and a reference is a column name.
  */
 export class ActorRmlReferenceFormulationCsv extends ActorRmlReferenceFormulation {
-  public static readonly REFERENCE_FORMULATION_CSV = 'http://w3id.org/rml/CSV';
-
   public constructor(args: IActorRmlReferenceFormulationArgs) {
     super(args);
   }
 
   public async test(action: IActionRmlReferenceFormulation): Promise<TestResult<IActorTest>> {
-    if (action.referenceFormulation !== ActorRmlReferenceFormulationCsv.REFERENCE_FORMULATION_CSV) {
-      return failTest(`${this.name} only supports the reference formulation ${
-        ActorRmlReferenceFormulationCsv.REFERENCE_FORMULATION_CSV}`);
+    if (action.referenceFormulation !== RML_REFERENCE_FORMULATION_CSV) {
+      return failTest(`${this.name} only supports the reference formulation ${RML_REFERENCE_FORMULATION_CSV}`);
     }
     return passTestVoid();
   }

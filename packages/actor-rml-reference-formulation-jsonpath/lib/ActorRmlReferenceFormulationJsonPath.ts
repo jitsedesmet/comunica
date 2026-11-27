@@ -4,7 +4,10 @@ import type {
   IActorRmlReferenceFormulationOutput,
   RmlReferencedValues,
 } from '@comunica/bus-rml-reference-formulation';
-import { ActorRmlReferenceFormulation } from '@comunica/bus-rml-reference-formulation';
+import {
+  ActorRmlReferenceFormulation,
+  RML_REFERENCE_FORMULATION_JSONPATH,
+} from '@comunica/bus-rml-reference-formulation';
 import { KeysInitQuery } from '@comunica/context-entries';
 import type { IActorTest, TestResult } from '@comunica/core';
 import { failTest, passTestVoid } from '@comunica/core';
@@ -21,16 +24,13 @@ const XSD = 'http://www.w3.org/2001/XMLSchema#';
  * The iterator selects the records in a JSON document, and a reference selects values within a record.
  */
 export class ActorRmlReferenceFormulationJsonPath extends ActorRmlReferenceFormulation {
-  public static readonly REFERENCE_FORMULATION_JSONPATH = 'http://w3id.org/rml/JSONPath';
-
   public constructor(args: IActorRmlReferenceFormulationArgs) {
     super(args);
   }
 
   public async test(action: IActionRmlReferenceFormulation): Promise<TestResult<IActorTest>> {
-    if (action.referenceFormulation !== ActorRmlReferenceFormulationJsonPath.REFERENCE_FORMULATION_JSONPATH) {
-      return failTest(`${this.name} only supports the reference formulation ${
-        ActorRmlReferenceFormulationJsonPath.REFERENCE_FORMULATION_JSONPATH}`);
+    if (action.referenceFormulation !== RML_REFERENCE_FORMULATION_JSONPATH) {
+      return failTest(`${this.name} only supports the reference formulation ${RML_REFERENCE_FORMULATION_JSONPATH}`);
     }
     return passTestVoid();
   }
