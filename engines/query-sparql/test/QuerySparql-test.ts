@@ -3386,6 +3386,20 @@ WHERE { }
           .toEqual([{ s: 'ex:s1' }, { s: 'ex:s2' }, { s: 'ex:s3' }]);
       });
 
+      it('should not bind the graph variable for filters within the graph pattern', async() => {
+        await expect(query(`SELECT ?s { GRAPH ?g { ?s ?p ?o . ?s ?p ?o2 FILTER(?g = ex:g1) } }`)).resolves.toEqual([]);
+        await expect(query(`SELECT ?s { GRAPH ?g { ?s ?p ?o FILTER(?g = ex:g1) } }`)).resolves.toEqual([]);
+      });
+
+      it('should evaluate EXISTS over the graph that its solution is in', async() => {
+        await expect(query(`SELECT ?s { GRAPH ?g { ?s ?p ?o FILTER NOT EXISTS { ?s ?p ex:o1 } } }`)).resolves
+          .toEqual([{ s: 'ex:s2' }, { s: 'ex:s3' }]);
+        await expect(query(`SELECT ?s { GRAPH ?g { ?s ?p ?o { FILTER NOT EXISTS { ?a ?b ex:o3 } } } }`)).resolves
+          .toEqual([{ s: 'ex:s1' }, { s: 'ex:s2' }]);
+        await expect(query(`SELECT ?s ?e { GRAPH ?g { BIND(EXISTS { ?a ?b ex:o3 } AS ?e) ?s ?p ?o } }`)).resolves
+          .toEqual([{ e: 'false', s: 'ex:s1' }, { e: 'false', s: 'ex:s2' }, { e: 'true', s: 'ex:s3' }]);
+      });
+
       it('should only keep solutions that are compatible with the graph', async() => {
         await expect(query(`SELECT ?g ?s { GRAPH ?g { ?s ?p ?o BIND(ex:g1 AS ?g) } }`)).resolves
           .toEqual([{ g: 'ex:g1', s: 'ex:s1' }, { g: 'ex:g1', s: 'ex:s2' }]);
@@ -3400,6 +3414,16 @@ WHERE { }
           .toEqual([{ c: '1', g: 'ex:g2' }, { c: '2', g: 'ex:g1' }]);
         await expect(query(`SELECT * { GRAPH ex:g1 { SELECT (COUNT(*) AS ?c) { ?s ?p ?o } } }`)).resolves
           .toEqual([{ c: '2' }]);
+        await expect(query(`SELECT * { GRAPH ?g { SELECT DISTINCT ?p { ?s ?p ?o } } }`)).resolves
+          .toEqual([{ g: 'ex:g1', p: 'ex:p' }, { g: 'ex:g2', p: 'ex:p' }]);
+      });
+
+      it('should not evaluate over the default graph if it is the union of all graphs', async() => {
+        const bindingsStream = await engine.queryBindings(
+          `SELECT ?s { GRAPH ?g { ?s ?p ?o FILTER(!BOUND(?g)) } }`,
+          { sources: [ store ], unionDefaultGraph: true },
+        );
+        await expect(bindingsStream.toArray()).resolves.toHaveLength(3);
       });
 
       it('should have a solution for every named graph that exists', async() => {

@@ -196,7 +196,17 @@ describe('materializeOperation', () => {
       )).toEqual(AF.createGraph(input, graphName));
     });
 
-    it('should have no solutions for a variable name that is bound to a term that is no IRI', () => {
+    it('should materialize a variable name that is bound to a blank node', () => {
+      const blankNode = DF.blankNode('graph');
+      expect(materializeOperation(
+        AF.createGraph(AF.createPattern(termVariableB, termNamedNode, termVariableD), termVariableA),
+        BF.bindings([[ termVariableA, blankNode ]]),
+        AF,
+        BF,
+      )).toEqual(AF.createGraph(AF.createPattern(termVariableB, termNamedNode, termVariableD), <any> blankNode));
+    });
+
+    it('should have no solutions for a variable name that is bound to a term that can not name a graph', () => {
       expect(materializeOperation(
         AF.createGraph(AF.createPattern(termVariableB, termNamedNode, termVariableC), termVariableA),
         bindingsA,

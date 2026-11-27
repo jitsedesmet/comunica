@@ -88,8 +88,8 @@ export function materializeOperation(
       preVisitor: () => ({ continue: false }),
       transform: (graphOp) => {
         const graphName = materializeTerm(graphOp.name, bindings);
-        if (graphName.termType !== 'Variable' && graphName.termType !== 'NamedNode') {
-          // Only IRIs can name a graph, so other terms have no solutions.
+        if (![ 'Variable', 'NamedNode', 'BlankNode' ].includes(graphName.termType)) {
+          // Only IRIs and blank nodes can name a graph, so other terms have no solutions.
           return algebraFactory.createValues([], []);
         }
         // The graph variable is only bound after evaluating the GRAPH clause, so it is not materialized within it.
@@ -101,7 +101,7 @@ export function materializeOperation(
             ...options,
             originalBindings: unbindGraphVariable(<Bindings> options.originalBindings),
           }),
-          graphName,
+          <RDF.Variable | RDF.NamedNode> graphName,
         ), { metadata: graphOp.metadata });
       },
     },

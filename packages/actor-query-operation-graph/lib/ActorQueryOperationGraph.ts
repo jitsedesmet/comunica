@@ -52,8 +52,12 @@ export class ActorQueryOperationGraph extends ActorQueryOperationTypedMediated<A
     }));
     const inputContext = groupRepeatedSubOperations(context, 'graphs', this.name);
 
+    // With a union default graph, quad patterns with a graph variable also match the default graph.
+    const namedGraphs = matchingGraphs.bindingsStream
+      .filter(graphBindings => materializeTerm(name, graphBindings).termType !== 'DefaultGraph');
+
     // The input is evaluated lazily for every matching graph, in the order in which these graphs are discovered.
-    const bindingsStream: BindingsStream = new MultiTransformIterator(matchingGraphs.bindingsStream, {
+    const bindingsStream: BindingsStream = new MultiTransformIterator(namedGraphs, {
       autoStart: false,
       multiTransform: (graphBindings: Bindings) => new TransformIterator(async() => {
         const output = getSafeBindings(await this.mediatorQueryOperation.mediate({

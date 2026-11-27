@@ -134,6 +134,13 @@ describe('ActorQueryOperationGraph', () => {
       ]);
     });
 
+    it('should not evaluate the input over the default graph', async() => {
+      matchingGraphs = [ BF.bindings([[ g, DF.defaultGraph() ]]), BF.bindings([[ g, graph2 ]]) ];
+      await expect((await run(g)).bindingsStream).toEqualBindingsStream([
+        BF.bindings([[ s, DF.literal('s in ex:g2') ], [ g, graph2 ]]),
+      ]);
+    });
+
     it('should emit errors of the input', async() => {
       const result = await run(g);
       mediatorQueryOperation.mediate.mockRejectedValue(new Error('input failure'));

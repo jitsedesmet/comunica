@@ -28,6 +28,7 @@ describe('ActorOptimizeQueryOperationGraphPushdown', () => {
   const values = AF.createValues([ x ], [{ x: DF.literal('1') }]);
   const unknown = AF.createNop();
   const term = (variable: RDF.Variable): Algebra.Expression => AF.createTermExpression(variable);
+  const exists = AF.createExistenceExpression(false, AF.createPattern(s, p, o));
   const bound = (variable: RDF.Variable): Algebra.Expression =>
     AF.createOperatorExpression('bound', [ term(variable) ]);
 
@@ -131,6 +132,10 @@ describe('ActorOptimizeQueryOperationGraphPushdown', () => {
         'unknown',
         'matching',
       ],
+      [ 'a filter on existence over matching solutions', AF.createFilter(pattern(), exists), 'matching' ],
+      [ 'a filter on existence over independent solutions', AF.createFilter(values, exists), 'unknown', 'independent' ],
+      [ 'a left join on existence', AF.createLeftJoin(values, values, exists), 'unknown', 'independent' ],
+      [ 'an extend with existence', AF.createExtend(values, x, exists), 'unknown', 'independent' ],
       [ 'an extend', AF.createExtend(pattern(), x, term(s)), 'matching' ],
       [ 'an extend to the graph variable', AF.createExtend(pattern(), graphVariable, term(s)), 'unknown', 'matching' ],
       [ 'an extend of the graph variable', AF.createExtend(pattern(), x, term(graphVariable)), 'unknown', 'matching' ],
@@ -170,6 +175,15 @@ describe('ActorOptimizeQueryOperationGraphPushdown', () => {
     it('should not find variables in metadata', () => {
       expect(ActorOptimizeQueryOperationGraphPushdown
         .containsVariable(Object.assign(term(s), { metadata: { variable: x }}), x)).toBe(false);
+    });
+  });
+
+  describe('containsExistence', () => {
+    it('should find nested EXISTS expressions', () => {
+      expect(ActorOptimizeQueryOperationGraphPushdown
+        .containsExistence(AF.createOperatorExpression('!', [ exists ]))).toBe(true);
+      expect(ActorOptimizeQueryOperationGraphPushdown.containsExistence(bound(s))).toBe(false);
+      expect(ActorOptimizeQueryOperationGraphPushdown.containsExistence(undefined)).toBe(false);
     });
   });
 });

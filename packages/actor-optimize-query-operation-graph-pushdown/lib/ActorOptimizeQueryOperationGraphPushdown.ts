@@ -68,6 +68,15 @@ export class ActorOptimizeQueryOperationGraphPushdown extends ActorOptimizeQuery
     const isGraphVariable = graphName.termType === 'Variable';
     const usesGraphVariable = (value: unknown): boolean => isGraphVariable &&
       ActorOptimizeQueryOperationGraphPushdown.containsVariable(value, graphName);
+    // The dependence of solutions that an expression is evaluated for.
+    // EXISTS is evaluated over the selected graph, which only solutions that bind a pushed graph variable identify.
+    const dependenceWithExpression = (
+      expression: Algebra.Expression | undefined,
+      dependence: ActiveGraphDependence,
+    ): ActiveGraphDependence => usesGraphVariable(expression) || (isGraphVariable && dependence !== 'matching' &&
+      ActorOptimizeQueryOperationGraphPushdown.containsExistence(expression)) ?
+      'unknown' :
+      dependence;
 
     if (isKnownOperation(operation, Algebra.Types.PATTERN)) {
       return isDefaultGraph(operation.graph) ? 'matching' : 'independent';
@@ -108,18 +117,18 @@ export class ActorOptimizeQueryOperationGraphPushdown extends ActorOptimizeQuery
       const [ left, right ] = operation.input.map(dependenceOf);
       // An optional side that matches the graph would bind the graph variable of only some solutions.
       if (right === 'unknown' || (left === 'independent' && right === 'matching') ||
-        usesGraphVariable([ operation.input[1], operation.expression ])) {
+        usesGraphVariable(operation.input[1])) {
         return 'unknown';
       }
-      return left;
+      return dependenceWithExpression(operation.expression, left);
     }
     if (isKnownOperation(operation, Algebra.Types.FILTER)) {
-      return usesGraphVariable(operation.expression) ? 'unknown' : dependenceOf(operation.input);
+      return dependenceWithExpression(operation.expression, dependenceOf(operation.input));
     }
     if (isKnownOperation(operation, Algebra.Types.EXTEND)) {
-      return usesGraphVariable([ operation.variable, operation.expression ]) ?
+      return usesGraphVariable(operation.variable) ?
         'unknown' :
-        dependenceOf(operation.input);
+        dependenceWithExpression(operation.expression, dependenceOf(operation.input));
     }
 
     // The remaining operations are scoped to solutions as a whole, which differ between one and all graphs.
@@ -150,16 +159,35 @@ export class ActorOptimizeQueryOperationGraphPushdown extends ActorOptimizeQuery
    * @return If the variable was found.
    */
   public static containsVariable(value: unknown, variable: RDF.Variable): boolean {
+    return ActorOptimizeQueryOperationGraphPushdown.someNestedValue(value, (nested) => {
+      const term = <RDF.Term> nested;
+      return term.termType === 'Quad' ?
+        someTermsNested(term, nestedTerm => nestedTerm.equals(variable)) :
+        variable.equals(term);
+    });
+  }
+
+  /**
+   * Check if an EXISTS expression occurs anywhere in a value.
+   * @param value An operation, or any value nested in an operation.
+   * @return If an EXISTS expression was found.
+   */
+  public static containsExistence(value: unknown): boolean {
+    return ActorOptimizeQueryOperationGraphPushdown.someNestedValue(value, nested =>
+      (<Algebra.Expression> nested).subType === Algebra.ExpressionTypes.EXISTENCE);
+  }
+
+  /**
+   * Check if a value, or a value nested in it, passes a test, without descending into terms and metadata.
+   * @param value An operation, a term, or any value nested in an operation.
+   * @param test The test for values that are objects.
+   * @return If a value passed the test.
+   */
+  public static someNestedValue(value: unknown, test: (nested: object) => boolean): boolean {
     if (value === null || typeof value !== 'object') {
       return false;
     }
-    if ('termType' in value) {
-      const term = <RDF.Term> value;
-      return term.termType === 'Quad' ?
-        someTermsNested(term, nestedTerm => nestedTerm.equals(variable)) :
-        term.equals(variable);
-    }
-    return Object.entries(value).some(([ key, child ]) => key !== 'metadata' &&
-      ActorOptimizeQueryOperationGraphPushdown.containsVariable(child, variable));
+    return test(value) || (!('termType' in value) && Object.entries(value).some(([ key, child ]) =>
+      key !== 'metadata' && ActorOptimizeQueryOperationGraphPushdown.someNestedValue(child, test)));
   }
 }

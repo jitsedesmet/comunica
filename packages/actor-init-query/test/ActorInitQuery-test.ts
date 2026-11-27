@@ -1263,7 +1263,11 @@ LIMIT 100
             return Promise.resolve({
               result: {
                 explain: 'true',
-                data: { bla: 'bla', scopedSource: { source: { toString: () => 'SRCSTR' }}},
+                data: {
+                  bla: 'bla',
+                  scopedSource: { source: { toString: () => 'SRCSTR' }},
+                  datasetSources: [{ source: { toString: () => 'SRCSTR' }}],
+                },
               },
             });
           };
@@ -1276,7 +1280,10 @@ LIMIT 100
           })).stdout);
           expect(stdout).toContain(`{
   "bla": "bla",
-  "scopedSource": "SRCSTR"
+  "scopedSource": "SRCSTR",
+  "datasetSources": [
+    "SRCSTR"
+  ]
 }`);
           expect(spyQueryOrExplain).toHaveBeenCalledWith(queryString, {
             [KeysInitQuery.explain.name]: 'physical',
