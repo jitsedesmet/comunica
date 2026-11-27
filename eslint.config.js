@@ -225,6 +225,8 @@ module.exports = config([
       '**/bintest/**',
       '**/componentsjs-error-state.json',
       'lerna.json',
+      // TODO: Remove this once the linked Traqula workspace is replaced by a release.
+      'traqula/**',
     ],
   },
 ]);
