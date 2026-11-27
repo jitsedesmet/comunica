@@ -183,10 +183,7 @@ describe('materializeOperation', () => {
         BF.bindings([[ termVariableA, graphName ], [ termVariableB, valueB ]]),
         AF,
         BF,
-      )).toEqual(Object.assign(AF.createGraph(
-        Object.assign(AF.createPattern(termVariableA, termNamedNode, valueB), { metadata: undefined }),
-        graphName,
-      ), { metadata: undefined }));
+      )).toEqual(AF.createGraph(AF.createPattern(termVariableA, termNamedNode, valueB), graphName));
     });
 
     it('should not materialize the variable name within filters of the input', () => {
@@ -196,7 +193,7 @@ describe('materializeOperation', () => {
         BF.bindings([[ termVariableA, graphName ]]),
         AF,
         BF,
-      )).toEqual(Object.assign(AF.createGraph(input, graphName), { metadata: undefined }));
+      )).toEqual(AF.createGraph(input, graphName));
     });
 
     it('should have no solutions for a variable name that is bound to a term that is no IRI', () => {
@@ -217,10 +214,10 @@ describe('materializeOperation', () => {
           bindingsA,
           AF,
           BF,
-        )).toEqual(Object.assign(AF.createGraph(
-          Object.assign(AF.createPattern(valueA, termNamedNode, termVariableC), { metadata: undefined }),
-          name,
-        ), { metadata: { a: 'b' }}));
+        )).toEqual(Object.assign(
+          AF.createGraph(AF.createPattern(valueA, termNamedNode, termVariableC), name),
+          { metadata: { a: 'b' }},
+        ));
       }
     });
   });

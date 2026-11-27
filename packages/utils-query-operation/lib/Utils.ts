@@ -106,11 +106,11 @@ export function assignOperationSource<O extends Algebra.Operation>(operation: O,
 }
 
 /**
- * Evaluate an operation over the union of the given sources.
+ * Assign the given sources to an operation, as a union over the sources unless there is exactly one.
  * @param operation An operation that a single source can evaluate.
  * @param sources The source wrappers to assign.
  * @param algebraFactory The algebra factory.
- * @return The operation with its source for a single source, or else a union of the operation for every source.
+ * @return The operation with its sources assigned.
  */
 export function unionOperationOverSources(
   operation: Algebra.Operation,

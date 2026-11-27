@@ -17,10 +17,10 @@ import { Algebra, isKnownOperation } from '@comunica/utils-algebra';
 import type { AlgebraFactory } from '@comunica/utils-algebra';
 import type { BindingsFactory } from '@comunica/utils-bindings-factory';
 import {
-  assignOperationSource,
   getOperationSource,
   getSafeBindings,
   groupRepeatedSubOperations,
+  unionOperationOverSources,
 } from '@comunica/utils-query-operation';
 import type * as RDF from '@rdfjs/types';
 import type { AsyncIterator } from 'asynciterator';
@@ -432,11 +432,7 @@ export abstract class ActorAbstractPath extends ActorQueryOperationTypedMediated
     if (sources.length === 0) {
       throw new Error(`Attempted to assign zero sources to a pattern during property path handling`);
     }
-    if (sources.length === 1) {
-      return assignOperationSource(pattern, sources[0]);
-    }
-    return algebraFactory.createUnion(sources
-      .map(source => assignOperationSource(pattern, source)), true);
+    return unionOperationOverSources(pattern, sources, algebraFactory);
   }
 }
 

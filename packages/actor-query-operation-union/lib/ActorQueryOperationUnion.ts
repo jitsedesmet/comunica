@@ -16,7 +16,7 @@ import type {
   MetadataVariable,
 } from '@comunica/types';
 import { Algebra } from '@comunica/utils-algebra';
-import { MetadataValidationState } from '@comunica/utils-metadata';
+import { createDerivedMetadataState } from '@comunica/utils-metadata';
 import { getSafeBindings, getSafeQuads } from '@comunica/utils-query-operation';
 import type * as RDF from '@rdfjs/types';
 import { UnionIterator } from 'asynciterator';
@@ -96,18 +96,12 @@ export class ActorQueryOperationUnion extends ActorQueryOperationTypedMediated<A
       };
     }
 
-    // Create new metadata state
-    accumulatedMetadata.state = new MetadataValidationState();
+    // Create new metadata state, to which metadata invalidations are propagated
+    accumulatedMetadata.state = createDerivedMetadataState(metadatas);
 
     // Inputs are interleaved, so their term order is not kept
     accumulatedMetadata.termOrder = undefined;
     accumulatedMetadata.canSeek = undefined;
-
-    // Propagate metadata invalidations
-    const invalidateListener = (): void => accumulatedMetadata.state.invalidate();
-    for (const metadata of metadatas) {
-      metadata.state.addInvalidateListener(invalidateListener);
-    }
 
     // Union variables
     if (bindings) {

@@ -20,7 +20,8 @@ import type {
   LogicalJoinType,
 } from '@comunica/types';
 import type { Algebra } from '@comunica/utils-algebra';
-import { cachifyMetadata, MetadataValidationState } from '@comunica/utils-metadata';
+import type { MetadataValidationState } from '@comunica/utils-metadata';
+import { cachifyMetadata, createDerivedMetadataState } from '@comunica/utils-metadata';
 import { getOperationSource } from '@comunica/utils-query-operation';
 import type * as RDF from '@rdfjs/types';
 
@@ -240,13 +241,7 @@ TS
    * @param metadatas An array of checked metadata.
    */
   public constructState(metadatas: MetadataBindings[]): MetadataValidationState {
-    // Propagate metadata invalidations
-    const state = new MetadataValidationState();
-    const invalidateListener = (): void => state.invalidate();
-    for (const metadata of metadatas) {
-      metadata.state.addInvalidateListener(invalidateListener);
-    }
-    return state;
+    return createDerivedMetadataState(metadatas);
   }
 
   /**

@@ -155,17 +155,17 @@ export class ActorQueryOperationFromQuad extends ActorQueryOperationTypedMediate
         preVisitor: () => ({ continue: false, copy: false }),
         transform: bgp => bgp.patterns.length === 0 ?
           bgp :
-          ActorQueryOperationFromQuad.applyNamedGraphToPattern(algebraFactory, bgp, namedGraphs, defaultGraphs),
+          ActorQueryOperationFromQuad.applyNamedGraphToOperation(algebraFactory, bgp, namedGraphs, defaultGraphs),
       },
       [Algebra.Types.PATH]: {
         preVisitor: () => ({ continue: false, copy: false }),
         transform: path => ActorQueryOperationFromQuad
-          .applyNamedGraphToPattern(algebraFactory, path, namedGraphs, defaultGraphs),
+          .applyNamedGraphToOperation(algebraFactory, path, namedGraphs, defaultGraphs),
       },
       [Algebra.Types.PATTERN]: {
         preVisitor: () => ({ continue: false, copy: false }),
         transform: pattern => ActorQueryOperationFromQuad
-          .applyNamedGraphToPattern(algebraFactory, pattern, namedGraphs, defaultGraphs),
+          .applyNamedGraphToOperation(algebraFactory, pattern, namedGraphs, defaultGraphs),
       },
       [Algebra.Types.GRAPH]: {
         preVisitor: () => ({ continue: false, copy: false }),
@@ -173,7 +173,7 @@ export class ActorQueryOperationFromQuad extends ActorQueryOperationTypedMediate
         transform: (graph) => {
           const input = ActorQueryOperationFromQuad
             .applyOperationNamedGraph(algebraFactory, graph.input, namedGraphs, [ graph.name ]);
-          return ActorQueryOperationFromQuad.applyNamedGraphToPattern(
+          return ActorQueryOperationFromQuad.applyNamedGraphToOperation(
             algebraFactory,
             ActorQueryOperationFromQuad.copyMetadata(algebraFactory.createGraph(input, graph.name), graph),
             namedGraphs,
@@ -193,21 +193,21 @@ export class ActorQueryOperationFromQuad extends ActorQueryOperationTypedMediate
    * @param {RDF.Term[]} defaultGraphs Default graph terms, as defined by FROM.
    * @return {Operation} A new operation.
    */
-  private static applyNamedGraphToPattern(
+  private static applyNamedGraphToOperation(
     algebraFactory: AlgebraFactory,
     operation: Algebra.Bgp | Algebra.Path | Algebra.Pattern | Algebra.Graph,
     namedGraphs: RDF.NamedNode[],
     defaultGraphs: RDF.Term[],
   ): Algebra.Operation {
-    let patternGraph: RDF.Term;
+    let operationGraph: RDF.Term;
     if (isKnownOperation(operation, Algebra.Types.BGP)) {
-      patternGraph = operation.patterns[0].graph;
+      operationGraph = operation.patterns[0].graph;
     } else if (isKnownOperation(operation, Algebra.Types.GRAPH)) {
-      patternGraph = operation.name;
+      operationGraph = operation.name;
     } else {
-      patternGraph = operation.graph;
+      operationGraph = operation.graph;
     }
-    if (patternGraph.termType === 'DefaultGraph') {
+    if (operationGraph.termType === 'DefaultGraph') {
       // Patterns over the default graph are not restricted by FROM NAMED.
       // They are handled afterwards by the default graph transformation.
       if (defaultGraphs.length > 0) {
@@ -217,7 +217,7 @@ export class ActorQueryOperationFromQuad extends ActorQueryOperationTypedMediate
       // when FROM NAMED's are used without a FROM, the default graph must be empty.
       return algebraFactory.createValues([], []);
     }
-    if (patternGraph.termType === 'Variable') {
+    if (operationGraph.termType === 'Variable') {
       if (namedGraphs.length === 0) {
         return algebraFactory.createValues([], []);
       }
@@ -225,39 +225,39 @@ export class ActorQueryOperationFromQuad extends ActorQueryOperationTypedMediate
         const graph: RDF.NamedNode = namedGraphs[0];
         // If the pattern graph is a variable, replace the graph and bind the variable using VALUES
         const bindings: Record<string, RDF.Literal | RDF.NamedNode> = {};
-        bindings[patternGraph.value] = graph;
+        bindings[operationGraph.value] = graph;
         const values: Algebra.Values = algebraFactory
-          .createValues([ patternGraph ], [ bindings ]);
+          .createValues([ operationGraph ], [ bindings ]);
 
-        let pattern: Algebra.Operation;
+        let scopedOperation: Algebra.Operation;
         if (isKnownOperation(operation, Algebra.Types.BGP)) {
-          pattern = algebraFactory
+          scopedOperation = algebraFactory
             .createBgp(operation.patterns.map((pat: Algebra.Pattern) => ActorQueryOperationFromQuad.copyMetadata(
               algebraFactory.createPattern(pat.subject, pat.predicate, pat.object, graph),
               pat,
             )));
         } else if (isKnownOperation(operation, Algebra.Types.PATH)) {
-          pattern = ActorQueryOperationFromQuad.copyMetadata(
+          scopedOperation = ActorQueryOperationFromQuad.copyMetadata(
             algebraFactory.createPath(operation.subject, operation.predicate, operation.object, graph),
             operation,
           );
         } else if (isKnownOperation(operation, Algebra.Types.GRAPH)) {
-          pattern = ActorQueryOperationFromQuad.copyMetadata(
+          scopedOperation = ActorQueryOperationFromQuad.copyMetadata(
             algebraFactory.createGraph(operation.input, graph),
             operation,
           );
         } else {
-          pattern = ActorQueryOperationFromQuad.copyMetadata(
+          scopedOperation = ActorQueryOperationFromQuad.copyMetadata(
             algebraFactory.createPattern(operation.subject, operation.predicate, operation.object, graph),
             operation,
           );
         }
 
-        return algebraFactory.createJoin([ values, pattern ]);
+        return algebraFactory.createJoin([ values, scopedOperation ]);
       }
       // If the pattern graph is a variable, take the union of the pattern applied to each available named graph
       return ActorQueryOperationFromQuad.unionOperations(algebraFactory, namedGraphs.map(
-        (graph: RDF.NamedNode) => ActorQueryOperationFromQuad.applyNamedGraphToPattern(
+        (graph: RDF.NamedNode) => ActorQueryOperationFromQuad.applyNamedGraphToOperation(
           algebraFactory,
           operation,
           [ graph ],
@@ -269,7 +269,7 @@ export class ActorQueryOperationFromQuad extends ActorQueryOperationTypedMediate
     // SPARQL 1.0 spec (8.2) and SPARQL 1.1 spec (13.2) describe that only the graphs from FROM NAMED
     // are available as named graphs, so graphs that were only selected in a FROM must not be matched here.
     const isNamedGraphAvailable: boolean = namedGraphs.some(
-      (namedGraph: RDF.Term) => namedGraph.equals(patternGraph),
+      (namedGraph: RDF.Term) => namedGraph.equals(operationGraph),
     );
     if (isNamedGraphAvailable) {
       // Return the pattern as-is if the pattern's graph was selected in a FROM NAMED

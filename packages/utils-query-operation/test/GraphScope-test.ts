@@ -31,7 +31,7 @@ describe('scopeOperationToGraph', () => {
       AF,
     )).toEqual(AF.createFilter(
       AF.createBgp([]),
-      AF.createExistenceExpression(false, Object.assign(AF.createPattern(s, p, o, graph), { metadata: undefined })),
+      AF.createExistenceExpression(false, AF.createPattern(s, p, o, graph)),
     ));
   });
 

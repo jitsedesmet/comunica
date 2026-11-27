@@ -150,9 +150,6 @@ export class ActorOptimizeQueryOperationGraphPushdown extends ActorOptimizeQuery
    * @return If the variable was found.
    */
   public static containsVariable(value: unknown, variable: RDF.Variable): boolean {
-    if (Array.isArray(value)) {
-      return value.some(element => ActorOptimizeQueryOperationGraphPushdown.containsVariable(element, variable));
-    }
     if (value === null || typeof value !== 'object') {
       return false;
     }

@@ -25,7 +25,6 @@ describe('ActorOptimizeQueryOperationGraphPushdown', () => {
   const otherGraph = DF.namedNode('ex:other');
 
   const pattern = (graph?: RDF.Term): Algebra.Pattern => AF.createPattern(s, p, o, graph);
-  const scopedPattern = (graph: RDF.Term): Algebra.Pattern => Object.assign(pattern(graph), { metadata: undefined });
   const values = AF.createValues([ x ], [{ x: DF.literal('1') }]);
   const unknown = AF.createNop();
   const term = (variable: RDF.Variable): Algebra.Expression => AF.createTermExpression(variable);
@@ -57,8 +56,8 @@ describe('ActorOptimizeQueryOperationGraphPushdown', () => {
         AF.createJoin([ AF.createBgp([ pattern() ]), AF.createPath(s, link, o) ]),
         graphVariable,
       ))).resolves.toEqual(AF.createJoin([
-        AF.createBgp([ scopedPattern(graphVariable) ]),
-        Object.assign(AF.createPath(s, link, o, graphVariable), { metadata: undefined }),
+        AF.createBgp([ pattern(graphVariable) ]),
+        AF.createPath(s, link, o, graphVariable),
       ]));
     });
 
@@ -71,13 +70,13 @@ describe('ActorOptimizeQueryOperationGraphPushdown', () => {
       await expect(optimize(AF.createGraph(
         AF.createJoin([ pattern(), AF.createGraph(pattern(), graphIri) ]),
         graphVariable,
-      ))).resolves.toEqual(AF.createJoin([ scopedPattern(graphVariable), scopedPattern(graphIri) ]));
+      ))).resolves.toEqual(AF.createJoin([ pattern(graphVariable), pattern(graphIri) ]));
     });
 
     it('should push a GRAPH operation around a nested GRAPH operation that is kept', async() => {
       const nested = AF.createGraph(AF.createProject(pattern(), [ s ]), graphVariable);
       await expect(optimize(AF.createGraph(AF.createJoin([ pattern(), nested ]), graphIri)))
-        .resolves.toEqual(AF.createJoin([ scopedPattern(graphIri), nested ]));
+        .resolves.toEqual(AF.createJoin([ pattern(graphIri), nested ]));
     });
   });
 
@@ -147,19 +146,11 @@ describe('ActorOptimizeQueryOperationGraphPushdown', () => {
       [ 'other operations', unknown, 'unknown' ],
     ];
 
-    it.each(cases)('should handle %s for a graph variable', (_name, operation, dependence) => {
+    it.each(cases)('should handle %s', (_name, operation, forVariable, forIri = forVariable) => {
       expect(ActorOptimizeQueryOperationGraphPushdown.getActiveGraphDependence(operation, graphVariable))
-        .toBe(dependence);
+        .toBe(forVariable);
+      expect(ActorOptimizeQueryOperationGraphPushdown.getActiveGraphDependence(operation, graphIri)).toBe(forIri);
     });
-
-    it.each(cases.map(([ name, operation, dependence, dependenceIri ]) =>
-      <const> [ name, operation, dependenceIri ?? dependence ]))(
-      'should handle %s for a graph IRI',
-      (_name, operation, dependence) => {
-        expect(ActorOptimizeQueryOperationGraphPushdown.getActiveGraphDependence(operation, graphIri))
-          .toBe(dependence);
-      },
-    );
   });
 
   describe('containsVariable', () => {

@@ -15,11 +15,12 @@ export function scopeOperationToGraph(
   graph: RDF.Term,
   algebraFactory: AlgebraFactory,
 ): Algebra.Operation {
-  const keepOwnScope = { preVisitor: () => ({ continue: false }) };
+  const stopTraversal = { preVisitor: () => ({ continue: false, copy: false }) };
   return algebraUtils.mapOperation(operation, {
-    [Algebra.Types.GRAPH]: keepOwnScope,
-    [Algebra.Types.SERVICE]: keepOwnScope,
+    [Algebra.Types.GRAPH]: stopTraversal,
+    [Algebra.Types.SERVICE]: stopTraversal,
     [Algebra.Types.PATTERN]: {
+      ...stopTraversal,
       transform: pattern => pattern.graph.termType === 'DefaultGraph' ?
         Object.assign(
           algebraFactory.createPattern(pattern.subject, pattern.predicate, pattern.object, graph),
@@ -28,6 +29,7 @@ export function scopeOperationToGraph(
         pattern,
     },
     [Algebra.Types.PATH]: {
+      ...stopTraversal,
       transform: path => path.graph.termType === 'DefaultGraph' ?
         Object.assign(
           algebraFactory.createPath(path.subject, path.predicate, path.object, graph),

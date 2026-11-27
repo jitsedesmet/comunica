@@ -1,6 +1,27 @@
-import type { BindingsStream, IMetadata, MetadataBindings, MetadataQuads } from '@comunica/types';
+import type {
+  BindingsStream,
+  IMetadata,
+  IMetadataValidationState,
+  MetadataBindings,
+  MetadataQuads,
+} from '@comunica/types';
 import type * as RDF from '@rdfjs/types';
 import type { AsyncIterator } from 'asynciterator';
+import { MetadataValidationState } from './MetadataValidationState';
+
+/**
+ * Create a validation state that is invalidated as soon as the state of one of the given metadata objects is.
+ * @param metadatas The metadata objects that the new state is derived from.
+ * @return A new validation state.
+ */
+export function createDerivedMetadataState(metadatas: { state: IMetadataValidationState }[]): MetadataValidationState {
+  const state = new MetadataValidationState();
+  const invalidateListener = (): void => state.invalidate();
+  for (const metadata of metadatas) {
+    metadata.state.addInvalidateListener(invalidateListener);
+  }
+  return state;
+}
 
 /**
  * Return a cached callback to the metadata from the given quad stream as a promise.

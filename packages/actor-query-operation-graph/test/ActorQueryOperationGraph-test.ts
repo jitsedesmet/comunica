@@ -1,6 +1,6 @@
 import { KeysInitQuery, KeysQueryOperation } from '@comunica/context-entries';
 import { ActionContext, Bus } from '@comunica/core';
-import type { Bindings, IActionContext, IQueryOperationResultBindings } from '@comunica/types';
+import type { Bindings, IActionContext, IQueryOperationResultBindings, IQuerySourceWrapper } from '@comunica/types';
 import { Algebra, AlgebraFactory } from '@comunica/utils-algebra';
 import { BindingsFactory } from '@comunica/utils-bindings-factory';
 import { MetadataValidationState } from '@comunica/utils-metadata';
@@ -19,17 +19,23 @@ const AF = new AlgebraFactory(DF);
 describe('ActorQueryOperationGraph', () => {
   const s = DF.variable('s');
   const g = DF.variable('g');
-  const allGraphs = DF.variable('__g');
+  const estimationGraph = DF.variable('__g');
   const graph1 = DF.namedNode('ex:g1');
   const graph2 = DF.namedNode('ex:g2');
-  const source = <any> { source: 'source' };
+  const sourceAccepting = (operationType: object): IQuerySourceWrapper => <any> {
+    source: { getSelectorShape: async() => ({ type: 'operation', operation: operationType }) },
+  };
+  const source = sourceAccepting({ operationType: 'type', type: Algebra.Types.PATTERN });
   const input = AF.createPattern(s, DF.namedNode('ex:p'), DF.variable('o'));
-  const quadsIn = (graph: RDF.Term): Algebra.Operation => assignOperationSource(
-    AF.createPattern(DF.variable('__s'), DF.variable('__p'), DF.variable('__o'), graph),
-    source,
-  );
+  const quadsIn = (graph: RDF.Term): Algebra.Pattern =>
+    AF.createPattern(DF.variable('__s'), DF.variable('__p'), DF.variable('__o'), graph);
   const inputIn = (graph: RDF.Term): Algebra.Operation =>
-    Object.assign(AF.createPattern(input.subject, input.predicate, input.object, graph), { metadata: undefined });
+    AF.createPattern(input.subject, input.predicate, input.object, graph);
+  const inputVariables = [ s, g, estimationGraph ].map(variable => ({ variable, canBeUndef: true }));
+  const readFirst = (stream: AsyncIterator<Bindings>): Promise<void> => new Promise((resolve) => {
+    stream.once('readable', resolve);
+    stream.read();
+  });
 
   let actor: ActorQueryOperationGraph;
   let context: IActionContext;
@@ -61,7 +67,7 @@ describe('ActorQueryOperationGraph', () => {
               {
                 state: inputState,
                 cardinality: { type: 'exact', value: 10 },
-                variables: [ s, g, allGraphs ].map(variable => ({ variable, canBeUndef: true })),
+                variables: inputVariables,
               } :
               {
                 state: graphsState,
@@ -94,7 +100,7 @@ describe('ActorQueryOperationGraph', () => {
         BF.bindings([[ s, DF.literal('s in ex:g2') ], [ g, graph2 ]]),
       ]);
       expect(mediatorQueryOperation.mediate.mock.calls.map(([ action ]: any) => action)).toEqual([
-        { operation: AF.createDistinct(AF.createProject(quadsIn(g), [ g ])), context },
+        { operation: AF.createDistinct(AF.createProject(assignOperationSource(quadsIn(g), source), [ g ])), context },
         { operation: inputIn(graph1), context },
         { operation: inputIn(graph2), context },
       ]);
@@ -103,20 +109,14 @@ describe('ActorQueryOperationGraph', () => {
     it('should only evaluate the input once its solutions are read', async() => {
       const result = await run(g);
       expect(mediatorQueryOperation.mediate).toHaveBeenCalledTimes(1);
-      await new Promise((resolve) => {
-        result.bindingsStream.once('readable', resolve);
-        result.bindingsStream.read();
-      });
+      await readFirst(result.bindingsStream);
       expect(mediatorQueryOperation.mediate).toHaveBeenCalledWith({ operation: inputIn(graph1), context });
     });
 
     it('should end the streams of the named graphs and the input when it is destroyed', async() => {
       solutionsIn = () => Array.from({ length: 1_000 }, () => BF.bindings());
       const result = await run(g);
-      await new Promise((resolve) => {
-        result.bindingsStream.once('readable', resolve);
-        result.bindingsStream.read();
-      });
+      await readFirst(result.bindingsStream);
       result.bindingsStream.destroy();
       expect(streams.length).toBeGreaterThan(1);
       expect(streams.every(stream => stream.done)).toBe(true);
@@ -148,7 +148,7 @@ describe('ActorQueryOperationGraph', () => {
         cardinality: { type: 'estimate', value: 10 },
         variables: [{ variable: s, canBeUndef: true }, { variable: g, canBeUndef: false }],
       });
-      expect(mediatorQueryOperation.mediate).toHaveBeenLastCalledWith({ operation: inputIn(allGraphs), context });
+      expect(mediatorQueryOperation.mediate).toHaveBeenLastCalledWith({ operation: inputIn(estimationGraph), context });
       expect(streams.at(-1)!.destroyed).toBe(true);
 
       inputState.invalidate();
@@ -168,7 +168,10 @@ describe('ActorQueryOperationGraph', () => {
       const result = await run(graph1);
       await expect(result.bindingsStream).toEqualBindingsStream([ BF.bindings([[ s, DF.literal('s in ex:g1') ]]) ]);
       expect(mediatorQueryOperation.mediate.mock.calls.map(([ action ]: any) => action)).toEqual([
-        { operation: AF.createSlice(AF.createProject(quadsIn(graph1), []), 0, 1), context },
+        {
+          operation: AF.createSlice(AF.createProject(assignOperationSource(quadsIn(graph1), source), []), 0, 1),
+          context,
+        },
         { operation: inputIn(graph1), context },
       ]);
     });
@@ -181,27 +184,36 @@ describe('ActorQueryOperationGraph', () => {
       await expect(result.metadata()).resolves.toEqual({
         state: expect.any(MetadataValidationState),
         cardinality: { type: 'estimate', value: 0 },
-        variables: [ s, g, allGraphs ].map(variable => ({ variable, canBeUndef: true })),
+        variables: inputVariables,
       });
       expect(mediatorQueryOperation.mediate).toHaveBeenLastCalledWith({ operation: inputIn(graph1), context });
     });
   });
 
   describe('createMatchingGraphsOperation', () => {
-    it('should take the union over multiple sources', () => {
-      const otherSource = <any> { source: 'other' };
-      expect(ActorQueryOperationGraph.createMatchingGraphsOperation(g, [ source, otherSource ], DF, AF))
-        .toEqual(AF.createDistinct(AF.createProject(
-          AF.createUnion([ quadsIn(g), assignOperationSource(quadsIn(g), otherSource) ]),
-          [ g ],
-        )));
+    const graphsOf = (quads: Algebra.Operation): Algebra.Operation => AF.createDistinct(AF.createProject(quads, [ g ]));
+
+    it('should let sources that accept the full operation produce their graphs', async() => {
+      const sourceAcceptingAll = sourceAccepting({ operationType: 'wildcard' });
+      context = context.set(KeysQueryOperation.querySources, [ sourceAcceptingAll ]);
+      await expect(ActorQueryOperationGraph.createMatchingGraphsOperation(g, context, AF)).resolves
+        .toEqual(assignOperationSource(graphsOf(quadsIn(g)), sourceAcceptingAll));
+    });
+
+    it('should take the graphs of the union over multiple sources', async() => {
+      const sourceAcceptingAll = sourceAccepting({ operationType: 'wildcard' });
+      context = context.set(KeysQueryOperation.querySources, [ source, sourceAcceptingAll ]);
+      await expect(ActorQueryOperationGraph.createMatchingGraphsOperation(g, context, AF)).resolves
+        .toEqual(graphsOf(AF.createUnion([
+          graphsOf(assignOperationSource(quadsIn(g), source)),
+          assignOperationSource(graphsOf(quadsIn(g)), sourceAcceptingAll),
+        ])));
     });
 
     it('should have no named graphs without sources', async() => {
-      context = context.delete(KeysQueryOperation.querySources);
-      await run(g);
-      expect(mediatorQueryOperation.mediate)
-        .toHaveBeenCalledWith({ operation: AF.createDistinct(AF.createProject(AF.createUnion([]), [ g ])), context });
+      await expect(ActorQueryOperationGraph
+        .createMatchingGraphsOperation(g, context.delete(KeysQueryOperation.querySources), AF)).resolves
+        .toEqual(graphsOf(AF.createUnion([])));
     });
   });
 });

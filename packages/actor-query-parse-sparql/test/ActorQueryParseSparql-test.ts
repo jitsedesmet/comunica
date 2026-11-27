@@ -173,9 +173,9 @@ describe('ActorQueryParseSparql', () => {
       ) ]), [ DF.variable('a'), DF.variable('b'), DF.variable('g') ]));
     });
 
-    it('should keep GRAPH clauses as graph operations without quads', async() => {
-      const actorWithoutQuads = new ActorQueryParseSparql({ name: 'actor', bus, quads: false });
-      const result = await actorWithoutQuads.run({ query: 'SELECT * WHERE { GRAPH ?g { ?a a ?b } }', context });
+    it('should keep GRAPH clauses as graph operations if they are not pushed down', async() => {
+      const actorWithGraphs = new ActorQueryParseSparql({ name: 'actor', bus, pushGraphsIntoQuadPatterns: false });
+      const result = await actorWithGraphs.run({ query: 'SELECT * WHERE { GRAPH ?g { ?a a ?b } }', context });
       expect(result.operation).toMatchObject(AF.createProject(AF.createGraph(AF.createBgp([ AF.createPattern(
         DF.variable('a'),
         DF.namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
