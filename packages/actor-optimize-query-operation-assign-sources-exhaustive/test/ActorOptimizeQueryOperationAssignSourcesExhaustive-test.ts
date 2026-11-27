@@ -2,7 +2,12 @@ import { KeysInitQuery, KeysQueryOperation, KeysRdfUpdateQuads } from '@comunica
 import { ActionContext, Bus } from '@comunica/core';
 import type { IQuerySourceWrapper } from '@comunica/types';
 import { Algebra, AlgebraFactory } from '@comunica/utils-algebra';
-import { getOperationEquivalentQueryString, getOperationSource } from '@comunica/utils-query-operation';
+import {
+  assignOperationDatasetSources,
+  assignOperationSource,
+  getOperationEquivalentQueryString,
+  getOperationSource,
+} from '@comunica/utils-query-operation';
 import { DataFactory } from 'rdf-data-factory';
 import {
   ActorOptimizeQueryOperationAssignSourcesExhaustive,
@@ -328,6 +333,21 @@ describe('ActorOptimizeQueryOperationAssignSourcesExhaustive', () => {
         // Nested SERVICE clauses are passed on as-is to the source of the enclosing SERVICE clause.
         expect((<any> operationOut).input[1].type).toEqual(Algebra.Types.SERVICE);
         expect(getOperationSource((<any> operationOut).input[1])).toBe(source1);
+      });
+
+      it('for graph should attach its dataset sources, and keep its service clauses', async() => {
+        const pattern = AF.createPattern(DF.namedNode('s1'), DF.namedNode('p1'), DF.namedNode('o1'));
+        const service = AF.createService(pattern, DF.namedNode('source1'));
+        const operationOut = actor.assignExhaustive(
+          AF,
+          AF.createGraph(AF.createJoin([ pattern, service ]), DF.variable('g')),
+          [ source1, sourcePattern ],
+          { source1 },
+        );
+        expect(operationOut).toEqual(assignOperationDatasetSources(AF.createGraph(AF.createJoin([
+          AF.createUnion([ assignOperationSource(pattern, source1), assignOperationSource(pattern, sourcePattern) ]),
+          service,
+        ]), DF.variable('g')), [ source1, sourcePattern ]));
       });
 
       it('for service with variable should not assign', async() => {

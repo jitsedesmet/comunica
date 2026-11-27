@@ -4,7 +4,7 @@ import { ActionContext, Bus } from '@comunica/core';
 import type { IActionContext, IQuerySourceWrapper } from '@comunica/types';
 import { Algebra, AlgebraFactory } from '@comunica/utils-algebra';
 import { BindingsFactory } from '@comunica/utils-bindings-factory';
-import { getOperationSource, getSafeBindings } from '@comunica/utils-query-operation';
+import { getOperationDatasetSources, getOperationSource, getSafeBindings } from '@comunica/utils-query-operation';
 import { ArrayIterator } from 'asynciterator';
 import { DataFactory } from 'rdf-data-factory';
 import { ActorQueryOperationService } from '../lib/ActorQueryOperationService';
@@ -255,6 +255,15 @@ describe('ActorQueryOperationService', () => {
       expect(getOperationSource(operated)).toBeUndefined();
       expect(getOperationSource(operated.input[0])).toBe(querySource);
       expect(getOperationSource(operated.input[1])).toBe(querySource);
+    });
+
+    it('should attach the target as dataset source of graph operations it does not accept', async() => {
+      wildcardShape = false;
+      const graph = AF.createGraph(pattern(), DF.variable('g'));
+      await createActor().run({ operation: AF.createService(graph, endpoint), context: context() }, undefined);
+      const operated = mediatorQueryOperation.mediate.mock.calls[0][0].operation;
+      expect(getOperationDatasetSources(operated)).toEqual([ querySource ]);
+      expect(getOperationSource(operated.input)).toBe(querySource);
     });
 
     it('should only annotate leaves if the whole operation has an extension function', async() => {

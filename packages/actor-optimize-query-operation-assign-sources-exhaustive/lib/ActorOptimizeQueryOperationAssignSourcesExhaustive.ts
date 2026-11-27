@@ -10,6 +10,7 @@ import { ActionContext, passTestVoid } from '@comunica/core';
 import type { ComunicaDataFactory, IQuerySourceWrapper } from '@comunica/types';
 import { Algebra, AlgebraFactory, algebraUtils } from '@comunica/utils-algebra';
 import {
+  assignOperationDatasetSources,
   assignOperationEquivalentQueryString,
   assignOperationSource,
   getOriginalSparqlQueryString,
@@ -115,6 +116,14 @@ export class ActorOptimizeQueryOperationAssignSourcesExhaustive extends ActorOpt
           }
           return serviceOp;
         },
+      },
+      [Algebra.Types.GRAPH]: {
+        preVisitor: () => ({ continue: false }),
+        // The SERVICE clauses within a GRAPH operation are kept, so that they remain outside the scope of its graph.
+        transform: graphOp => assignOperationDatasetSources({
+          ...graphOp,
+          input: this.assignExhaustive(factory, graphOp.input, sources, {}, withinService),
+        }, sources),
       },
       [Algebra.Types.CONSTRUCT]: {
         // The template holds quad patterns to produce, not patterns to match, so it gets no source.

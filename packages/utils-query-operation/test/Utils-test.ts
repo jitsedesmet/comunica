@@ -6,9 +6,11 @@ import { AlgebraFactory } from '@comunica/utils-algebra';
 import type * as RDF from '@rdfjs/types';
 import { DataFactory } from 'rdf-data-factory';
 import {
+  assignOperationDatasetSources,
   assignOperationEquivalentQueryString,
   assignOperationSource,
   getExtensionAggregatorLookup,
+  getOperationDatasetSources,
   getOperationEquivalentQueryString,
   getOperationSource,
   getOriginalSparqlQueryString,
@@ -108,6 +110,17 @@ describe('utils', () => {
       expect(getOperationSource(opIn)).toBeUndefined();
       expect(getOperationSource(opOut1)).toBe(source1);
       expect(getOperationSource(opOut2)).toBe(source2);
+    });
+  });
+
+  describe('#assignOperationDatasetSources', () => {
+    it('should attach the dataset sources to a copy of the operation', () => {
+      const opIn = Object.assign(AF.createNop(), { metadata: { a: 'b' }});
+      const sources = [ <any> 'abc', <any> 'def' ];
+      const opOut = assignOperationDatasetSources(opIn, sources);
+      expect(getOperationDatasetSources(opIn)).toBeUndefined();
+      expect(getOperationDatasetSources(opOut)).toBe(sources);
+      expect(opOut.metadata).toEqual({ a: 'b', datasetSources: sources });
     });
   });
 

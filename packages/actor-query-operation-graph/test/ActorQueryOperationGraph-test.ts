@@ -4,7 +4,7 @@ import type { Bindings, IActionContext, IQueryOperationResultBindings, IQuerySou
 import { Algebra, AlgebraFactory } from '@comunica/utils-algebra';
 import { BindingsFactory } from '@comunica/utils-bindings-factory';
 import { MetadataValidationState } from '@comunica/utils-metadata';
-import { assignOperationSource } from '@comunica/utils-query-operation';
+import { assignOperationDatasetSources, assignOperationSource } from '@comunica/utils-query-operation';
 import type * as RDF from '@rdfjs/types';
 import type { AsyncIterator } from 'asynciterator';
 import { ArrayIterator } from 'asynciterator';
@@ -191,28 +191,30 @@ describe('ActorQueryOperationGraph', () => {
   });
 
   describe('createMatchingGraphsOperation', () => {
+    const operation = AF.createGraph(input, g);
+    const sourceAcceptingAll = sourceAccepting({ operationType: 'wildcard' });
     const graphsOf = (quads: Algebra.Operation): Algebra.Operation => AF.createDistinct(AF.createProject(quads, [ g ]));
 
     it('should let sources that accept the full operation produce their graphs', async() => {
-      const sourceAcceptingAll = sourceAccepting({ operationType: 'wildcard' });
       context = context.set(KeysQueryOperation.querySources, [ sourceAcceptingAll ]);
-      await expect(ActorQueryOperationGraph.createMatchingGraphsOperation(g, context, AF)).resolves
+      await expect(ActorQueryOperationGraph.createMatchingGraphsOperation(operation, context, AF)).resolves
         .toEqual(assignOperationSource(graphsOf(quadsIn(g)), sourceAcceptingAll));
     });
 
-    it('should take the graphs of the union over multiple sources', async() => {
-      const sourceAcceptingAll = sourceAccepting({ operationType: 'wildcard' });
-      context = context.set(KeysQueryOperation.querySources, [ source, sourceAcceptingAll ]);
-      await expect(ActorQueryOperationGraph.createMatchingGraphsOperation(g, context, AF)).resolves
-        .toEqual(graphsOf(AF.createUnion([
-          graphsOf(assignOperationSource(quadsIn(g), source)),
-          assignOperationSource(graphsOf(quadsIn(g)), sourceAcceptingAll),
-        ])));
+    it('should take the graphs of the union over the dataset sources of the operation', async() => {
+      await expect(ActorQueryOperationGraph.createMatchingGraphsOperation(
+        assignOperationDatasetSources(operation, [ source, sourceAcceptingAll ]),
+        context,
+        AF,
+      )).resolves.toEqual(graphsOf(AF.createUnion([
+        graphsOf(assignOperationSource(quadsIn(g), source)),
+        assignOperationSource(graphsOf(quadsIn(g)), sourceAcceptingAll),
+      ])));
     });
 
     it('should have no named graphs without sources', async() => {
       await expect(ActorQueryOperationGraph
-        .createMatchingGraphsOperation(g, context.delete(KeysQueryOperation.querySources), AF)).resolves
+        .createMatchingGraphsOperation(operation, context.delete(KeysQueryOperation.querySources), AF)).resolves
         .toEqual(graphsOf(AF.createUnion([])));
     });
   });

@@ -2,7 +2,11 @@ import { KeysInitQuery } from '@comunica/context-entries';
 import { ActionContext, Bus } from '@comunica/core';
 import type { IQuerySourceWrapper } from '@comunica/types';
 import { Algebra, AlgebraFactory } from '@comunica/utils-algebra';
-import { assignOperationSource, getOperationSource } from '@comunica/utils-query-operation';
+import {
+  assignOperationDatasetSources,
+  assignOperationSource,
+  getOperationSource,
+} from '@comunica/utils-query-operation';
 import { DataFactory } from 'rdf-data-factory';
 import { ActorOptimizeQueryOperationGroupSources } from '../lib/ActorOptimizeQueryOperationGroupSources';
 import '@comunica/utils-jest';
@@ -747,6 +751,22 @@ describe('ActorOptimizeQueryOperationGroupSources', () => {
         expect(getOperationSource(out)).toBe(source1);
         expect(getOperationSource(inputs[0])).toBeUndefined();
         expect(getOperationSource(inputs[1])).toBeUndefined();
+      });
+
+      it('should only move the source of a graph operation that ranges over that source alone', async() => {
+        const input = assignOperationSource(AF.createNop(), source1);
+        const graph = AF.createGraph(input, DF.variable('g'));
+        const ofSingleSource = assignOperationDatasetSources(graph, [ source1 ]);
+        await expect(actor
+          .moveSourceAnnotationUpwardsIfPossible(ofSingleSource, [ input ], source1, new ActionContext()))
+          .resolves.toEqual(assignOperationSource(ofSingleSource, source1));
+        const ofMultipleSources = assignOperationDatasetSources(graph, [ source1, source2 ]);
+        await expect(actor.moveSourceAnnotationUpwardsIfPossible(
+          ofMultipleSources,
+          [ assignOperationSource(AF.createNop(), source1) ],
+          source1,
+          new ActionContext(),
+        )).resolves.toBe(ofMultipleSources);
       });
 
       it('should return the grouped operation for inputs with another source', async() => {

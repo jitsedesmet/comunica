@@ -123,6 +123,28 @@ export function unionOperationOverSources(
 }
 
 /**
+ * Obtain the sources that make up the dataset of the given GRAPH operation.
+ * @param operation A GRAPH operation.
+ * @return The sources that hold the named graphs it ranges over, or undefined if none are attached.
+ */
+export function getOperationDatasetSources(operation: Algebra.Operation): IQuerySourceWrapper[] | undefined {
+  return <IQuerySourceWrapper[] | undefined> operation.metadata?.datasetSources;
+}
+
+/**
+ * Attach the sources that make up its dataset to the given GRAPH operation.
+ * @param operation A GRAPH operation.
+ * @param datasetSources The sources that hold the named graphs it ranges over.
+ * @return A copy of the operation with the dataset sources attached.
+ */
+export function assignOperationDatasetSources<O extends Algebra.Operation>(
+  operation: O,
+  datasetSources: IQuerySourceWrapper[],
+): O {
+  return { ...operation, metadata: { ...operation.metadata, datasetSources }};
+}
+
+/**
  * Obtain the query string that is equivalent to the given operation, which a source may send instead of the operation.
  * @param operation An algebra operation.
  * @return The equivalent query string, or undefined if none is attached.

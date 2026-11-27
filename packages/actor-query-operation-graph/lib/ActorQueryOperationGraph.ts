@@ -16,12 +16,13 @@ import { createDerivedMetadataState } from '@comunica/utils-metadata';
 import {
   assignOperationSource,
   doesShapeAcceptOperation,
+  getOperationDatasetSources,
   getSafeBindings,
   getSourceSelectorShape,
+  groupRepeatedSubOperations,
   materializeTerm,
   scopeOperationToGraph,
 } from '@comunica/utils-query-operation';
-import type * as RDF from '@rdfjs/types';
 import { MultiTransformIterator, TransformIterator } from 'asynciterator';
 
 /**
@@ -44,10 +45,12 @@ export class ActorQueryOperationGraph extends ActorQueryOperationTypedMediated<A
     const algebraFactory = new AlgebraFactory(dataFactory);
     const { input, name } = operation;
 
+    // The evaluations of the input are grouped in the physical query plan, as there is one for every matching graph.
     const matchingGraphs = getSafeBindings(await this.mediatorQueryOperation.mediate({
-      operation: await ActorQueryOperationGraph.createMatchingGraphsOperation(name, context, algebraFactory),
+      operation: await ActorQueryOperationGraph.createMatchingGraphsOperation(operation, context, algebraFactory),
       context,
     }));
+    const inputContext = groupRepeatedSubOperations(context, 'graphs', this.name);
 
     // The input is evaluated lazily for every matching graph, in the order in which these graphs are discovered.
     const bindingsStream: BindingsStream = new MultiTransformIterator(matchingGraphs.bindingsStream, {
@@ -55,7 +58,7 @@ export class ActorQueryOperationGraph extends ActorQueryOperationTypedMediated<A
       multiTransform: (graphBindings: Bindings) => new TransformIterator(async() => {
         const output = getSafeBindings(await this.mediatorQueryOperation.mediate({
           operation: scopeOperationToGraph(input, materializeTerm(name, graphBindings), algebraFactory),
-          context,
+          context: inputContext,
         }));
         // Solutions in which the input bound the graph variable to another term are not compatible.
         return output.bindingsStream.map(bindings => bindings.merge(graphBindings) ?? null);
@@ -68,7 +71,7 @@ export class ActorQueryOperationGraph extends ActorQueryOperationTypedMediated<A
       const estimationGraph = name.termType === 'Variable' ? dataFactory.variable('__g') : name;
       const inputEstimate = getSafeBindings(await this.mediatorQueryOperation.mediate({
         operation: scopeOperationToGraph(input, estimationGraph, algebraFactory),
-        context,
+        context: inputContext,
       }));
       inputEstimate.bindingsStream.destroy();
       const metadatas = await Promise.all([ matchingGraphs.metadata(), inputEstimate.metadata() ]);
@@ -93,17 +96,18 @@ export class ActorQueryOperationGraph extends ActorQueryOperationTypedMediated<A
   /**
    * Create an operation that has one solution for every named graph that matches the name of a GRAPH operation.
    * Graph variables are bound in these solutions, while the solution of an IRI that names a graph is empty.
-   * A named graph exists if at least one of the query sources has a quad in it.
-   * @param graphName The name of a GRAPH operation.
-   * @param context The action context, of which the query sources make up the dataset.
+   * A named graph exists if at least one of the sources of the dataset has a quad in it.
+   * @param operation A GRAPH operation, which ranges over its dataset sources, or else over all query sources.
+   * @param context The action context.
    * @param algebraFactory The algebra factory.
    * @return The operation, which is fully assigned to sources.
    */
   public static async createMatchingGraphsOperation(
-    graphName: RDF.Variable | RDF.NamedNode,
+    operation: Algebra.Graph,
     context: IActionContext,
     algebraFactory: AlgebraFactory,
   ): Promise<Algebra.Operation> {
+    const graphName = operation.name;
     const dataFactory = <ComunicaDataFactory> algebraFactory.dataFactory;
     const quadsInGraph = algebraFactory.createPattern(
       dataFactory.variable('__s'),
@@ -116,7 +120,7 @@ export class ActorQueryOperationGraph extends ActorQueryOperationTypedMediated<A
       algebraFactory.createSlice(algebraFactory.createProject(quads, []), 0, 1);
 
     // Sources that accept the full operation only have to produce their graphs, instead of all quads within them.
-    const sources = context.get(KeysQueryOperation.querySources) ?? [];
+    const sources = getOperationDatasetSources(operation) ?? context.get(KeysQueryOperation.querySources) ?? [];
     const graphsPerSource = await Promise.all(sources.map(async source =>
       doesShapeAcceptOperation(await getSourceSelectorShape(source, context), graphsOf(quadsInGraph)) ?
         assignOperationSource(graphsOf(quadsInGraph), source) :
