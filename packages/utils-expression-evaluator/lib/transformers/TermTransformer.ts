@@ -5,14 +5,13 @@ import * as RDFString from 'rdf-string';
 import * as E from '../expressions';
 import { TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
-import { isExpressionError } from '../util/Errors';
 import {
-  parseDate,
-  parseDateTime,
-  parseDayTimeDuration,
-  parseDuration,
-  parseTime,
-  parseYearMonthDuration,
+  parseDateOrUndefined,
+  parseDateTimeOrUndefined,
+  parseDayTimeDurationOrUndefined,
+  parseDurationOrUndefined,
+  parseTimeOrUndefined,
+  parseYearMonthDurationOrUndefined,
 } from '../util/Parsing';
 import * as P from '../util/Parsing';
 import { getSuperTypeDict } from '../util/TypeHandling';
@@ -82,74 +81,86 @@ export class TermTransformer implements ITermTransformer {
     const superTypeDict: GeneralSuperTypeDict = getSuperTypeDict(dataType, this.superTypeProvider);
 
     // The order of checking matters! Check most specific types first!
-    try {
-      if (TypeURL.XSD_STRING in superTypeDict) {
-        return new E.StringLiteral(lit.value, dataType);
-      }
-      if (TypeURL.RDF_LANG_STRING in superTypeDict) {
-        return new E.LangStringLiteral(lit.value, lit.language);
-      }
-      if (TypeURL.RDF_DIR_LANG_STRING in superTypeDict) {
-        return new E.DirLangStringLiteral(lit.value, lit.language, <'ltr' | 'rtl'> lit.direction);
-      }
-      if (TypeURL.XSD_YEAR_MONTH_DURATION in superTypeDict) {
-        return new E.YearMonthDurationLiteral(parseYearMonthDuration(lit.value), lit.value, dataType);
-      }
-      if (TypeURL.XSD_DAY_TIME_DURATION in superTypeDict) {
-        return new E.DayTimeDurationLiteral(parseDayTimeDuration(lit.value), lit.value, dataType);
-      }
-      if (TypeURL.XSD_DURATION in superTypeDict) {
-        return new E.DurationLiteral(parseDuration(lit.value), lit.value, dataType);
-      }
-      if (TypeURL.XSD_DATE_TIME in superTypeDict) {
-        const dateVal: Date = new Date(lit.value);
-        if (Number.isNaN(dateVal.getTime())) {
-          return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
-        }
-        return new E.DateTimeLiteral(parseDateTime(lit.value), lit.value, dataType);
-      }
-      if (TypeURL.XSD_DATE in superTypeDict) {
-        return new E.DateLiteral(parseDate(lit.value), lit.value, dataType);
-      }
-      if (TypeURL.XSD_TIME in superTypeDict) {
-        return new E.TimeLiteral(parseTime(lit.value), lit.value, dataType);
-      }
-      if (TypeURL.XSD_BOOLEAN in superTypeDict) {
-        if (lit.value !== 'true' && lit.value !== 'false' && lit.value !== '1' && lit.value !== '0') {
-          return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
-        }
-        return new E.BooleanLiteral(lit.value === 'true' || lit.value === '1', lit.value);
-      }
-      if (TypeURL.XSD_DECIMAL in superTypeDict) {
-        const intVal: number | undefined = P.parseXSDDecimal(lit.value);
-        if (intVal === undefined) {
-          return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
-        }
-        if (TypeURL.XSD_INTEGER in superTypeDict) {
-          return new E.IntegerLiteral(intVal, dataType, lit.value);
-        }
-        // If type is not an integer it's just a decimal.
-        return new E.DecimalLiteral(intVal, dataType, lit.value);
-      }
-      const isFloat = TypeURL.XSD_FLOAT in superTypeDict;
-      const isDouble = TypeURL.XSD_DOUBLE in superTypeDict;
-      if (isFloat || isDouble) {
-        const doubleVal: number | undefined = P.parseXSDFloat(lit.value);
-        if (doubleVal === undefined) {
-          return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
-        }
-        if (isFloat) {
-          return new E.FloatLiteral(doubleVal, dataType, lit.value);
-        }
-        return new E.DoubleLiteral(doubleVal, dataType, lit.value);
-      }
-
-      return new E.Literal<string>(lit.value, dataType, lit.value);
-    } catch (error: unknown) {
-      if (isExpressionError(<Error> error)) {
-        return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
-      }
-      throw error;
+    if (TypeURL.XSD_STRING in superTypeDict) {
+      return new E.StringLiteral(lit.value, dataType);
     }
+    if (TypeURL.RDF_LANG_STRING in superTypeDict) {
+      return new E.LangStringLiteral(lit.value, lit.language);
+    }
+    if (TypeURL.RDF_DIR_LANG_STRING in superTypeDict) {
+      return new E.DirLangStringLiteral(lit.value, lit.language, <'ltr' | 'rtl'> lit.direction);
+    }
+    if (TypeURL.XSD_YEAR_MONTH_DURATION in superTypeDict) {
+      const duration = parseYearMonthDurationOrUndefined(lit.value);
+      return duration ?
+        new E.YearMonthDurationLiteral(duration, lit.value, dataType) :
+        this.createNonLexicalLiteral(lit, dataType);
+    }
+    if (TypeURL.XSD_DAY_TIME_DURATION in superTypeDict) {
+      const duration = parseDayTimeDurationOrUndefined(lit.value);
+      return duration ?
+        new E.DayTimeDurationLiteral(duration, lit.value, dataType) :
+        this.createNonLexicalLiteral(lit, dataType);
+    }
+    if (TypeURL.XSD_DURATION in superTypeDict) {
+      const duration = parseDurationOrUndefined(lit.value);
+      return duration ?
+        new E.DurationLiteral(duration, lit.value, dataType) :
+        this.createNonLexicalLiteral(lit, dataType);
+    }
+    if (TypeURL.XSD_DATE_TIME in superTypeDict) {
+      const dateTime = parseDateTimeOrUndefined(lit.value);
+      return dateTime && !Number.isNaN(new Date(lit.value).getTime()) ?
+        new E.DateTimeLiteral(dateTime, lit.value, dataType) :
+        this.createNonLexicalLiteral(lit, dataType);
+    }
+    if (TypeURL.XSD_DATE in superTypeDict) {
+      const date = parseDateOrUndefined(lit.value);
+      return date ? new E.DateLiteral(date, lit.value, dataType) : this.createNonLexicalLiteral(lit, dataType);
+    }
+    if (TypeURL.XSD_TIME in superTypeDict) {
+      const time = parseTimeOrUndefined(lit.value);
+      return time ? new E.TimeLiteral(time, lit.value, dataType) : this.createNonLexicalLiteral(lit, dataType);
+    }
+    if (TypeURL.XSD_BOOLEAN in superTypeDict) {
+      if (lit.value !== 'true' && lit.value !== 'false' && lit.value !== '1' && lit.value !== '0') {
+        return this.createNonLexicalLiteral(lit, dataType);
+      }
+      return new E.BooleanLiteral(lit.value === 'true' || lit.value === '1', lit.value);
+    }
+    if (TypeURL.XSD_DECIMAL in superTypeDict) {
+      const intVal: number | undefined = P.parseXSDDecimal(lit.value);
+      if (intVal === undefined) {
+        return this.createNonLexicalLiteral(lit, dataType);
+      }
+      if (TypeURL.XSD_INTEGER in superTypeDict) {
+        return new E.IntegerLiteral(intVal, dataType, lit.value);
+      }
+      // If type is not an integer it's just a decimal.
+      return new E.DecimalLiteral(intVal, dataType, lit.value);
+    }
+    const isFloat = TypeURL.XSD_FLOAT in superTypeDict;
+    const isDouble = TypeURL.XSD_DOUBLE in superTypeDict;
+    if (isFloat || isDouble) {
+      const doubleVal: number | undefined = P.parseXSDFloat(lit.value);
+      if (doubleVal === undefined) {
+        return this.createNonLexicalLiteral(lit, dataType);
+      }
+      if (isFloat) {
+        return new E.FloatLiteral(doubleVal, dataType, lit.value);
+      }
+      return new E.DoubleLiteral(doubleVal, dataType, lit.value);
+    }
+
+    return new E.Literal<string>(lit.value, dataType, lit.value);
+  }
+
+  /**
+   * Create a literal for a value that is not in the lexical space of its datatype.
+   * @param lit The RDF literal with an invalid lexical form.
+   * @param dataType The datatype of the literal.
+   */
+  private createNonLexicalLiteral(lit: RDF.Literal, dataType: string): E.NonLexicalLiteral {
+    return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
   }
 }

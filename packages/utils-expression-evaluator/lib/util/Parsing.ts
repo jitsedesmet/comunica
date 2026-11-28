@@ -48,13 +48,37 @@ export function parseXSDDecimal(value: string): number | undefined {
   return Number.isNaN(numb) ? undefined : numb;
 }
 
-export function parseDateTime(dateTimeStr: string): IDateTimeRepresentation {
+/**
+ * Return the parsed value, or throw a {@link ParseError} if parsing failed.
+ * @param parsed The parsed value, or undefined if parsing failed.
+ * @param value The string that was parsed.
+ * @param type The name of the type the string was parsed as.
+ */
+function parsedOrThrow<T>(parsed: T | undefined, value: string, type: string): T {
+  if (parsed === undefined) {
+    throw new ParseError(value, type);
+  }
+  return parsed;
+}
+
+/**
+ * Parses an xsd:dateTime.
+ * @param dateTimeStr The string to parse.
+ * @return The dateTime, or undefined if the string is not a valid xsd:dateTime.
+ */
+export function parseDateTimeOrUndefined(dateTimeStr: string): IDateTimeRepresentation | undefined {
   // https://www.w3.org/TR/xmlschema-2/#dateTime
   const [ date, time ] = dateTimeStr.split('T');
   if (time === undefined) {
-    throw new ParseError(dateTimeStr, 'dateTime');
+    return undefined;
   }
-  return { ...parseDate(date), ...__parseTime(time) };
+  const parsedDate = parseDateOrUndefined(date);
+  const parsedTime = parseTimeAllowingHour24OrUndefined(time);
+  return parsedDate && parsedTime && { ...parsedDate, ...parsedTime };
+}
+
+export function parseDateTime(dateTimeStr: string): IDateTimeRepresentation {
+  return parsedOrThrow(parseDateTimeOrUndefined(dateTimeStr), dateTimeStr, 'dateTime');
 }
 
 function parseTimeZone(timeZoneStr: string): Partial<ITimeZoneRepresentation> {
@@ -73,14 +97,19 @@ function parseTimeZone(timeZoneStr: string): Partial<ITimeZoneRepresentation> {
   };
 }
 
-export function parseDate(dateStr: string): IDateRepresentation {
+/**
+ * Parses an xsd:date.
+ * @param dateStr The string to parse.
+ * @return The date, or undefined if the string is not a valid xsd:date.
+ */
+export function parseDateOrUndefined(dateStr: string): IDateRepresentation | undefined {
   // https://www.w3.org/TR/xmlschema-2/#date-lexical-representation
   const formatted = dateStr.replaceAll(
     /^(-)?([123456789]*\d{4})-(\d\d)-(\d\d)(Z|([+-]\d\d:\d\d))?$/gu,
     '$11!$2!$3!$4!$5',
   );
   if (formatted === dateStr) {
-    throw new ParseError(dateStr, 'date');
+    return undefined;
   }
   const dateStrings = formatted.split('!');
   const date = dateStrings.slice(0, -1).map(Number);
@@ -92,16 +121,25 @@ export function parseDate(dateStr: string): IDateRepresentation {
     ...parseTimeZone(dateStrings[4]),
   };
   if (!(res.month >= 1 && res.month <= 12) || !(res.day >= 1 && res.day <= maximumDayInMonthFor(res.year, res.month))) {
-    throw new ParseError(dateStr, 'date');
+    return undefined;
   }
   return res;
 }
 
-function __parseTime(timeStr: string): ITimeRepresentation {
+export function parseDate(dateStr: string): IDateRepresentation {
+  return parsedOrThrow(parseDateOrUndefined(dateStr), dateStr, 'date');
+}
+
+/**
+ * Parses an xsd:time, keeping 24:00:00 so a dateTime can roll it over to the next day.
+ * @param timeStr The string to parse.
+ * @return The time, or undefined if the string is not a valid xsd:time.
+ */
+function parseTimeAllowingHour24OrUndefined(timeStr: string): ITimeRepresentation | undefined {
   // https://www.w3.org/TR/xmlschema-2/#time-lexical-repr
   const formatted = timeStr.replaceAll(/^(\d\d):(\d\d):(\d\d(\.\d+)?)(Z|([+-]\d\d:\d\d))?$/gu, '$1!$2!$3!$5');
   if (formatted === timeStr) {
-    throw new ParseError(timeStr, 'time');
+    return undefined;
   }
   const timeStrings = formatted.split('!');
   const time = timeStrings.slice(0, -1).map(Number);
@@ -115,28 +153,41 @@ function __parseTime(timeStr: string): ITimeRepresentation {
 
   if (res.seconds >= 60 || res.minutes >= 60 || res.hours > 24 ||
     (res.hours === 24 && (res.minutes !== 0 || res.seconds !== 0))) {
-    throw new ParseError(timeStr, 'time');
+    return undefined;
   }
   return res;
 }
 
-// We make a separation in internal and external since dateTime will have hour-date rollover,
-// but time just does modulo the time.
-export function parseTime(timeStr: string): ITimeRepresentation {
-  // https://www.w3.org/TR/xmlschema-2/#time-lexical-repr
-  const res = __parseTime(timeStr);
-  res.hours %= 24;
+/**
+ * Parses an xsd:time.
+ * @param timeStr The string to parse.
+ * @return The time, or undefined if the string is not a valid xsd:time.
+ */
+export function parseTimeOrUndefined(timeStr: string): ITimeRepresentation | undefined {
+  const res = parseTimeAllowingHour24OrUndefined(timeStr);
+  if (res) {
+    res.hours %= 24;
+  }
   return res;
 }
 
-export function parseDuration(durationStr: string): Partial<IDurationRepresentation> {
+export function parseTime(timeStr: string): ITimeRepresentation {
+  return parsedOrThrow(parseTimeOrUndefined(timeStr), timeStr, 'time');
+}
+
+/**
+ * Parses an xsd:duration.
+ * @param durationStr The string to parse.
+ * @return The duration, or undefined if the string is not a valid xsd:duration.
+ */
+export function parseDurationOrUndefined(durationStr: string): Partial<IDurationRepresentation> | undefined {
   // https://www.w3.org/TR/xmlschema-2/#duration-lexical-repr
   const [ dayNotation, timeNotation ] = durationStr.split('T');
 
   // Handle date part
   const formattedDayDur = dayNotation.replaceAll(/^(-)?P(\d+Y)?(\d+M)?(\d+D)?$/gu, '$11S!$2!$3!$4');
   if (formattedDayDur === dayNotation) {
-    throw new ParseError(durationStr, 'duration');
+    return undefined;
   }
 
   const durationStrings = formattedDayDur.split('!');
@@ -144,13 +195,13 @@ export function parseDuration(durationStr: string): Partial<IDurationRepresentat
     const formattedTimeDur = timeNotation.replaceAll(/^(\d+H)?(\d+M)?(\d+(\.\d+)?S)?$/gu, '$1!$2!$3');
 
     if (timeNotation === '' || timeNotation === formattedTimeDur) {
-      throw new ParseError(durationStr, 'duration');
+      return undefined;
     }
     durationStrings.push(...formattedTimeDur.split('!'));
   }
   const duration = durationStrings.map(str => str.slice(0, -1));
   if (!duration.slice(1).some(Boolean)) {
-    throw new ParseError(durationStr, 'duration');
+    return undefined;
   }
 
   const sign = <-1 | 1> Number(duration[0]);
@@ -164,18 +215,42 @@ export function parseDuration(durationStr: string): Partial<IDurationRepresentat
   });
 }
 
+export function parseDuration(durationStr: string): Partial<IDurationRepresentation> {
+  return parsedOrThrow(parseDurationOrUndefined(durationStr), durationStr, 'duration');
+}
+
+/**
+ * Parses an xsd:yearMonthDuration.
+ * @param durationStr The string to parse.
+ * @return The duration, or undefined if the string is not a valid xsd:yearMonthDuration.
+ */
+export function parseYearMonthDurationOrUndefined(durationStr: string):
+Partial<IYearMonthDurationRepresentation> | undefined {
+  const res = parseDurationOrUndefined(durationStr);
+  if (!res || [ 'hours', 'minutes', 'seconds', 'day' ].some(key => Boolean((<any> res)[key]))) {
+    return undefined;
+  }
+  return res;
+}
+
 export function parseYearMonthDuration(durationStr: string): Partial<IYearMonthDurationRepresentation> {
-  const res = parseDuration(durationStr);
-  if ([ 'hours', 'minutes', 'seconds', 'day' ].some(key => Boolean((<any> res)[key]))) {
-    throw new ParseError(durationStr, 'yearMonthDuration');
+  return parsedOrThrow(parseYearMonthDurationOrUndefined(durationStr), durationStr, 'yearMonthDuration');
+}
+
+/**
+ * Parses an xsd:dayTimeDuration.
+ * @param durationStr The string to parse.
+ * @return The duration, or undefined if the string is not a valid xsd:dayTimeDuration.
+ */
+export function parseDayTimeDurationOrUndefined(durationStr: string):
+Partial<IDayTimeDurationRepresentation> | undefined {
+  const res = parseDurationOrUndefined(durationStr);
+  if (!res || [ 'year', 'month' ].some(key => Boolean((<any> res)[key]))) {
+    return undefined;
   }
   return res;
 }
 
 export function parseDayTimeDuration(durationStr: string): Partial<IDayTimeDurationRepresentation> {
-  const res = parseDuration(durationStr);
-  if ([ 'year', 'month' ].some(key => Boolean((<any> res)[key]))) {
-    throw new ParseError(durationStr, 'dayTimeDuration');
-  }
-  return res;
+  return parsedOrThrow(parseDayTimeDurationOrUndefined(durationStr), durationStr, 'dayTimeDuration');
 }
