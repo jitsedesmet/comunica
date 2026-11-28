@@ -50,8 +50,7 @@ export class ActorQueryOperationJoin extends ActorQueryOperationTypedMediated<Al
       }));
 
     // Return immediately if one of the join entries has cardinality zero, to avoid actor testing overhead.
-    if ((await Promise.all(entries.map(entry => entry.output.metadata())))
-      .some(entry => (entry.cardinality.value === 0 && entry.cardinality.type === 'exact'))) {
+    if (ActorRdfJoin.hasEntryWithExactEmptyCardinality(await ActorRdfJoin.getMetadatas(entries))) {
       for (const entry of entries) {
         entry.output.bindingsStream.close();
       }

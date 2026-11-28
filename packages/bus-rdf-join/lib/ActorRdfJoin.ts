@@ -202,6 +202,16 @@ TS
   }
 
   /**
+   * Check if at least one entry is guaranteed to produce no results.
+   * Estimated cardinalities of zero are not trusted, as estimators may underestimate.
+   * @param metadatas Metadata of the join entries.
+   * @return If at least one entry has an exact cardinality of zero.
+   */
+  public static hasEntryWithExactEmptyCardinality(metadatas: MetadataBindings[]): boolean {
+    return metadatas.some(metadata => metadata.cardinality.type === 'exact' && metadata.cardinality.value === 0);
+  }
+
+  /**
    * Obtain the metadata from all given join entries.
    * @param entries Join entries.
    */

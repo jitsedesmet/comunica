@@ -3,7 +3,8 @@
 [![npm version](https://badge.fury.io/js/%40comunica%2Factor-rdf-join-inner-multi-empty.svg)](https://www.npmjs.com/package/@comunica/actor-rdf-join-inner-multi-empty)
 
 An [RDF Join](https://github.com/comunica/comunica/tree/master/packages/bus-rdf-join) actor
-that accepts any number of inner-join entries of which at least one is empty and returns an empty stream.
+that accepts any number of inner-join entries of which at least one has an exact cardinality of zero, and returns an empty stream.
+Estimated cardinalities of zero are ignored, as estimators may underestimate.
 
 This module is part of the [Comunica framework](https://github.com/comunica/comunica),
 and should only be used by [developers that want to build their own query engine](https://comunica.dev/docs/modify/).

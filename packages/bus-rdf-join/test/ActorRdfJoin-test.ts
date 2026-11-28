@@ -648,6 +648,33 @@ IActorRdfJoinSelectivityOutput
     });
   });
 
+  describe('hasEntryWithExactEmptyCardinality', () => {
+    it('should be false for no entries', () => {
+      expect(ActorRdfJoin.hasEntryWithExactEmptyCardinality([])).toBe(false);
+    });
+
+    it('should be false for non-empty entries', () => {
+      expect(ActorRdfJoin.hasEntryWithExactEmptyCardinality(<any>[
+        { cardinality: { type: 'exact', value: 5 }},
+        { cardinality: { type: 'estimate', value: 10 }},
+      ])).toBe(false);
+    });
+
+    it('should be false for an entry with an estimated cardinality of zero', () => {
+      expect(ActorRdfJoin.hasEntryWithExactEmptyCardinality(<any>[
+        { cardinality: { type: 'exact', value: 5 }},
+        { cardinality: { type: 'estimate', value: 0 }},
+      ])).toBe(false);
+    });
+
+    it('should be true for an entry with an exact cardinality of zero', () => {
+      expect(ActorRdfJoin.hasEntryWithExactEmptyCardinality(<any>[
+        { cardinality: { type: 'estimate', value: 10 }},
+        { cardinality: { type: 'exact', value: 0 }},
+      ])).toBe(true);
+    });
+  });
+
   describe('getMetadatas', () => {
     it('should handle no entries', async() => {
       await expect(ActorRdfJoin.getMetadatas([])).resolves.toEqual([]);

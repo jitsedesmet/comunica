@@ -56,10 +56,10 @@ IActorRdfJoinSelectivityOutput
             },
           ],
           context,
-        })).resolves.toFailTest('Actor actor can only join entries where at least one is empty');
+        })).resolves.toFailTest('Actor actor can only join entries where at least one is exactly empty');
       });
 
-      it('should test on a 0 cardinality', async() => {
+      it('should not test on an estimated 0 cardinality', async() => {
         await expect(actor.test({
           type: 'inner',
           entries: [
@@ -74,6 +74,29 @@ IActorRdfJoinSelectivityOutput
               output: <any> {
                 type: 'bindings',
                 metadata: () => Promise.resolve({ cardinality: { type: 'estimate', value: 0 }}),
+              },
+              operation: <any> {},
+            },
+          ],
+          context,
+        })).resolves.toFailTest('Actor actor can only join entries where at least one is exactly empty');
+      });
+
+      it('should test on an exact 0 cardinality', async() => {
+        await expect(actor.test({
+          type: 'inner',
+          entries: [
+            {
+              output: <any> {
+                type: 'bindings',
+                metadata: () => Promise.resolve({ cardinality: { type: 'estimate', value: 10 }}),
+              },
+              operation: <any> {},
+            },
+            {
+              output: <any> {
+                type: 'bindings',
+                metadata: () => Promise.resolve({ cardinality: { type: 'exact', value: 0 }}),
               },
               operation: <any> {},
             },
