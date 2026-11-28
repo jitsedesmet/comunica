@@ -3,7 +3,9 @@
 [![npm version](https://badge.fury.io/js/%40comunica%2Factor-rdf-join-inner-multi-empty.svg)](https://www.npmjs.com/package/@comunica/actor-rdf-join-inner-multi-empty)
 
 An [RDF Join](https://github.com/comunica/comunica/tree/master/packages/bus-rdf-join) actor
-that accepts any number of inner-join entries of which at least one is empty and returns an empty stream.
+that accepts any number of inner-join entries of which at least one has a cardinality of zero, and returns an empty stream.
+As estimators may underestimate, an entry with an estimated cardinality of zero is read first,
+and the join is passed on to the join mediator if that entry turns out to produce results.
 
 This module is part of the [Comunica framework](https://github.com/comunica/comunica),
 and should only be used by [developers that want to build their own query engine](https://comunica.dev/docs/modify/).
@@ -30,7 +32,8 @@ After installing, this package can be added to your engine's configuration as fo
     {
       "@id": "urn:comunica:default:rdf-join/actors#inner-multi-empty",
       "@type": "ActorRdfJoinMultiEmpty",
-      "mediatorJoinSelectivity": { "@id": "urn:comunica:default:rdf-join-selectivity/mediators#main" }
+      "mediatorJoinSelectivity": { "@id": "urn:comunica:default:rdf-join-selectivity/mediators#main" },
+      "mediatorJoin": { "@id": "urn:comunica:default:rdf-join/mediators#main" }
     }
   ]
 }
@@ -39,3 +42,4 @@ After installing, this package can be added to your engine's configuration as fo
 ### Config Parameters
 
 * `mediatorJoinSelectivity`: A mediator over the [RDF Join Selectivity bus](https://github.com/comunica/comunica/tree/master/packages/bus-rdf-join-selectivity).
+* `mediatorJoin`: A mediator over the [RDF Join bus](https://github.com/comunica/comunica/tree/master/packages/bus-rdf-join).

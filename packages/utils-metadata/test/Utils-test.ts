@@ -1,6 +1,12 @@
 import type * as RDF from '@rdfjs/types';
 import { ArrayIterator } from 'asynciterator';
-import { cachifyMetadata, getMetadataBindings, getMetadataQuads, MetadataValidationState } from '../lib';
+import {
+  cachifyMetadata,
+  getMetadataBindings,
+  getMetadataQuads,
+  isCardinalityExactlyEmpty,
+  MetadataValidationState,
+} from '../lib';
 
 describe('Utils', () => {
   describe('getMetadataQuads', () => {
@@ -112,6 +118,20 @@ describe('Utils', () => {
       expect((await cached()).value).toBe(1);
       expect((await cached()).value).toBe(1);
       expect(cb).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('isCardinalityExactlyEmpty', () => {
+    it('should be true for an exact cardinality of zero', () => {
+      expect(isCardinalityExactlyEmpty({ type: 'exact', value: 0 })).toBe(true);
+    });
+
+    it('should be false for an estimated cardinality of zero', () => {
+      expect(isCardinalityExactlyEmpty({ type: 'estimate', value: 0 })).toBe(false);
+    });
+
+    it('should be false for a non-zero cardinality', () => {
+      expect(isCardinalityExactlyEmpty({ type: 'exact', value: 1 })).toBe(false);
     });
   });
 });
