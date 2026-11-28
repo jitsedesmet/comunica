@@ -17,7 +17,34 @@ import type * as C from './Consts';
  *
  * @see isExpressionError
  */
-export class ExpressionError extends Error {}
+export class ExpressionError extends Error {
+  #message: string | (() => string);
+
+  /**
+   * Expression errors are expected during evaluation, so they skip the costly stack trace capture.
+   * @param message The error message, or a function producing it, so it is only built when read.
+   * @param options The error options, such as its cause.
+   */
+  public constructor(message: string | (() => string) = '', options?: ErrorOptions) {
+    const stackTraceLimit = Error.stackTraceLimit;
+    // Reflect.set does not throw if Error is frozen, in which case the stack trace is still captured.
+    Reflect.set(Error, 'stackTraceLimit', 0);
+    super(undefined, options);
+    Reflect.set(Error, 'stackTraceLimit', stackTraceLimit);
+    this.#message = message;
+  }
+
+  public override get message(): string {
+    if (typeof this.#message === 'function') {
+      this.#message = this.#message();
+    }
+    return this.#message;
+  }
+
+  public override set message(message: string) {
+    this.#message = message;
+  }
+}
 
 /**
  * Checks whether a given error is an {@link ExpressionError}.
@@ -36,7 +63,7 @@ export function isExpressionError(error: Error): boolean {
  */
 export class InvalidLexicalForm extends ExpressionError {
   public constructor(public arg: RDF.Term) {
-    super(`Invalid lexical form '${pp(arg)}'`);
+    super(() => `Invalid lexical form '${pp(arg)}'`);
   }
 }
 
@@ -45,7 +72,7 @@ export class InvalidLexicalForm extends ExpressionError {
  */
 export class UnboundVariableError extends ExpressionError {
   public constructor(public variable: string, public bindings: RDF.Bindings) {
-    super(`Unbound variable '${pp(variable)}'`);
+    super(() => `Unbound variable '${pp(variable)}'`);
   }
 }
 
@@ -57,7 +84,7 @@ export class UnboundVariableError extends ExpressionError {
  */
 export class EBVCoercionError extends ExpressionError {
   public constructor(public arg: E.Term) {
-    super(`Cannot coerce term to EBV '${pp(arg)}'`);
+    super(() => `Cannot coerce term to EBV '${pp(arg)}'`);
   }
 }
 
@@ -86,11 +113,8 @@ export class CoalesceError extends ExpressionError {
  */
 export class InError extends ExpressionError {
   public constructor(public errors: (Error | false)[]) {
-    super(
-      `Some argument to IN errorred and none where equal. ${
-
-        errors.map(err => `(${err.toString()}) `).join('and ')}`,
-    );
+    super(() => `Some argument to IN errorred and none where equal. ${
+      errors.map(err => `(${err.toString()}) `).join('and ')}`);
   }
 }
 
@@ -99,7 +123,7 @@ export class InError extends ExpressionError {
  */
 export class InvalidArgumentTypes extends ExpressionError {
   public constructor(public args: Expression[], public op: C.GeneralOperator, etc = '') {
-    super(`Argument types not valid for operator: '${pp(op)}' with '${pp(args)}${etc}`);
+    super(() => `Argument types not valid for operator: '${pp(op)}' with '${pp(args)}${etc}`);
   }
 }
 
@@ -108,7 +132,7 @@ export class InvalidArgumentTypes extends ExpressionError {
  */
 export class CastError<T> extends ExpressionError {
   public constructor(public arg: T, cast: C.TypeURL) {
-    super(`Invalid cast: '${pp(arg)}' to '${pp(cast)}'`);
+    super(() => `Invalid cast: '${pp(arg)}' to '${pp(cast)}'`);
   }
 }
 
@@ -123,7 +147,7 @@ export class IncompatibleLanguageOperation extends ExpressionError {
     public arg1: E.Literal<string>,
     public arg2: E.Literal<string>,
   ) {
-    super(`Operation on incompatible language literals '${pp(arg1)}' and '${pp(arg2)}'`);
+    super(() => `Operation on incompatible language literals '${pp(arg1)}' and '${pp(arg2)}'`);
   }
 }
 
@@ -180,6 +204,15 @@ export class NoAggregator extends Error {
   }
 }
 
+/**
+ * Pretty-print an object for an error message, which must not throw as messages are built lazily.
+ * @param object The object to print.
+ * @return The JSON of the object, or its string form if it cannot be serialized.
+ */
 function pp<T>(object: T): string {
-  return JSON.stringify(object);
+  try {
+    return JSON.stringify(object);
+  } catch {
+    return String(object);
+  }
 }

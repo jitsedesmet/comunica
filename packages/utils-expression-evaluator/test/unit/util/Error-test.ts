@@ -1,5 +1,11 @@
 import { DataFactory } from 'rdf-data-factory';
-import { ExpressionError, isExpressionError, ExtensionFunctionError, InvalidLexicalForm } from '../../../lib';
+import {
+  ExpressionError,
+  isExpressionError,
+  ExtensionFunctionError,
+  InvalidArgumentTypes,
+  InvalidLexicalForm,
+} from '../../../lib';
 
 const DF = new DataFactory();
 
@@ -15,6 +21,47 @@ describe('Errors', () => {
 
     it('on plain Error', () => {
       expect(isExpressionError(new Error('foo'))).toBe(false);
+    });
+  });
+
+  describe('ExpressionError', () => {
+    it('should not capture a stack trace', () => {
+      expect(new ExpressionError('apple').stack).toBe('Error: apple');
+    });
+
+    it('should restore the stack trace limit', () => {
+      const stackTraceLimit = Error.stackTraceLimit;
+      expect(new ExpressionError()).toBeInstanceOf(Error);
+      expect(Error.stackTraceLimit).toBe(stackTraceLimit);
+    });
+
+    it('should have an empty message by default', () => {
+      expect(new ExpressionError().message).toBe('');
+    });
+
+    it('should only describe its message once, when read', () => {
+      const describeMessage = jest.fn(() => 'apple');
+      const error = new ExpressionError(describeMessage);
+      expect(describeMessage).not.toHaveBeenCalled();
+      expect(error.message).toBe('apple');
+      expect(error.message).toBe('apple');
+      expect(describeMessage).toHaveBeenCalledTimes(1);
+    });
+
+    it('should keep its cause', () => {
+      const cause = new Error('pear');
+      expect(new ExpressionError('apple', { cause }).cause).toBe(cause);
+    });
+
+    it('should describe arguments that cannot be serialized to JSON', () => {
+      expect(new InvalidArgumentTypes(<any> [ 1n ], '+').message)
+        .toBe(`Argument types not valid for operator: '"+"' with '1`);
+    });
+
+    it('should allow overwriting its message', () => {
+      const error = new ExpressionError('apple');
+      error.message = 'pear';
+      expect(error.message).toBe('pear');
     });
   });
 

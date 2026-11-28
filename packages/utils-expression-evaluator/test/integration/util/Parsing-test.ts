@@ -55,5 +55,10 @@ describe('util/parsing', () => {
         zoneMinutes: undefined,
       });
     });
+
+    it('should reject dateTimes with an invalid date', () => {
+      expect(() => parseDateTime('2010-13-21T11:28:01Z'))
+        .toThrow('Failed to parse "2010-13-21T11:28:01Z" as dateTime.');
+    });
   });
 });

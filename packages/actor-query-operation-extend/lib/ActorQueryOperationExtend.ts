@@ -6,7 +6,6 @@ import { passTestVoid } from '@comunica/core';
 import type { Bindings, IActionContext, IQueryOperationResult, IQueryOperationResultBindings } from '@comunica/types';
 import { Algebra } from '@comunica/utils-algebra';
 import { bindingsToString } from '@comunica/utils-bindings-factory';
-import type { ExpressionError } from '@comunica/utils-expression-evaluator';
 import { isExpressionError } from '@comunica/utils-expression-evaluator';
 import { getSafeBindings } from '@comunica/utils-query-operation';
 
@@ -56,11 +55,10 @@ export class ActorQueryOperationExtend extends ActorQueryOperationTypedMediated<
           // Errors silently don't actually extend according to the spec
           push(bindings);
           // But let's warn anyway
-          this.logWarn(
-            context,
-            `Expression error for extend operation (${(<ExpressionError> error).message})`,
-            () => ({ bindings: bindingsToString(bindings) }),
-          );
+          this.logWarn(context, 'Expression error for extend operation', () => ({
+            error,
+            bindings: bindingsToString(bindings),
+          }));
         } else {
           bindingsStream.emit('error', error);
         }
