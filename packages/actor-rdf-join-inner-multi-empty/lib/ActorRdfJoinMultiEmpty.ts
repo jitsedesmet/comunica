@@ -10,7 +10,13 @@ import { KeysInitQuery } from '@comunica/context-entries';
 import type { TestResult } from '@comunica/core';
 import { passTestWithSideData, failTest } from '@comunica/core';
 import type { IMediatorTypeJoinCoefficients } from '@comunica/mediatortype-join-coefficients';
-import type { ComunicaDataFactory, IJoinEntry } from '@comunica/types';
+import type {
+  BindingsStream,
+  ComunicaDataFactory,
+  IJoinEntry,
+  IPhysicalQueryPlanLogger,
+  MetadataBindings,
+} from '@comunica/types';
 import { isCardinalityExactlyEmpty, MetadataValidationState } from '@comunica/utils-metadata';
 import type * as RDF from '@rdfjs/types';
 import type { AsyncIterator } from 'asynciterator';
@@ -29,16 +35,32 @@ export class ActorRdfJoinMultiEmpty extends ActorRdfJoin {
       logicalType: 'inner',
       physicalName: 'multi-empty',
       canHandleUndefs: true,
+      canHandleOperationRequired: true,
     });
     this.mediatorJoin = args.mediatorJoin;
   }
 
   /**
-   * Read the first item of a stream, leaving all later items in the stream.
-   * @param stream A stream.
-   * @return The first item, or null if the stream ends without items.
+   * Find an entry with a cardinality of zero, preferring exact over estimated cardinalities.
+   * Entries whose operation must be pushed into the join are skipped, as their output can not be read.
+   * @param entries The join entries.
+   * @param metadatas The metadata of the join entries.
+   * @return The index of the found entry, or undefined if there is none.
    */
-  public static readFirstItem<T>(stream: AsyncIterator<T>): Promise<T | null> {
+  public static findEmptyEntryIndex(entries: IJoinEntry[], metadatas: MetadataBindings[]): number | undefined {
+    const readableIndexes = entries
+      .map((entry, index) => index)
+      .filter(index => !ActorRdfJoin.isOperationRequired(entries[index], metadatas[index]));
+    return readableIndexes.find(index => isCardinalityExactlyEmpty(metadatas[index].cardinality)) ??
+      readableIndexes.find(index => metadatas[index].cardinality.value === 0);
+  }
+
+  /**
+   * Read the first item of a stream, and restore it in a new stream that produces all items.
+   * @param stream A stream without listeners.
+   * @return A stream producing all items of the given stream, or null if it ended without items.
+   */
+  public static readFirstItemAndRestream<T>(stream: AsyncIterator<T>): Promise<AsyncIterator<T> | null> {
     return new Promise((resolve, reject) => {
       const removeListeners = (): void => {
         stream.removeListener('readable', tryRead);
@@ -48,8 +70,11 @@ export class ActorRdfJoinMultiEmpty extends ActorRdfJoin {
       const tryRead = (): void => {
         const item = stream.read();
         if (item !== null) {
+          // Restream before removing the listeners, as reading ahead may already cause errors.
+          const restream = ActorRdfJoinMultiEmpty
+            .deferErrorsUntilListened(stream.transform<T>({ prepend: [ item ], autoStart: false }));
           removeListeners();
-          resolve(item);
+          resolve(restream);
         } else if (stream.done) {
           onEnd();
         }
@@ -70,48 +95,89 @@ export class ActorRdfJoinMultiEmpty extends ActorRdfJoin {
   }
 
   /**
-   * Restore the first bindings that were read from an entry, and mark the entry as non-empty.
-   * @param entry A join entry with an estimated cardinality of zero.
-   * @param firstBindings The bindings that were read from the entry.
-   * @return The join entry, producing all of its bindings, with a cardinality of at least one.
+   * Hold back the first error of a stream until an error listener is attached, instead of throwing it.
+   * @param stream A stream without error listeners.
+   * @return The given stream.
    */
-  public static restoreReadEntry(entry: IJoinEntry, firstBindings: RDF.Bindings): IJoinEntry {
+  public static deferErrorsUntilListened<T>(stream: AsyncIterator<T>): AsyncIterator<T> {
+    let deferredError: Error | undefined;
+    const deferError = (error: Error): void => {
+      deferredError ??= error;
+    };
+    const onNewListener = (event: string): void => {
+      if (event === 'error') {
+        stream.removeListener('newListener', onNewListener);
+        stream.removeListener('error', deferError);
+        if (deferredError) {
+          // The new listener is only attached after this event
+          queueMicrotask(() => stream.emit('error', deferredError));
+        }
+      }
+    };
+    stream.on('error', deferError);
+    stream.on('newListener', onNewListener);
+    return stream;
+  }
+
+  /**
+   * Replace the output of an entry estimated to be empty by one that turned out to produce results.
+   * @param entry A join entry with an estimated cardinality of zero.
+   * @param bindingsStream A stream producing all bindings of the entry.
+   * @return The join entry with the given stream, and an unknown cardinality if it was estimated to be zero.
+   */
+  public static replaceUnderestimatedEntryStream(entry: IJoinEntry, bindingsStream: BindingsStream): IJoinEntry {
     const { output } = entry;
     return {
-      operation: entry.operation,
+      ...entry,
       output: {
         ...output,
-        bindingsStream: output.bindingsStream.prepend([ firstBindings ]),
+        bindingsStream,
         async metadata() {
-          const metadata = await output.metadata();
-          return {
-            ...metadata,
-            cardinality: { ...metadata.cardinality, value: Math.max(1, metadata.cardinality.value) },
-          };
+          // The replaced stream can not seek, and its cardinality may be off by any amount
+          const { canSeek: _canSeek, ...metadata } = await output.metadata();
+          return metadata.cardinality.value === 0 ?
+              { ...metadata, cardinality: { type: 'estimate', value: Number.POSITIVE_INFINITY }} :
+            metadata;
         },
       },
     };
+  }
+
+  /**
+   * Destroy the streams of join entries that will not be read anymore.
+   * @param entries Join entries.
+   */
+  public static destroyEntries(entries: IJoinEntry[]): void {
+    for (const entry of entries) {
+      entry.output.bindingsStream.destroy();
+    }
   }
 
   protected override async getOutput(
     action: IActionRdfJoin,
     sideData: IActorRdfJoinTestSideData,
   ): Promise<IActorRdfJoinOutputInner> {
-    if (!sideData.metadatas.some(metadata => isCardinalityExactlyEmpty(metadata.cardinality))) {
-      const estimatedEmptyIndex = sideData.metadatas.findIndex(metadata => metadata.cardinality.value === 0);
-      const estimatedEmptyEntry = action.entries[estimatedEmptyIndex];
-      const firstBindings = await ActorRdfJoinMultiEmpty.readFirstItem(estimatedEmptyEntry.output.bindingsStream);
-      if (firstBindings) {
+    const emptyEntryIndex = ActorRdfJoinMultiEmpty.findEmptyEntryIndex(action.entries, sideData.metadatas)!;
+    const emptyEntry = action.entries[emptyEntryIndex];
+    if (!isCardinalityExactlyEmpty(sideData.metadatas[emptyEntryIndex].cardinality)) {
+      let restream: BindingsStream | null;
+      try {
+        restream = await ActorRdfJoinMultiEmpty.readFirstItemAndRestream(emptyEntry.output.bindingsStream);
+      } catch (error: unknown) {
+        ActorRdfJoinMultiEmpty.destroyEntries(action.entries);
+        throw error;
+      }
+      if (restream) {
         const entries = [ ...action.entries ];
-        entries[estimatedEmptyIndex] = ActorRdfJoinMultiEmpty.restoreReadEntry(estimatedEmptyEntry, firstBindings);
+        entries[emptyEntryIndex] = ActorRdfJoinMultiEmpty.replaceUnderestimatedEntryStream(emptyEntry, restream);
+        // Let the join that receives the replaced output adopt the plan node of the original output
+        action.context.get<IPhysicalQueryPlanLogger>(KeysInitQuery.physicalQueryPlanLogger)
+          ?.getNodeForOutput(emptyEntry.output)?.setOutput(entries[emptyEntryIndex].output);
         return { result: await this.mediatorJoin.mediate({ ...action, entries }) };
       }
     }
 
-    for (const entry of action.entries) {
-      entry.output.bindingsStream.close();
-    }
-
+    ActorRdfJoinMultiEmpty.destroyEntries(action.entries);
     const dataFactory: ComunicaDataFactory = action.context.getSafe(KeysInitQuery.dataFactory);
     return {
       result: {
@@ -130,7 +196,7 @@ export class ActorRdfJoinMultiEmpty extends ActorRdfJoin {
     action: IActionRdfJoin,
     sideData: IActorRdfJoinTestSideData,
   ): Promise<TestResult<IMediatorTypeJoinCoefficients, IActorRdfJoinTestSideData>> {
-    if (!sideData.metadatas.some(metadata => metadata.cardinality.value === 0)) {
+    if (ActorRdfJoinMultiEmpty.findEmptyEntryIndex(action.entries, sideData.metadatas) === undefined) {
       return failTest(`Actor ${this.name} can only join entries where at least one has a cardinality of zero`);
     }
     return passTestWithSideData({

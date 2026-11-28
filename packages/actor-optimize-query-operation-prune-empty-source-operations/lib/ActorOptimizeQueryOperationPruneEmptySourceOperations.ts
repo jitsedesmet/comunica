@@ -264,8 +264,8 @@ export class ActorOptimizeQueryOperationPruneEmptySourceOperations extends Actor
       });
     });
 
-    // Estimates may be wrong in either direction, so verify them using ASK if the source supports it.
-    if (cardinality.type === 'estimate') {
+    // Estimates may be wrong in either direction, so verify them using ASK, unless it was found unsupported above.
+    if (cardinality.type === 'estimate' && !this.useAskIfSupported) {
       const askResult = await this.queryAskIfSupported(algebraFactory, source, input, mergedContext);
       if (askResult !== undefined) {
         return askResult;

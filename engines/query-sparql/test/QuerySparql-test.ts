@@ -2743,6 +2743,27 @@ WHERE { }
       });
     });
 
+    describe('join with an underestimated cardinality', () => {
+      it('returns the results of a pattern estimated to be empty', async() => {
+        const store = new Store([
+          DF.quad(DF.namedNode('ex:a'), DF.namedNode('ex:p'), DF.namedNode('ex:a')),
+          DF.quad(DF.namedNode('ex:a'), DF.namedNode('ex:q'), DF.namedNode('ex:b')),
+        ]);
+        // The repeated variable makes the count an estimate, which this store underestimates.
+        const countQuads = store.countQuads.bind(store);
+        store.countQuads = (subject, predicate, object, graph) =>
+          DF.namedNode('ex:p').equals(<RDF.Term | null> predicate) ? 0 : countQuads(subject, predicate, object, graph);
+
+        const bindings = await (await engine.queryBindings(`
+          SELECT * WHERE { ?s <ex:p> ?s . ?s <ex:q> ?x }
+        `, { sources: [ store ]})).toArray();
+
+        expect(bindings).toHaveLength(1);
+        expect(bindings[0].get('s')).toEqualRdfTerm(DF.namedNode('ex:a'));
+        expect(bindings[0].get('x')).toEqualRdfTerm(DF.namedNode('ex:b'));
+      });
+    });
+
     describe('count distinct with UNION and partially unbound variables', () => {
       it('should correctly count distinct values when a variable is only bound in one UNION branch', async() => {
         // Regression test: COUNT(DISTINCT ?x) should ignore bindings where ?x is unbound

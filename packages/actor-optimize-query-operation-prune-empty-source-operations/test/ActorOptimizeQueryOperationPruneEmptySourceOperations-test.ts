@@ -81,13 +81,14 @@ describe('ActorOptimizeQueryOperationPruneEmptySourceOperations', () => {
               card = 10;
               break;
             case Algebra.Types.PATTERN:
-              card = op.predicate.value === 'empty' ? 0 : 10;
+              card = [ 'empty', 'estimatedEmpty' ].includes(op.predicate.value) ? 0 : 10;
               break;
             case Algebra.Types.LINK:
               card = op.value === 'empty' ? 0 : 10;
               break;
           }
-          bindingsStream.setProperty('metadata', { cardinality: { type: 'exact', value: card }});
+          const type = op.predicate?.value === 'estimatedEmpty' ? 'estimate' : 'exact';
+          bindingsStream.setProperty('metadata', { cardinality: { type, value: card }});
           return bindingsStream;
         }),
       },
@@ -177,6 +178,17 @@ describe('ActorOptimizeQueryOperationPruneEmptySourceOperations', () => {
             assignOperationSource(AF
               .createPattern(DF.namedNode('s'), DF.namedNode('p2'), DF.namedNode('o')), source1),
           ]));
+        });
+
+        it('should not prune children estimated to be empty on a source without ASK support', async() => {
+          const opIn = AF.createUnion([
+            assignOperationSource(AF
+              .createPattern(DF.namedNode('s'), DF.namedNode('p1'), DF.namedNode('o')), source1),
+            assignOperationSource(AF
+              .createPattern(DF.namedNode('s'), DF.namedNode('estimatedEmpty'), DF.namedNode('o')), source1),
+          ]);
+          const { operation: opOut } = await actor.run({ operation: opIn, context: ctx });
+          expect(opOut).toEqual(opIn);
         });
 
         it('should not prune non-patterns', async() => {
@@ -1196,6 +1208,17 @@ describe('ActorOptimizeQueryOperationPruneEmptySourceOperations', () => {
           await actor.hasSourceResults(AF, sourceAsk, AF.createNop(), ctx);
           expect(sourceAsk.source.queryBoolean)
             .toHaveBeenCalledWith(AF.createAsk(AF.createNop()), contextWithAbortSignal(ctx));
+        });
+
+        it('should check ASK support once for an estimate on a source without ASK support', async() => {
+          source1.source.queryBindings = () => {
+            const bindingsStream = new ArrayIterator<RDF.Bindings>([], { autoStart: false });
+            bindingsStream.setProperty('metadata', { cardinality: { type: 'estimate', value: 0 }});
+            return bindingsStream;
+          };
+          jest.spyOn(source1.source, 'getSelectorShape');
+          await expect(actor.hasSourceResults(AF, source1, AF.createNop(), ctx)).resolves.toBeTruthy();
+          expect(source1.source.getSelectorShape).toHaveBeenCalledTimes(1);
         });
 
         it('should assume results if the ASK query fails without timeout', async() => {
