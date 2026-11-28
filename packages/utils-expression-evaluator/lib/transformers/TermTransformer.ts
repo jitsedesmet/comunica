@@ -5,14 +5,6 @@ import * as RDFString from 'rdf-string';
 import * as E from '../expressions';
 import { TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
-import {
-  parseDateOrUndefined,
-  parseDateTimeOrUndefined,
-  parseDayTimeDurationOrUndefined,
-  parseDurationOrUndefined,
-  parseTimeOrUndefined,
-  parseYearMonthDurationOrUndefined,
-} from '../util/Parsing';
 import * as P from '../util/Parsing';
 import { getSuperTypeDict } from '../util/TypeHandling';
 
@@ -91,35 +83,35 @@ export class TermTransformer implements ITermTransformer {
       return new E.DirLangStringLiteral(lit.value, lit.language, <'ltr' | 'rtl'> lit.direction);
     }
     if (TypeURL.XSD_YEAR_MONTH_DURATION in superTypeDict) {
-      const duration = parseYearMonthDurationOrUndefined(lit.value);
+      const duration = P.parseYearMonthDurationOrUndefined(lit.value);
       return duration ?
         new E.YearMonthDurationLiteral(duration, lit.value, dataType) :
         this.createNonLexicalLiteral(lit, dataType);
     }
     if (TypeURL.XSD_DAY_TIME_DURATION in superTypeDict) {
-      const duration = parseDayTimeDurationOrUndefined(lit.value);
+      const duration = P.parseDayTimeDurationOrUndefined(lit.value);
       return duration ?
         new E.DayTimeDurationLiteral(duration, lit.value, dataType) :
         this.createNonLexicalLiteral(lit, dataType);
     }
     if (TypeURL.XSD_DURATION in superTypeDict) {
-      const duration = parseDurationOrUndefined(lit.value);
+      const duration = P.parseDurationOrUndefined(lit.value);
       return duration ?
         new E.DurationLiteral(duration, lit.value, dataType) :
         this.createNonLexicalLiteral(lit, dataType);
     }
     if (TypeURL.XSD_DATE_TIME in superTypeDict) {
-      const dateTime = parseDateTimeOrUndefined(lit.value);
-      return dateTime && !Number.isNaN(new Date(lit.value).getTime()) ?
+      const dateTime = Number.isNaN(new Date(lit.value).getTime()) ? undefined : P.parseDateTimeOrUndefined(lit.value);
+      return dateTime ?
         new E.DateTimeLiteral(dateTime, lit.value, dataType) :
         this.createNonLexicalLiteral(lit, dataType);
     }
     if (TypeURL.XSD_DATE in superTypeDict) {
-      const date = parseDateOrUndefined(lit.value);
+      const date = P.parseDateOrUndefined(lit.value);
       return date ? new E.DateLiteral(date, lit.value, dataType) : this.createNonLexicalLiteral(lit, dataType);
     }
     if (TypeURL.XSD_TIME in superTypeDict) {
-      const time = parseTimeOrUndefined(lit.value);
+      const time = P.parseTimeOrUndefined(lit.value);
       return time ? new E.TimeLiteral(time, lit.value, dataType) : this.createNonLexicalLiteral(lit, dataType);
     }
     if (TypeURL.XSD_BOOLEAN in superTypeDict) {

@@ -73,8 +73,11 @@ export function parseDateTimeOrUndefined(dateTimeStr: string): IDateTimeRepresen
     return undefined;
   }
   const parsedDate = parseDateOrUndefined(date);
+  if (!parsedDate) {
+    return undefined;
+  }
   const parsedTime = parseTimeAllowingHour24OrUndefined(time);
-  return parsedDate && parsedTime && { ...parsedDate, ...parsedTime };
+  return parsedTime && { ...parsedDate, ...parsedTime };
 }
 
 export function parseDateTime(dateTimeStr: string): IDateTimeRepresentation {

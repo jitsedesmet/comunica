@@ -33,11 +33,13 @@ describe('Errors', () => {
       expect(new ExpressionError().message).toBe('');
     });
 
-    it('should only describe its message when read', () => {
+    it('should only describe its message once, when read', () => {
       const describeMessage = jest.fn(() => 'apple');
       const error = new ExpressionError(describeMessage);
       expect(describeMessage).not.toHaveBeenCalled();
       expect(error.message).toBe('apple');
+      expect(error.message).toBe('apple');
+      expect(describeMessage).toHaveBeenCalledTimes(1);
     });
 
     it('should allow overwriting its message', () => {

@@ -18,7 +18,7 @@ import type * as C from './Consts';
  * @see isExpressionError
  */
 export class ExpressionError extends Error {
-  readonly #describeMessage: () => string;
+  #message: string | (() => string);
 
   /**
    * Expression errors are expected during evaluation, so they skip the costly stack trace capture.
@@ -30,15 +30,18 @@ export class ExpressionError extends Error {
     Reflect.set(Error, 'stackTraceLimit', 0);
     super();
     Reflect.set(Error, 'stackTraceLimit', stackTraceLimit);
-    this.#describeMessage = typeof message === 'string' ? () => message : message;
+    this.#message = message;
   }
 
   public override get message(): string {
-    return this.#describeMessage();
+    if (typeof this.#message === 'function') {
+      this.#message = this.#message();
+    }
+    return this.#message;
   }
 
   public override set message(message: string) {
-    Object.defineProperty(this, 'message', { value: message, writable: true, configurable: true });
+    this.#message = message;
   }
 }
 
@@ -134,7 +137,7 @@ export class CastError<T> extends ExpressionError {
 
 export class InvalidTimezoneCall extends ExpressionError {
   public constructor(public dateString: string) {
-    super(() => `TIMEZONE call on ${dateString} which has no timezone`);
+    super(`TIMEZONE call on ${dateString} which has no timezone`);
   }
 }
 
@@ -155,7 +158,7 @@ export class EmptyAggregateError extends ExpressionError {
 
 export class ParseError extends ExpressionError {
   public constructor(str: string, type: string) {
-    super(() => `Failed to parse "${str}" as ${type}.`);
+    super(`Failed to parse "${str}" as ${type}.`);
   }
 }
 
