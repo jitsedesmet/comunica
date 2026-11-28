@@ -280,7 +280,7 @@ sources:
       await expect(explainPhysical(`${PREFIXES}SELECT * WHERE { ?s ex:nothing ?x . ?s foaf:age ?a }`)).resolves
         .toBe(`project (a,s,x) cardEst:0 cardReal:0 timeSelf:Xms timeLife:Xms
   join cardEst:0 cardReal:0 timeSelf:Xms timeLife:Xms
-    join-inner(empty)
+    join-inner(multi-empty) cardEst:0 cardReal:0 timeSelf:Xms timeLife:Xms
       pattern (?s http://example.org/nothing ?x) src:0 cardEst:0 cardReal:0 timeSelf:Xms timeLife:Xms
       pattern (?s http://xmlns.com/foaf/0.1/age ?a) src:0 cardEst:5 cardReal:0 timeSelf:Xms timeLife:Xms
 

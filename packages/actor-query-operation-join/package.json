@@ -43,14 +43,9 @@
   "dependencies": {
     "@comunica/bus-query-operation": "^5.5.1",
     "@comunica/bus-rdf-join": "^5.5.1",
-    "@comunica/context-entries": "^5.5.1",
     "@comunica/core": "^5.5.1",
     "@comunica/types": "^5.5.1",
     "@comunica/utils-algebra": "^5.5.0",
-    "@comunica/utils-metadata": "^5.5.1",
-    "@comunica/utils-query-operation": "^5.5.1",
-    "@rdfjs/types": "*",
-    "asynciterator": "^3.10.0",
-    "rdf-data-factory": "^2.1.0"
+    "@comunica/utils-query-operation": "^5.5.1"
   }
 }

@@ -73,3 +73,13 @@ export function cachifyMetadata<M extends IMetadata<T>, T extends RDF.Variable |
     return lastReturn;
   };
 }
+
+/**
+ * Check if a cardinality guarantees that no results are produced.
+ * Estimated cardinalities of zero give no such guarantee, as estimators may underestimate.
+ * @param cardinality A cardinality.
+ * @return If the cardinality is exactly zero.
+ */
+export function isCardinalityExactlyEmpty(cardinality: RDF.QueryResultCardinality): boolean {
+  return cardinality.type === 'exact' && cardinality.value === 0;
+}

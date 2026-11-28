@@ -15,6 +15,7 @@ import type {
   QueryResultCardinality,
 } from '@comunica/types';
 import { Algebra, AlgebraFactory, algebraUtils, isKnownOperation, isKnownSubType } from '@comunica/utils-algebra';
+import { isCardinalityExactlyEmpty } from '@comunica/utils-metadata';
 import { doesShapeAcceptOperationInContext, getOperationSource } from '@comunica/utils-query-operation';
 
 /**
@@ -247,14 +248,9 @@ export class ActorOptimizeQueryOperationPruneEmptySourceOperations extends Actor
 
     // Prefer ASK over COUNT when instructed to, and the source allows it
     if (this.useAskIfSupported) {
-      const askOperation = algebraFactory.createAsk(input);
-      const askSupported = doesShapeAcceptOperationInContext(
-        await source.source.getSelectorShape(mergedContext),
-        askOperation,
-        mergedContext,
-      );
-      if (askSupported) {
-        return this.queryAsk(source, askOperation, mergedContext);
+      const askResult = await this.queryAskIfSupported(algebraFactory, source, input, mergedContext);
+      if (askResult !== undefined) {
+        return askResult;
       }
     }
 
@@ -268,22 +264,36 @@ export class ActorOptimizeQueryOperationPruneEmptySourceOperations extends Actor
       });
     });
 
-    // If the cardinality is an estimate, such as from a VoID description,
-    // verify it using ASK if the source supports it.
-    // Since the VoID estimators in Comunica cannot produce false negatives, only positive assignments must be verified.
-    if (cardinality.type === 'estimate' && cardinality.value > 0) {
-      const askOperation = algebraFactory.createAsk(input);
-      const askSupported = doesShapeAcceptOperationInContext(
-        await source.source.getSelectorShape(mergedContext),
-        askOperation,
-        mergedContext,
-      );
-      if (askSupported) {
-        return this.queryAsk(source, askOperation, mergedContext);
+    // Estimates may be wrong in either direction, so verify them using ASK if the source supports it.
+    if (cardinality.type === 'estimate') {
+      const askResult = await this.queryAskIfSupported(algebraFactory, source, input, mergedContext);
+      if (askResult !== undefined) {
+        return askResult;
       }
     }
 
-    return cardinality.value > 0;
+    // Only an exact cardinality of zero proves that the source has no results.
+    return !isCardinalityExactlyEmpty(cardinality);
+  }
+
+  /**
+   * Execute an ASK query for the given operation, if the source accepts it.
+   * @param algebraFactory The algebra factory.
+   * @param source A query source.
+   * @param input A query operation.
+   * @param context The query context, merged with the source context.
+   * @return The ASK result, or undefined if the source does not accept ASK queries.
+   */
+  public async queryAskIfSupported(
+    algebraFactory: AlgebraFactory,
+    source: IQuerySourceWrapper,
+    input: Algebra.Operation,
+    context: IActionContext,
+  ): Promise<boolean | undefined> {
+    const askOperation = algebraFactory.createAsk(input);
+    if (doesShapeAcceptOperationInContext(await source.source.getSelectorShape(context), askOperation, context)) {
+      return this.queryAsk(source, askOperation, context);
+    }
   }
 
   /**

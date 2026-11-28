@@ -6,6 +6,7 @@ An [Optimize Query Operation](https://github.com/comunica/comunica/tree/master/p
 that removes operations from the query plan that are guaranteed to produce empty results.
 This actor relies on source-based cardinality metadata,
 or may optionally make use of ASK queries if the source supports it.
+Only exact cardinalities of zero cause pruning; estimated cardinalities are verified using ASK if the source supports it.
 
 This module is part of the [Comunica framework](https://github.com/comunica/comunica),
 and should only be used by [developers that want to build their own query engine](https://comunica.dev/docs/modify/).

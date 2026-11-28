@@ -87,7 +87,7 @@ describe('ActorOptimizeQueryOperationPruneEmptySourceOperations', () => {
               card = op.value === 'empty' ? 0 : 10;
               break;
           }
-          bindingsStream.setProperty('metadata', { cardinality: { value: card }});
+          bindingsStream.setProperty('metadata', { cardinality: { type: 'exact', value: card }});
           return bindingsStream;
         }),
       },
@@ -1095,6 +1095,26 @@ describe('ActorOptimizeQueryOperationPruneEmptySourceOperations', () => {
           expect(sourceAsk.source.queryBoolean).not.toHaveBeenCalled();
           await expect(actor.hasSourceResults(AF, sourceAsk, AF.createNop(), ctx)).resolves.toBeTruthy();
           expect(sourceAsk.source.queryBoolean).not.toHaveBeenCalled();
+        });
+
+        it('should verify an estimated cardinality of zero via ASK', async() => {
+          sourceAsk.source.queryBindings = () => {
+            const bindingsStream = new ArrayIterator<RDF.Bindings>([], { autoStart: false });
+            bindingsStream.setProperty('metadata', { cardinality: { type: 'estimate', value: 0 }});
+            return bindingsStream;
+          };
+          jest.spyOn(sourceAsk.source, 'queryBoolean').mockResolvedValueOnce(true);
+          await expect(actor.hasSourceResults(AF, sourceAsk, AF.createNop(), ctx)).resolves.toBeTruthy();
+          expect(sourceAsk.source.queryBoolean).toHaveBeenCalledTimes(1);
+        });
+
+        it('should be true for an estimated cardinality of zero if the source does not support ASK', async() => {
+          source1.source.queryBindings = () => {
+            const bindingsStream = new ArrayIterator<RDF.Bindings>([], { autoStart: false });
+            bindingsStream.setProperty('metadata', { cardinality: { type: 'estimate', value: 0 }});
+            return bindingsStream;
+          };
+          await expect(actor.hasSourceResults(AF, source1, AF.createNop(), ctx)).resolves.toBeTruthy();
         });
 
         it('should reject for an erroring query', async() => {
