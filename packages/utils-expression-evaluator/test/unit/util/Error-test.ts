@@ -18,6 +18,35 @@ describe('Errors', () => {
     });
   });
 
+  describe('ExpressionError', () => {
+    it('should not capture a stack trace', () => {
+      expect(new ExpressionError('apple').stack).toBe('Error: apple');
+    });
+
+    it('should restore the stack trace limit', () => {
+      const stackTraceLimit = Error.stackTraceLimit;
+      expect(new ExpressionError()).toBeInstanceOf(Error);
+      expect(Error.stackTraceLimit).toBe(stackTraceLimit);
+    });
+
+    it('should have an empty message by default', () => {
+      expect(new ExpressionError().message).toBe('');
+    });
+
+    it('should only describe its message when read', () => {
+      const describeMessage = jest.fn(() => 'apple');
+      const error = new ExpressionError(describeMessage);
+      expect(describeMessage).not.toHaveBeenCalled();
+      expect(error.message).toBe('apple');
+    });
+
+    it('should allow overwriting its message', () => {
+      const error = new ExpressionError('apple');
+      error.message = 'pear';
+      expect(error.message).toBe('pear');
+    });
+  });
+
   describe('ExtensionFunctionError', () => {
     it('with Error', () => {
       expect((new ExtensionFunctionError('test', new Error('error'))).message)
