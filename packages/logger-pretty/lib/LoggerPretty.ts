@@ -1,4 +1,3 @@
-import type { LogLevel } from '@comunica/types';
 import { Logger } from '@comunica/types';
 
 // Use require instead of import for default exports, to be compatible with variants of esModuleInterop in tsconfig.
@@ -57,11 +56,11 @@ export class LoggerPretty extends Logger {
     });
   }
 
-  public override isLevelEnabled(level: LogLevel): boolean {
+  public override isLevelEnabled(level: string): boolean {
     return Logger.getLevelOrdinal(level) >= this.levelOrdinal;
   }
 
-  protected log(level: LogLevel, color: string, message: string, data?: any): void {
+  protected log(level: string, color: string, message: string, data?: any): void {
     if (this.isLevelEnabled(level) &&
       (!data || !('actor' in data) || !this.actors || this.actors[data.actor])) {
       process.stderr.write(LoggerPretty.withColor(`[${new Date().toISOString()}]  ${level.toUpperCase()}: ${message} ${objectInspect(data)}\n`, color));
