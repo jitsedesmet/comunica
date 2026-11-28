@@ -305,6 +305,7 @@ describe('ActorDereferenceHttp', () => {
     it('should run and ignore http rejects in lenient mode and log them', async() => {
       const logger = new LoggerVoid();
       const spy = jest.spyOn(logger, 'warn');
+      jest.spyOn(logger, 'isLevelEnabled').mockReturnValue(true);
       const url = 'https://www.google.com/';
       context = new ActionContext({
         httpReject: true,

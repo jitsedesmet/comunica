@@ -149,6 +149,7 @@ describe('ActorAbstractDereferenceParse', () => {
   it('should run and ignore parse errors in lenient mode and log them', async() => {
     const logger = new LoggerVoid();
     const spy = jest.spyOn(logger, 'warn');
+    jest.spyOn(logger, 'isLevelEnabled').mockReturnValue(true);
     context = new ActionContext({
       emitParseError: true,
       [KeysInitQuery.lenient.name]: true,
@@ -196,6 +197,7 @@ describe('ActorAbstractDereferenceParse', () => {
   it('should run and ignore parse rejects in lenient mode and log them', async() => {
     const logger = new LoggerVoid();
     const spy = jest.spyOn(logger, 'warn');
+    jest.spyOn(logger, 'isLevelEnabled').mockReturnValue(true);
     const url = 'https://www.google.com/';
     context = new ActionContext({
       parseReject: true,
@@ -225,6 +227,7 @@ describe('ActorAbstractDereferenceParse', () => {
   it('should explain parse rejects of documents without a media type in lenient mode', async() => {
     const logger = new LoggerVoid();
     const spy = jest.spyOn(logger, 'warn');
+    jest.spyOn(logger, 'isLevelEnabled').mockReturnValue(true);
     const url = 'https://www.google.com/';
     context = new ActionContext({
       parseReject: true,
