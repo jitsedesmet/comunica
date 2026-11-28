@@ -156,13 +156,17 @@ describe('ActorQueryOperationExtend', () => {
 
     it('should not extend bindings on erroring expressions', async() => {
       const warn = jest.fn();
-      jest.spyOn(Actor, 'getContextLogger').mockImplementation(() => (<any>{ warn }));
+      jest.spyOn(Actor, 'getContextLogger').mockImplementation(() => (<any>{ warn, isLevelEnabled: () => true }));
 
       const op: any = { operation: example(faultyExpression), context };
       const output: IQueryOperationResultBindings = <any> await actor.run(op, undefined);
 
       await expect(arrayifyStream(output.bindingsStream)).resolves.toMatchObject(input);
       expect(warn).toHaveBeenCalledTimes(3);
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining('Expression error for extend operation'),
+        expect.objectContaining({ bindings: expect.any(String) }),
+      );
       expect(output.type).toBe('bindings');
       await expect(output.metadata()).resolves
         .toMatchObject({ cardinality: 3, variables: [
@@ -173,7 +177,7 @@ describe('ActorQueryOperationExtend', () => {
 
     it('should emit error when evaluation code returns a hard error', async() => {
       const warn = jest.fn();
-      jest.spyOn(Actor, 'getContextLogger').mockImplementation(() => (<any>{ warn }));
+      jest.spyOn(Actor, 'getContextLogger').mockImplementation(() => (<any>{ warn, isLevelEnabled: () => true }));
 
       Object.defineProperty(sparqlee, 'isExpressionError', { writable: true });
       // eslint-disable-next-line jest/prefer-spy-on

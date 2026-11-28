@@ -31,5 +31,9 @@ describe('LoggerVoid', () => {
     it('should void for fatal', () => {
       logger.fatal();
     });
+
+    it('should disable all levels', () => {
+      expect(logger.isLevelEnabled()).toBe(false);
+    });
   });
 });

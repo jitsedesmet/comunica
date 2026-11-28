@@ -67,5 +67,13 @@ describe('LoggerBunyan', () => {
       logger.fatal('bla', {});
       expect((<any> logger).bunyanLogger.fatal).toHaveBeenCalledTimes(1);
     });
+
+    it('should ask bunyan if a level is enabled', () => {
+      (<any> logger).bunyanLogger.debug.mockReturnValue(false);
+      (<any> logger).bunyanLogger.warn.mockReturnValue(true);
+      expect(logger.isLevelEnabled('debug')).toBe(false);
+      expect(logger.isLevelEnabled('warn')).toBe(true);
+      expect((<any> logger).bunyanLogger.warn).toHaveBeenCalledWith();
+    });
   });
 });

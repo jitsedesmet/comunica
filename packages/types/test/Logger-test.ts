@@ -40,6 +40,12 @@ describe('Logger', () => {
     });
   });
 
+  describe('#isLevelEnabled', () => {
+    it('should enable all levels by default', () => {
+      expect(new LoggerMock().isLevelEnabled('trace')).toBe(true);
+    });
+  });
+
   describe('#logGrouped', () => {
     let logger: Logger;
 

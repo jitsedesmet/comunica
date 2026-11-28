@@ -112,7 +112,17 @@ describe('Actor', () => {
         jest.spyOn(logger, 'warn');
         jest.spyOn(logger, 'error');
         jest.spyOn(logger, 'fatal');
+        jest.spyOn(logger, 'isLevelEnabled').mockReturnValue(true);
         context = new ActionContext({ [KeysCore.log.name]: logger });
+      });
+
+      it('should not call the logger or compute data for disabled levels', () => {
+        jest.spyOn(logger, 'isLevelEnabled').mockReturnValue(false);
+        const data = jest.fn(() => ({}));
+        actor.logWarn(context, 'bla', data);
+        expect(logger.isLevelEnabled).toHaveBeenCalledWith('warn');
+        expect(logger.warn).not.toHaveBeenCalled();
+        expect(data).not.toHaveBeenCalled();
       });
 
       it('should call the logger on trace', () => {

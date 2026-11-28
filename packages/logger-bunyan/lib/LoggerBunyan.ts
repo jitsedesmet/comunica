@@ -1,3 +1,4 @@
+import type { LogLevel } from '@comunica/types';
 import { Logger } from '@comunica/types';
 import BunyanLogger = require('bunyan');
 import type { LogLevelString } from 'bunyan';
@@ -37,6 +38,11 @@ export class LoggerBunyan extends Logger {
 
   public trace(message: string, data?: any): void {
     this.bunyanLogger.trace(data, message);
+  }
+
+  public override isLevelEnabled(level: LogLevel): boolean {
+    // Bunyan log methods called without arguments return if their level is enabled
+    return this.bunyanLogger[level]();
   }
 }
 

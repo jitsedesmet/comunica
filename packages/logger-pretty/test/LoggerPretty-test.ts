@@ -20,6 +20,13 @@ describe('LoggerPretty', () => {
     expect(process.stderr.write).toHaveBeenCalledTimes(1);
   });
 
+  it('should only enable levels at or above its level', () => {
+    const logger = new LoggerPretty({ level: 'warn' });
+    expect(logger.isLevelEnabled('info')).toBe(false);
+    expect(logger.isLevelEnabled('warn')).toBe(true);
+    expect(logger.isLevelEnabled('error')).toBe(true);
+  });
+
   describe('a LoggerPretty instance on trace level', () => {
     let logger: LoggerPretty;
 

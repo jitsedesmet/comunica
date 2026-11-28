@@ -1,4 +1,9 @@
 /**
+ * A logging level, from most to least verbose.
+ */
+export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+
+/**
  * A logger accepts messages from different levels
  * and emits them in a certain way.
  */
@@ -42,6 +47,15 @@ export abstract class Logger {
   public abstract warn(message: string, data?: any): void;
   public abstract error(message: string, data?: any): void;
   public abstract fatal(message: string, data?: any): void;
+
+  /**
+   * Check if messages at the given level are emitted, so callers can skip computing their log data otherwise.
+   * @param _level The logging level to check.
+   * @return If messages at the given level are emitted, which is always the case by default.
+   */
+  public isLevelEnabled(_level: LogLevel): boolean {
+    return true;
+  }
 
   /**
    * Log a message that might be repeated, preventing console spam.

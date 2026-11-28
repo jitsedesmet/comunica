@@ -1,4 +1,4 @@
-import type { IActionContext, Logger } from '@comunica/types';
+import type { IActionContext, Logger, LogLevel } from '@comunica/types';
 import type { Bus } from './Bus';
 import { CONTEXT_KEY_LOGGER } from './ContextEntries';
 import type { TestResult } from './TestResult';
@@ -104,46 +104,42 @@ implements IActorArgs<I, T, O, TS> {
     return dataActual;
   }
 
-  protected logTrace(context: IActionContext, message: string, data?: (() => any)): void {
+  /**
+   * Log a message with the context's logger, only computing its data if that logger emits the given level.
+   * @param level The logging level.
+   * @param context The context that may contain a logger.
+   * @param message The message to log.
+   * @param data An optional callback producing the data to log.
+   */
+  private logAtLevel(level: LogLevel, context: IActionContext, message: string, data?: (() => any)): void {
     const logger: Logger | undefined = Actor.getContextLogger(context);
-    if (logger) {
-      logger.trace(message, this.getDefaultLogData(context, data));
+    if (logger?.isLevelEnabled(level)) {
+      logger[level](message, this.getDefaultLogData(context, data));
     }
+  }
+
+  protected logTrace(context: IActionContext, message: string, data?: (() => any)): void {
+    this.logAtLevel('trace', context, message, data);
   }
 
   protected logDebug(context: IActionContext, message: string, data?: (() => any)): void {
-    const logger: Logger | undefined = Actor.getContextLogger(context);
-    if (logger) {
-      logger.debug(message, this.getDefaultLogData(context, data));
-    }
+    this.logAtLevel('debug', context, message, data);
   }
 
   protected logInfo(context: IActionContext, message: string, data?: (() => any)): void {
-    const logger: Logger | undefined = Actor.getContextLogger(context);
-    if (logger) {
-      logger.info(message, this.getDefaultLogData(context, data));
-    }
+    this.logAtLevel('info', context, message, data);
   }
 
   protected logWarn(context: IActionContext, message: string, data?: (() => any)): void {
-    const logger: Logger | undefined = Actor.getContextLogger(context);
-    if (logger) {
-      logger.warn(message, this.getDefaultLogData(context, data));
-    }
+    this.logAtLevel('warn', context, message, data);
   }
 
   protected logError(context: IActionContext, message: string, data?: (() => any)): void {
-    const logger: Logger | undefined = Actor.getContextLogger(context);
-    if (logger) {
-      logger.error(message, this.getDefaultLogData(context, data));
-    }
+    this.logAtLevel('error', context, message, data);
   }
 
   protected logFatal(context: IActionContext, message: string, data?: (() => any)): void {
-    const logger: Logger | undefined = Actor.getContextLogger(context);
-    if (logger) {
-      logger.fatal(message, this.getDefaultLogData(context, data));
-    }
+    this.logAtLevel('fatal', context, message, data);
   }
 }
 
