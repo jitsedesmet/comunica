@@ -165,7 +165,7 @@ describe('ActorQueryOperationExtend', () => {
       expect(warn).toHaveBeenCalledTimes(3);
       expect(warn).toHaveBeenCalledWith(
         expect.stringContaining('Expression error for extend operation'),
-        expect.objectContaining({ bindings: expect.any(String) }),
+        expect.objectContaining({ error: expect.any(String), bindings: expect.any(String) }),
       );
       expect(output.type).toBe('bindings');
       await expect(output.metadata()).resolves
