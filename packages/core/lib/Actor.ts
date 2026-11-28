@@ -112,7 +112,7 @@ implements IActorArgs<I, T, O, TS> {
    * @param data An optional callback producing the data to log.
    */
   private logAtLevel(level: LogLevel, context: IActionContext, message: string, data?: (() => any)): void {
-    const logger: Logger | undefined = Actor.getContextLogger(context);
+    const logger = Actor.getContextLogger(context);
     if (logger?.isLevelEnabled(level)) {
       logger[level](message, this.getDefaultLogData(context, data));
     }

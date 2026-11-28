@@ -20,7 +20,7 @@ export abstract class Logger {
     warn: 3,
     error: 4,
     fatal: 5,
-  };
+  } satisfies Record<LogLevel, number>;
 
   /**
    * Convert a string-based logging level to a numerical logging level.

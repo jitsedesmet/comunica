@@ -101,8 +101,9 @@ IActorRdfJoinTestSideData
     const bestActor = testResults[minIndex].actor;
 
     // Emit calculations in logger
-    if (bestActor.includeInLogs) {
-      Actor.getContextLogger(action.context)?.debug(`Determined physical join operator '${bestActor.logicalType}-${bestActor.physicalName}'`, {
+    const logger = Actor.getContextLogger(action.context);
+    if (bestActor.includeInLogs && logger?.isLevelEnabled('debug')) {
+      logger.debug(`Determined physical join operator '${bestActor.logicalType}-${bestActor.physicalName}'`, {
         entries: action.entries.length,
         variables: await Promise.all(action.entries
           .map(async entry => (await entry.output.metadata()).variables.map(variable => variable.variable.value))),

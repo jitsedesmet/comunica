@@ -44,6 +44,7 @@ describe('MediatorJoinCoefficientsFixed', () => {
         context: new ActionContext({
           [KeysCore.log.name]: {
             debug: debugLog,
+            isLevelEnabled: () => true,
           },
         }),
       };
@@ -109,6 +110,22 @@ describe('MediatorJoinCoefficientsFixed', () => {
       await expect(mediator.mediate(action)).resolves.toEqual({ id: 1 });
 
       expect(debugLog).not.toHaveBeenCalled();
+    });
+
+    it('should handle a single actor without computing log data when debug is disabled', async() => {
+      new DummyActor(1, {
+        iterations: 10,
+        persistedItems: 20,
+        blockingItems: 30,
+        requestTime: 50,
+      }, bus);
+      action.context = action.context.set(KeysCore.log, <any> { debug: debugLog, isLevelEnabled: () => false });
+      const metadata = jest.spyOn(action.entries[0].output, 'metadata');
+
+      await expect(mediator.mediate(action)).resolves.toEqual({ id: 1 });
+
+      expect(debugLog).not.toHaveBeenCalled();
+      expect(metadata).not.toHaveBeenCalled();
     });
 
     it('should handle multiple single actors', async() => {
