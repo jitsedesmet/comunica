@@ -1,5 +1,11 @@
 import { DataFactory } from 'rdf-data-factory';
-import { ExpressionError, isExpressionError, ExtensionFunctionError, InvalidLexicalForm } from '../../../lib';
+import {
+  ExpressionError,
+  isExpressionError,
+  ExtensionFunctionError,
+  InvalidArgumentTypes,
+  InvalidLexicalForm,
+} from '../../../lib';
 
 const DF = new DataFactory();
 
@@ -40,6 +46,16 @@ describe('Errors', () => {
       expect(error.message).toBe('apple');
       expect(error.message).toBe('apple');
       expect(describeMessage).toHaveBeenCalledTimes(1);
+    });
+
+    it('should keep its cause', () => {
+      const cause = new Error('pear');
+      expect(new ExpressionError('apple', { cause }).cause).toBe(cause);
+    });
+
+    it('should describe arguments that cannot be serialized to JSON', () => {
+      expect(new InvalidArgumentTypes(<any> [ 1n ], '+').message)
+        .toBe(`Argument types not valid for operator: '"+"' with '1`);
     });
 
     it('should allow overwriting its message', () => {

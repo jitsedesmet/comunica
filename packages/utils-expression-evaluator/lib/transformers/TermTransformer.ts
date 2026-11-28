@@ -151,6 +151,7 @@ export class TermTransformer implements ITermTransformer {
    * Create a literal for a value that is not in the lexical space of its datatype.
    * @param lit The RDF literal with an invalid lexical form.
    * @param dataType The datatype of the literal.
+   * @return The non-lexical literal.
    */
   private createNonLexicalLiteral(lit: RDF.Literal, dataType: string): E.NonLexicalLiteral {
     return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);

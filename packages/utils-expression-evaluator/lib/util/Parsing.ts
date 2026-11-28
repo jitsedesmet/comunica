@@ -53,6 +53,7 @@ export function parseXSDDecimal(value: string): number | undefined {
  * @param parsed The parsed value, or undefined if parsing failed.
  * @param value The string that was parsed.
  * @param type The name of the type the string was parsed as.
+ * @return The parsed value.
  */
 function parsedOrThrow<T>(parsed: T | undefined, value: string, type: string): T {
   if (parsed === undefined) {
@@ -80,6 +81,11 @@ export function parseDateTimeOrUndefined(dateTimeStr: string): IDateTimeRepresen
   return parsedTime && { ...parsedDate, ...parsedTime };
 }
 
+/**
+ * Parses an xsd:dateTime, throwing a {@link ParseError} if the string is not a valid xsd:dateTime.
+ * @param dateTimeStr The string to parse.
+ * @return The dateTime.
+ */
 export function parseDateTime(dateTimeStr: string): IDateTimeRepresentation {
   return parsedOrThrow(parseDateTimeOrUndefined(dateTimeStr), dateTimeStr, 'dateTime');
 }
@@ -129,6 +135,11 @@ export function parseDateOrUndefined(dateStr: string): IDateRepresentation | und
   return res;
 }
 
+/**
+ * Parses an xsd:date, throwing a {@link ParseError} if the string is not a valid xsd:date.
+ * @param dateStr The string to parse.
+ * @return The date.
+ */
 export function parseDate(dateStr: string): IDateRepresentation {
   return parsedOrThrow(parseDateOrUndefined(dateStr), dateStr, 'date');
 }
@@ -174,6 +185,11 @@ export function parseTimeOrUndefined(timeStr: string): ITimeRepresentation | und
   return res;
 }
 
+/**
+ * Parses an xsd:time, throwing a {@link ParseError} if the string is not a valid xsd:time.
+ * @param timeStr The string to parse.
+ * @return The time.
+ */
 export function parseTime(timeStr: string): ITimeRepresentation {
   return parsedOrThrow(parseTimeOrUndefined(timeStr), timeStr, 'time');
 }
@@ -218,6 +234,11 @@ export function parseDurationOrUndefined(durationStr: string): Partial<IDuration
   });
 }
 
+/**
+ * Parses an xsd:duration, throwing a {@link ParseError} if the string is not a valid xsd:duration.
+ * @param durationStr The string to parse.
+ * @return The duration.
+ */
 export function parseDuration(durationStr: string): Partial<IDurationRepresentation> {
   return parsedOrThrow(parseDurationOrUndefined(durationStr), durationStr, 'duration');
 }
@@ -236,6 +257,11 @@ Partial<IYearMonthDurationRepresentation> | undefined {
   return res;
 }
 
+/**
+ * Parses an xsd:yearMonthDuration, throwing a {@link ParseError} if the string is not a valid xsd:yearMonthDuration.
+ * @param durationStr The string to parse.
+ * @return The duration.
+ */
 export function parseYearMonthDuration(durationStr: string): Partial<IYearMonthDurationRepresentation> {
   return parsedOrThrow(parseYearMonthDurationOrUndefined(durationStr), durationStr, 'yearMonthDuration');
 }
@@ -254,6 +280,11 @@ Partial<IDayTimeDurationRepresentation> | undefined {
   return res;
 }
 
+/**
+ * Parses an xsd:dayTimeDuration, throwing a {@link ParseError} if the string is not a valid xsd:dayTimeDuration.
+ * @param durationStr The string to parse.
+ * @return The duration.
+ */
 export function parseDayTimeDuration(durationStr: string): Partial<IDayTimeDurationRepresentation> {
   return parsedOrThrow(parseDayTimeDurationOrUndefined(durationStr), durationStr, 'dayTimeDuration');
 }

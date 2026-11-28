@@ -23,12 +23,13 @@ export class ExpressionError extends Error {
   /**
    * Expression errors are expected during evaluation, so they skip the costly stack trace capture.
    * @param message The error message, or a function producing it, so it is only built when read.
+   * @param options The error options, such as its cause.
    */
-  public constructor(message: string | (() => string) = '') {
+  public constructor(message: string | (() => string) = '', options?: ErrorOptions) {
     const stackTraceLimit = Error.stackTraceLimit;
     // Reflect.set does not throw if Error is frozen, in which case the stack trace is still captured.
     Reflect.set(Error, 'stackTraceLimit', 0);
-    super();
+    super(undefined, options);
     Reflect.set(Error, 'stackTraceLimit', stackTraceLimit);
     this.#message = message;
   }
@@ -203,6 +204,15 @@ export class NoAggregator extends Error {
   }
 }
 
+/**
+ * Pretty-print an object for an error message, which must not throw as messages are built lazily.
+ * @param object The object to print.
+ * @return The JSON of the object, or its string form if it cannot be serialized.
+ */
 function pp<T>(object: T): string {
-  return JSON.stringify(object);
+  try {
+    return JSON.stringify(object);
+  } catch {
+    return String(object);
+  }
 }
